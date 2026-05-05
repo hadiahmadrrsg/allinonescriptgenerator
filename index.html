@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v13</title>
+<title>All in One Script Generator - v14</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -150,7 +150,7 @@ textarea{resize:vertical}
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v13</div>
+        <div class="logo-title">All in One Script Generator - v14</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
       </div>
     </div>
@@ -596,7 +596,7 @@ textarea{resize:vertical}
         </div>
         <div style="flex:1;min-width:200px;background:#f9fafb;border-radius:10px;padding:12px 16px;border:1px solid #e5e7eb">
           <div style="font-weight:700;font-size:24px;color:#ee4d2d;margin-bottom:4px">③</div>
-          <div style="font-size:12px;color:#374151;line-height:1.6">Click <strong>Generate</strong> → drag the orange button to your bookmark bar</div>
+          <div style="font-size:12px;color:#374151;line-height:1.6">Click <strong>📋 Copy Code</strong> → right-click bookmark bar → <strong>Add page</strong> → paste as URL</div>
         </div>
       </div>
     </div>
@@ -809,32 +809,42 @@ textarea{resize:vertical}
       <button onclick="generateBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif">⚡ Generate Bookmarklet</button>
     </div>
     <div id="bm-output" class="hidden">
-      <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:16px 20px;margin-bottom:12px;text-align:center">
-        <div style="font-size:16px;font-weight:800;color:#92400e;margin-bottom:10px">⬇️ Drag this to your bookmark bar ⬇️</div>
-        <a id="bm-link" href="#" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#ee4d2d,#ff7337);color:white;border-radius:12px;font-weight:800;font-size:16px;text-decoration:none;cursor:grab;box-shadow:0 4px 15px rgba(238,77,45,.35)">📋 DMS → Script Generator</a>
+      <!-- Step-by-step instructions -->
+      <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:20px;margin-bottom:12px">
+        <div style="font-size:16px;font-weight:800;color:#92400e;margin-bottom:14px">📋 Install the Bookmarklet</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
+            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">①</div>
+            <div style="font-size:12px;color:#374151;line-height:1.6">Click <strong>📋 Copy Code</strong> below</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
+            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">②</div>
+            <div style="font-size:12px;color:#374151;line-height:1.6"><strong>Right-click</strong> your bookmark bar → <strong>Add page</strong> (or "Add bookmark")</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
+            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">③</div>
+            <div style="font-size:12px;color:#374151;line-height:1.6">Name it <strong>DMS → Script Generator</strong><br>Paste the code as the <strong>URL</strong> → Save</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button onclick="copyBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#ee4d2d,#ff7337);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;box-shadow:0 4px 12px rgba(238,77,45,.3)">📋 Copy Code</button>
+          <span id="bm-copy-status" style="font-size:12px;color:#059669;font-weight:600"></span>
+        </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-        <button onclick="copyBookmarklet()" style="padding:8px 18px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#374151;font-size:13px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">📋 Copy Code</button>
-        <span style="font-size:11px;color:#9ca3af">Or copy the code below → create a new bookmark manually → paste as the URL:</span>
-      </div>
-      <textarea id="bm-code-text" rows="3" readonly onclick="this.select()" style="width:100%;font-size:10px;font-family:monospace;border-radius:8px;border:1.5px solid #e5e7eb;padding:8px;resize:none;color:#374151;background:#f9fafb;cursor:pointer" placeholder="Code will appear here after clicking Generate..."></textarea>
+      <details style="margin-bottom:12px">
+        <summary style="font-size:11px;color:#9ca3af;cursor:pointer;margin-bottom:6px">View raw bookmarklet code</summary>
+        <textarea id="bm-code-text" rows="3" readonly onclick="this.select()" style="width:100%;font-size:10px;font-family:monospace;border-radius:8px;border:1.5px solid #e5e7eb;padding:8px;resize:none;color:#374151;background:#f9fafb;cursor:pointer"></textarea>
+      </details>
       <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #86efac;padding:12px;font-size:11px;color:#374151">
-        <div style="font-weight:700;color:#166534;margin-bottom:10px">✅ How to use the DMS Bookmarklet:</div>
-        <div style="font-weight:600;color:#374151;margin-bottom:4px">Step 1 — Install the bookmarklet (one-time only)</div>
-        <ol style="margin:0 0 10px 0;padding-left:18px;line-height:2">
-          <li>Click <strong>⚡ Generate Bookmarklet</strong> above</li>
-          <li>Drag the orange <strong>📋 DMS → Script Generator</strong> button to your browser bookmark bar</li>
-          <li>Or copy the code below → create a new bookmark → paste as the URL</li>
-        </ol>
-        <div style="font-weight:600;color:#374151;margin-bottom:4px">Step 2 — Use it on a DMS case</div>
+        <div style="font-weight:700;color:#166534;margin-bottom:10px">✅ How to use (after installing):</div>
+        <div style="font-weight:600;color:#374151;margin-bottom:4px">On DMS:</div>
         <ol style="margin:0 0 10px 0;padding-left:18px;line-height:2">
           <li>Open a case on <strong>dms.cs.shopee.sg</strong></li>
-          <li>Click the bookmark — a panel will appear on the DMS page confirming the data was scraped and copied to clipboard</li>
-          <li>Switch to the Script Generator tab</li>
+          <li>Click the bookmark — a panel confirms the data was scraped</li>
         </ol>
-        <div style="font-weight:600;color:#374151;margin-bottom:4px">Step 3 — Auto-fill the form</div>
-        <ol style="margin:0 0 0 0;padding-left:18px;line-height:2">
-          <li>Click the blue <strong>📋 DMS Auto-Fill</strong> button at the top of Scraped Case Information</li>
+        <div style="font-weight:600;color:#374151;margin-bottom:4px">On the Script Generator:</div>
+        <ol style="margin:0;padding-left:18px;line-height:2">
+          <li>Click the blue <strong>📋 DMS Auto-Fill</strong> button</li>
           <li>Press <kbd style="background:#374151;color:white;padding:1px 6px;border-radius:4px;font-size:10px">Ctrl+V</kbd> — form fills instantly ✅</li>
         </ol>
       </div>
@@ -1068,7 +1078,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   <div class="docs-sidebar-logo">
     <span class="ds-badge">Shopee Return & Refund</span>
     <h2>All in One Script Generator</h2>
-    <p>Technical Documentation — v12</p>
+    <p>Technical Documentation — v14</p>
   </div>
 
   <div class="docs-nav-group">
@@ -1369,7 +1379,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <div class="dflow-box highlight">Copy JSON to clipboard + show overlay</div>
     </div>
 
-    <p>The bookmarklet is generated from <code>bmCode</code> — a template string inside the HTML. No URL is needed. Click <strong>⚡ Generate</strong> in Admin to create the bookmarklet, then drag it to the bookmark bar. It scrapes DMS data and copies to clipboard.</p>
+    <p>The bookmarklet is generated from <code>bmCode</code> — a template string inside the HTML. No URL is needed. Click <strong>⚡ Generate</strong> in Admin, then <strong>Copy Code</strong> and create a bookmark manually with the code as the URL.</p>
 
     <h3>Auto-fill in the Generator</h3>
     <ol class="dsteps">
@@ -1564,7 +1574,7 @@ EVIDENCE_DB = {
       </div>
       <div class="dcard">
         <div class="dcard-title">🔗 Bookmarklet Setup</div>
-        <p style="margin:0;font-size:13px;color:var(--dmuted)">Click Generate → drag the orange button to bookmark bar. The bookmarklet scrapes DMS data and copies it to clipboard.</p>
+        <p style="margin:0;font-size:13px;color:var(--dmuted)">Click Generate → Copy Code → create a bookmark manually → paste as URL.</p>
       </div>
     </div>
   </div>
@@ -1590,7 +1600,7 @@ EVIDENCE_DB = {
     <div class="dcard" style="margin-bottom:12px">
       <div class="dcard-title"><span class="dbadge badge-yellow">Issue</span> &nbsp;Bookmarklet doesn't run on DMS</div>
       <p style="margin:6px 0 4px;font-size:13px">Clicking the bookmark does nothing, or prompt doesn't appear.</p>
-      <p style="margin:0;font-size:13px;color:var(--muted)"><strong>Fix:</strong> Regenerate the bookmarklet in Admin. The stored bookmark may have been corrupted by the browser during drag-and-drop. Use "Copy Code" → create bookmark manually → paste code as URL.</p>
+      <p style="margin:0;font-size:13px;color:var(--muted)"><strong>Fix:</strong> Regenerate the bookmarklet in Admin. Click "Copy Code" → right-click bookmark bar → "Add page" → paste code as URL. Name it "DMS → Script Generator".</p>
     </div>
 
     <div class="dcard" style="margin-bottom:12px">
@@ -1702,11 +1712,54 @@ setTimeout(function(){
     <h1 style="font-size:26px;font-weight:800;color:#1a1a1a;margin-bottom:6px">📝 Version <span style="color:#ee4d2d">Updates</span></h1>
     <p style="font-size:14px;color:#6b7280;margin-bottom:32px">All changes, bug fixes, and improvements — listed by version.</p>
 
-    <!-- v13 -->
+    <!-- v14 -->
     <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v13 — Current</div>
-        <div style="color:rgba(255,255,255,.8);font-size:12px">4 May 2026</div>
+        <div style="color:white;font-weight:800;font-size:16px">v14 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">5 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Seller Dispute › Without Buyer</strong> now shows 3 separate flows in Admin Script Flows: Approve Compensation, Reject Compensation, Request Evidence</li>
+            <li><strong>Approve Compensation Request</strong> has its own assembly — uses Cancel Request (payment released) scripts with SLA Wallet</li>
+            <li><strong>Offering Help Reject</strong> section added to Buyer Reject Request (10 new buyer-specific scripts) and Seller Accept Request</li>
+            <li><strong>Bookmarklet redesigned</strong> — Copy Code + manual bookmark creation (fixes Chrome blocking <code>javascript:</code> href on GitHub Pages)</li>
+            <li><strong>Snippet Export/Import</strong> switched from CSV to JSON format — no Excel needed</li>
+            <li><strong>Script Map</strong> in Backend HTML replaced with clean numbered table format (12 flows with section chains)</li>
+            <li><strong>Flow summary bar</strong> added inside each Script Flows accordion — shows sections and special notes</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Bookmarklet no longer requires URL input — removed redirect issue on GitHub Pages</li>
+            <li>Refund Amount removed from DMS Auto-Fill — agent fills manually</li>
+            <li>SLA Wallet field now only shows for Approve Compensation Request (removed from Seller Accept)</li>
+            <li>Admin Script Flows grouping rewritten — uses SCRIPT_ASSEMBLY directly, scripts follow section order, no more script leaking between flows</li>
+            <li>Removed 10 orphaned Seller Accept wallet compensation scripts from RAW_DB</li>
+            <li>Removed Magic Word / Closing from Buyer Reject Request and Seller Accept Request</li>
+            <li>DMS Auto-Fill button redesigned — bigger with helper text inside blue box</li>
+            <li>"Case Information" renamed to "Scraped Case Information"</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#9333ea;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Database</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>RAW_DB: 200 scripts (10 added buyer Offering Help, 10 removed seller wallet compensation)</li>
+            <li>SCRIPT_ASSEMBLY: 12 flows (added Seller|Approve Compensation Request)</li>
+            <li>EVIDENCE_DB: 109 entries (unchanged)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v13 -->
+    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v13</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">4 May 2026</div>
       </div>
       <div style="padding:20px">
         <div style="margin-bottom:16px">
@@ -2768,18 +2821,16 @@ const bmCode = "javascript:(function(){var rid=prompt(\"Enter Case RID:\",window
 //')||loc.startsWith('http')) input.value = loc;
 
 function generateBookmarklet(){
-  // No URL needed — bookmarklet just scrapes DMS and copies to clipboard
   state.bookmarkletCode = bmCode;
-  document.getElementById('bm-link').href = state.bookmarkletCode;
   document.getElementById('bm-code-text').value = state.bookmarkletCode;
   document.getElementById('bm-output').classList.remove('hidden');
 }
 function copyBookmarklet(){
   if(!state.bookmarkletCode) return;
   navigator.clipboard.writeText(state.bookmarkletCode).then(()=>{
-    const btn=event.target; const orig=btn.textContent;
-    btn.textContent='✓ Copied!';
-    setTimeout(()=>btn.textContent=orig,2000);
+    const status = document.getElementById('bm-copy-status');
+    if(status) status.textContent = '✅ Copied! Now right-click bookmark bar → Add page → paste as URL';
+    setTimeout(()=>{ if(status) status.textContent=''; }, 5000);
   });
 }
 
@@ -2948,9 +2999,7 @@ function checkUrlParams(){
   // Auto-generate bookmarklet (no URL needed)
   try{
     state.bookmarkletCode = bmCode;
-    const link = document.getElementById('bm-link');
     const code = document.getElementById('bm-code-text');
-    if(link) link.href = state.bookmarkletCode;
     if(code) code.value = state.bookmarkletCode;
   }catch(e){}
 }
