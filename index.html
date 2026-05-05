@@ -465,7 +465,7 @@ textarea{resize:vertical}
       <div style="border:2px dashed #e5e7eb;border-radius:10px;padding:24px;text-align:center">
         <div style="font-size:32px;margin-bottom:8px">📁</div>
         <div style="font-size:13px;color:#6b7280;margin-bottom:12px">Upload a CSV file exported from Excel or Google Sheets</div>
-        <input type="file" id="snip-import-file" accept=".json,.csv,.tsv,.txt" onchange="handleSnipImportFile(this)" style="font-family:'Sora',sans-serif;font-size:12px">
+        <input type="file" id="snip-import-file" accept=".csv,.tsv,.txt,.xlsx,.json" onchange="handleSnipImportFile(this)" style="font-family:'Sora',sans-serif;font-size:12px">
       </div>
     </div>
 
@@ -805,7 +805,7 @@ textarea{resize:vertical}
   <div style="margin-bottom:24px;background:#fff5f3;border-radius:12px;border:1.5px solid #fbd5cc;padding:18px 20px">
     <div style="font-weight:700;font-size:14px;color:#374151;margin-bottom:4px">🔗 DMS Bookmarklet Setup</div>
     <div style="font-size:12px;color:#9ca3af;margin-bottom:14px">Generate a bookmarklet that scrapes case data from DMS. After scraping, come back here and paste with DMS Auto-Fill.</div>
-    <div style="margin-bottom:12px">
+    <div style="margin-bottom:12px;text-align:center">
       <button onclick="generateBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif">⚡ Generate Bookmarklet</button>
     </div>
     <div id="bm-output" class="hidden">
@@ -823,7 +823,7 @@ textarea{resize:vertical}
           </div>
           <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
             <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">③</div>
-            <div style="font-size:12px;color:#374151;line-height:1.6">Name it <strong>DMS → Script Generator</strong><br>Paste the code as the <strong>URL</strong> → Save</div>
+            <div style="font-size:12px;color:#374151;line-height:1.6">Paste the code as the <strong>URL</strong> → <strong>Save</strong></div>
           </div>
         </div>
         <div style="display:flex;gap:8px;align-items:center">
@@ -3672,15 +3672,22 @@ function fillSnippetPlaceholders(text){
 // ── Export / Import (CSV/Excel format) ──
 function exportSnippets(){
   if(!snippetsDB.length){ alert('No snippets to export.'); return; }
-  const exportData = snippetsDB.map(s=>({
-    title:s.title||'', shortcut:s.shortcut||'', category:s.cat||'phrase', content:s.content||''
-  }));
-  const json = JSON.stringify(exportData, null, 2);
-  const blob = new Blob([json], {type:'application/json;charset=utf-8;'});
+  const header = ['Title','Shortcut','Category','Content'];
+  const rows = snippetsDB.map(s=>[
+    s.title||'', s.shortcut||'', s.cat||'phrase', s.content||''
+  ]);
+  const csvContent = [header, ...rows].map(row=>
+    row.map(cell=>{
+      const val = String(cell??'');
+      return (val.includes(',')||val.includes('\n')||val.includes('"'))
+        ? '"'+val.replace(/"/g,'""')+'"' : val;
+    }).join(',')
+  ).join('\n');
+  const blob = new Blob(['\uFEFF'+csvContent], {type:'text/csv;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'snippets_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.download = 'snippets_backup_'+new Date().toISOString().slice(0,10)+'.csv';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3711,43 +3718,47 @@ function handleSnipImportFile(input){
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('snip-import-input').value = e.target.result;
-    switchSnipImportTab('paste');
+    // Auto-import after file load
+    applySnippetImport();
   };
   reader.readAsText(file);
 }
 
 function parseSnipCSV(raw){
   const rows = [];
-  const lines = raw.trim().split('\n');
-  for(const line of lines){
-    if(!line.trim()) continue;
-    // Support both tab (Excel/Sheets copy) and comma (CSV)
-    let cols;
-    if(line.includes('\t')){
-      cols = line.split('\t').map(c=>c.trim().replace(/^"|"$/g,''));
+  // Strip BOM and normalize line endings
+  raw = raw.replace(/^\uFEFF/, '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+  // Full CSV parser that handles quoted fields with newlines
+  const records = [];
+  let current = [];
+  let field = '';
+  let inQuotes = false;
+  for(let i = 0; i < raw.length; i++){
+    const ch = raw[i];
+    if(inQuotes){
+      if(ch === '"' && raw[i+1] === '"'){ field += '"'; i++; continue; }
+      if(ch === '"'){ inQuotes = false; continue; }
+      field += ch;
     } else {
-      // Simple CSV parse — handle quoted fields with commas
-      cols = [];
-      let current = '';
-      let inQuotes = false;
-      for(let j=0;j<line.length;j++){
-        const ch = line[j];
-        if(ch==='"'){ inQuotes=!inQuotes; continue; }
-        if(ch===','&&!inQuotes){ cols.push(current.trim()); current=''; continue; }
-        current+=ch;
-      }
-      cols.push(current.trim());
+      if(ch === '"'){ inQuotes = true; continue; }
+      if(ch === ',' || ch === '\t'){ current.push(field.trim()); field = ''; continue; }
+      if(ch === '\n'){ current.push(field.trim()); records.push(current); current = []; field = ''; continue; }
+      field += ch;
     }
+  }
+  if(field || current.length) { current.push(field.trim()); records.push(current); }
+
+  for(const cols of records){
     if(cols.length < 2) continue;
     const title = cols[0]||'';
     const shortcut = cols[1]||'';
-    const cat = (cols[2]||'phrase').toLowerCase().trim();
-    const content = cols.slice(3).join(',').trim() || cols[3] || '';
+    const cat = (cols[2]||'phrase').trim();
+    const content = cols[3] || '';
     // Skip header row
     if(title.toLowerCase()==='title' && shortcut.toLowerCase()==='shortcut') continue;
     if(!title || !content) continue;
-    const importCat = cat || 'General';
-    rows.push({ title, shortcut, cat:importCat, content });
+    rows.push({ title, shortcut, cat: cat || 'General', content });
   }
   return rows;
 }
@@ -3756,24 +3767,25 @@ function applySnippetImport(){
   const raw = document.getElementById('snip-import-input').value.trim();
   if(!raw){ alert('Please paste or upload data first.'); return; }
 
-  // Try JSON format first
-  let parsed = [];
-  try{
-    const jsonData = JSON.parse(raw);
-    if(Array.isArray(jsonData)){
-      parsed = jsonData.map(s=>({
-        title: s.title||'',
-        shortcut: s.shortcut||'',
-        cat: s.category||s.cat||'General',
-        content: s.content||''
-      })).filter(s=>s.title||s.content);
-    }
-  }catch(e){
-    // Not JSON — try CSV/TSV
-    parsed = parseSnipCSV(raw);
+  // Try CSV/TSV first (primary format from Export)
+  let parsed = parseSnipCSV(raw);
+
+  // If CSV parsing found nothing, try JSON as fallback
+  if(!parsed.length){
+    try{
+      const jsonData = JSON.parse(raw);
+      if(Array.isArray(jsonData)){
+        parsed = jsonData.map(s=>({
+          title: s.title||s.Title||'',
+          shortcut: s.shortcut||s.Shortcut||'',
+          cat: s.category||s.cat||s.Category||'General',
+          content: s.content||s.Content||''
+        })).filter(s=>s.title||s.content);
+      }
+    }catch(e){}
   }
 
-  if(!parsed.length){ alert('No valid snippets found. Supported formats: JSON (from Export) or CSV/TSV (Title, Shortcut, Category, Content).'); return; }
+  if(!parsed.length){ alert('No valid snippets found. Export your snippets first, then upload the .csv file here.'); return; }
   let added = 0;
   parsed.forEach(s=>{
     snippetsDB.push({
