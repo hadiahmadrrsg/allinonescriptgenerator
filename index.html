@@ -389,16 +389,15 @@ textarea{resize:vertical}
     <span style="font-size:12px;font-weight:500;color:#0c4a6e">Snippets are stored in your browser only. Export a backup before updating to a new version — your snippets may not carry over.</span>
   </div>
 
-  <!-- Google Sheets instruction bubble -->
-  <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12.5px;color:#92400e;line-height:1.7">
+    <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12.5px;color:#92400e;line-height:1.7">
     <div style="font-weight:700;margin-bottom:6px">📥 How to upload snippets from Google Sheets</div>
     <ol style="margin:0;padding-left:18px">
       <li>Open your Google Sheets snippet list</li>
       <li>Go to <strong>File → Download → Comma Separated Values (.csv)</strong></li>
-      <li>The file saves to your Downloads folder (e.g. <code style="background:#fef3c7;padding:1px 5px;border-radius:4px">snippets.csv</code>)</li>
-      <li>Click <strong>📤 Import</strong> above → <strong>Upload CSV</strong> → choose the file</li>
+      <li>The file saves to your Downloads folder</li>
+      <li>Click <strong>📤 Import</strong> → drag &amp; drop the CSV into the zone</li>
     </ol>
-    <div style="margin-top:8px;font-size:11.5px;color:#b45309">⚠️ Uploading will <strong>replace all</strong> current snippets with the imported ones.</div>
+    <div style="margin-top:8px;font-size:11.5px;color:#b45309">⚠️ Uploading will <strong>replace all</strong> current snippets.</div>
   </div>
 
   <!-- Add/Edit Form -->
@@ -474,10 +473,14 @@ textarea{resize:vertical}
       <textarea id="snip-import-input" rows="8" placeholder='Paste rows from Excel here (Ctrl+V)...' style="width:100%;border-radius:10px;border:1.5px solid #e5e7eb;padding:10px;font-size:12px;font-family:'Sora',sans-serif;outline:none;resize:vertical"></textarea>
     </div>
     <div id="snip-imp-file-panel">
-      <div style="border:2px dashed #e5e7eb;border-radius:10px;padding:24px;text-align:center">
-        <div style="font-size:32px;margin-bottom:8px">📁</div>
-        <div style="font-size:13px;color:#6b7280;margin-bottom:12px">Upload a CSV file exported from Excel or Google Sheets</div>
-        <input type="file" id="snip-import-file" accept=".csv,.tsv,.txt,.xlsx,.json" onchange="handleSnipImportFile(this)" style="font-family:'Sora',sans-serif;font-size:12px">
+      <div id="snip-drop-zone" style="border:2px dashed #e5e7eb;border-radius:10px;padding:32px 24px;text-align:center;cursor:pointer"
+        ondragover="event.preventDefault();this.style.borderColor='#ee4d2d';this.style.background='#fff5f3'"
+        ondragleave="this.style.borderColor='#e5e7eb';this.style.background=''"
+        ondrop="handleSnipDrop(event)">
+        <div style="font-size:36px;margin-bottom:10px">📂</div>
+        <div style="font-size:14px;font-weight:600;color:#374151;margin-bottom:4px">Drag &amp; drop your CSV file here</div>
+        <div style="font-size:12px;color:#9ca3af">Exported from Google Sheets or Excel</div>
+        <div id="snip-drop-feedback" style="margin-top:10px;font-size:12px;color:#059669;font-weight:600"></div>
       </div>
     </div>
 
@@ -895,10 +898,14 @@ textarea{resize:vertical}
 
       <!-- File upload panel -->
       <div id="import-file-panel">
-        <div style="border:2px dashed #e5e7eb;border-radius:10px;padding:24px;text-align:center">
-          <div style="font-size:32px;margin-bottom:8px">📁</div>
-          <div style="font-size:13px;color:#6b7280;margin-bottom:12px">Upload a CSV file exported from Google Sheets</div>
-          <input type="file" id="import-file" accept=".csv,.tsv,.txt" onchange="handleImportFile(this)" style="font-family:'Sora',sans-serif;font-size:12px">
+        <div id="admin-drop-zone" style="border:2px dashed #e5e7eb;border-radius:10px;padding:32px 24px;text-align:center;cursor:pointer"
+          ondragover="event.preventDefault();this.style.borderColor='#ee4d2d';this.style.background='#fff5f3'"
+          ondragleave="this.style.borderColor='#e5e7eb';this.style.background=''"
+          ondrop="handleAdminDrop(event)">
+          <div style="font-size:36px;margin-bottom:10px">📂</div>
+          <div style="font-size:14px;font-weight:600;color:#374151;margin-bottom:4px">Drag &amp; drop your CSV file here</div>
+          <div style="font-size:12px;color:#9ca3af">Exported from Google Sheets or Excel</div>
+          <div id="admin-drop-feedback" style="margin-top:10px;font-size:12px;color:#059669;font-weight:600"></div>
         </div>
       </div>
 
@@ -1722,6 +1729,13 @@ setTimeout(function(){
 
   <div style="background:white;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.07);padding:32px 40px">
     <h1 style="font-size:26px;font-weight:800;color:#1a1a1a;margin-bottom:6px">📝 Version <span style="color:#ee4d2d">Updates</span></h1>
+    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:12px;padding:18px 20px;margin-top:16px">
+      <div style="font-weight:700;font-size:14px;color:#c2410c;margin-bottom:8px">🌐 GitHub</div>
+      <div style="font-size:13px;color:#374151;line-height:1.7">
+        Maintained at <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
+        Latest version always available there. Share the URL with your team for easy updates.
+      </div>
+    </div>
     <p style="font-size:14px;color:#6b7280;margin-bottom:32px">All changes, bug fixes, and improvements — listed by version.</p>
 
     <!-- v14 -->
@@ -2304,11 +2318,11 @@ let importParsedRows = [];
 
 function openImportModal(){
   document.getElementById('import-modal').classList.remove('hidden');
+  setTimeout(()=>switchImportTab('file'),0);
   document.getElementById('import-paste').value='';
   document.getElementById('import-preview').classList.add('hidden');
   document.getElementById('btn-apply-import').classList.add('hidden');
   importParsedRows=[];
-  switchImportTab('file');
 }
 function closeImportModal(){
   document.getElementById('import-modal').classList.add('hidden');
@@ -2330,7 +2344,7 @@ function handleImportFile(input){
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('import-paste').value = e.target.result;
-    input.value = ''; // reset so same filename can be re-uploaded
+    input.value = '';
     switchImportTab('paste');
     parseImportData();
   };
@@ -3733,7 +3747,6 @@ function handleSnipImportFile(input){
   const reader = new FileReader();
   reader.onload = e => {
     document.getElementById('snip-import-input').value = e.target.result;
-    // Reset input so same filename can be re-uploaded next time
     input.value = '';
     applySnippetImport();
   };
@@ -3802,8 +3815,7 @@ function applySnippetImport(){
   }
 
   if(!parsed.length){ alert('No valid snippets found. Export your snippets first, then upload the .csv file here.'); return; }
-  // Replace all existing snippets with imported ones
-  snippetsDB.length = 0;
+  snippetsDB.length = 0; // Replace all
   let added = 0;
   parsed.forEach(s=>{
     snippetsDB.push({
@@ -3820,10 +3832,50 @@ function applySnippetImport(){
   saveSnippetsToStorage();
   document.getElementById('snip-import-modal').classList.add('hidden');
   renderSnippetsPanel();
-  alert(`✅ Imported ${added} snippet${added!==1?'s':''}. All previous snippets have been replaced.`);
+  alert(`✅ Imported ${added} snippet${added!==1?'s':''}. Previous snippets replaced.`);
 }
 
 // Check URL params on load
+
+function handleSnipDrop(e){
+  e.preventDefault();
+  const z=document.getElementById('snip-drop-zone');
+  z.style.borderColor='#e5e7eb';z.style.background='';
+  const file=e.dataTransfer.files[0];if(!file)return;
+  const fb=document.getElementById('snip-drop-feedback');
+  fb.textContent='📄 '+file.name+' — reading...';
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('snip-import-input').value=ev.target.result;
+    fb.textContent='✅ '+file.name+' loaded!';
+    applySnippetImport();
+  };
+  r.readAsText(file);
+}
+function handleAdminDrop(e){
+  e.preventDefault();
+  const z=document.getElementById('admin-drop-zone');
+  z.style.borderColor='#e5e7eb';z.style.background='';
+  const file=e.dataTransfer.files[0];if(!file)return;
+  const fb=document.getElementById('admin-drop-feedback');
+  fb.textContent='📄 '+file.name+' — reading...';
+  const r=new FileReader();
+  r.onload=ev=>{
+    document.getElementById('import-paste').value=ev.target.result;
+    fb.textContent='✅ '+file.name+' loaded!';
+    switchImportTab('paste');
+    parseImportData();
+  };
+  r.readAsText(file);
+}
+function downloadSelf(){
+  const blob=new Blob(['<!DOCTYPE html>\n'+document.documentElement.outerHTML],{type:'text/html'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='All in One Script Generator v14.html';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
 
 // ═══════════════════════════════════════════════════════════════
 // INIT
