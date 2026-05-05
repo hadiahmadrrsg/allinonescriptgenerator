@@ -141,6 +141,58 @@ textarea{resize:vertical}
   .add-form-grid{grid-template-columns:1fr 1fr}
 }
 </style>
+
+<style>
+
+.docs-wrap { margin:0 -24px; padding:0; font-family:'Sora',sans-serif; }
+.docs-wrap { --dshopee:#ee4d2d; --dsurface:#ffffff; --dsurface2:#f9fafb; --dborder:#e5e7eb; --dtext:#1a1a1a; --dmuted:#6b7280; --dgreen:#059669; --dblue:#2563eb; --dyellow:#d97706; --dpurple:#7c3aed; --dred:#dc2626; --dcode-bg:#f3f4f6; }
+.docs-layout { display:grid; grid-template-columns:230px 1fr; min-height:80vh; background:#fff; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.07); overflow:hidden; }
+.docs-sidebar { background:var(--dsurface2); padding:24px 18px; border-right:1.5px solid var(--dborder); position:sticky; top:0; max-height:90vh; overflow-y:auto; }
+.docs-sidebar-logo { margin-bottom:20px; }
+.docs-sidebar-logo .ds-badge { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; background:var(--dshopee); color:white; padding:3px 10px; border-radius:6px; margin-bottom:8px; }
+.docs-sidebar-logo h2 { font-size:16px; font-weight:800; color:var(--dtext); margin:0 0 2px; }
+.docs-sidebar-logo p { font-size:11px; color:var(--dmuted); margin:0; }
+.docs-nav-group { margin-bottom:16px; }
+.docs-nav-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--dmuted); margin-bottom:8px; }
+.docs-nav-item { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; font-size:12px; color:var(--dtext); cursor:pointer; text-decoration:none; transition:background .15s; }
+.docs-nav-item:hover { background:rgba(0,0,0,.04); }
+.docs-nav-item.active { background:rgba(238,77,45,.08); color:var(--dshopee); font-weight:600; }
+.ddot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.docs-content { padding:32px 36px; overflow-y:auto; max-height:90vh; }
+.dsection { margin-bottom:32px; }
+.dsection h2 { font-size:20px; font-weight:800; color:var(--dtext); margin-bottom:12px; display:flex; align-items:center; gap:10px; }
+.dsection h2 .icon { font-size:22px; }
+.dsection h3 { font-size:14px; font-weight:700; color:var(--dtext); margin:20px 0 10px; }
+.dsection p { font-size:13px; line-height:1.7; color:var(--dtext); margin:0 0 14px; }
+.dsection code { background:var(--dcode-bg); padding:1px 6px; border-radius:5px; font-size:12px; font-family:'Courier New',monospace; color:var(--dshopee); }
+.dsection pre { background:var(--dcode-bg); border-radius:10px; padding:16px; font-size:12px; line-height:1.6; overflow-x:auto; margin:0 0 14px; font-family:'Courier New',monospace; }
+.dsection pre .key { color:var(--dblue); font-weight:600; }
+.dsection pre .str { color:var(--dgreen); }
+.dsection pre .cmt { color:var(--dmuted); }
+.dsection pre .kw { color:var(--dpurple); font-weight:600; }
+.dsection table { width:100%; border-collapse:collapse; margin:0 0 14px; font-size:12px; }
+.dsection table th { background:var(--dsurface2); border:1px solid var(--dborder); padding:8px 12px; text-align:left; font-weight:700; color:var(--dtext); }
+.dsection table td { border:1px solid var(--dborder); padding:8px 12px; color:var(--dtext); vertical-align:top; }
+.dflow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
+.dflow-box { background:var(--dsurface2); border:1.5px solid var(--dborder); border-radius:10px; padding:8px 16px; font-size:12px; font-weight:600; color:var(--dtext); }
+.dflow-arrow { color:var(--dmuted); font-size:18px; }
+.dflow-box.dhighlight { background:#fff5f3; border-color:var(--dshopee); color:var(--dshopee); }
+.dsteps { padding-left:18px; margin:0 0 14px; }
+.dsteps li { font-size:13px; line-height:2; color:var(--dtext); }
+.dcard { background:var(--dsurface); border:1.5px solid var(--dborder); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
+.dcard-title { font-size:13px; font-weight:700; color:var(--dtext); margin-bottom:6px; }
+.dalert { border-radius:10px; padding:12px 16px; font-size:12px; line-height:1.6; margin:14px 0; }
+.dalert-yellow { background:#fffbeb; border:1.5px solid #fde68a; color:#92400e; }
+.dalert-red { background:#fef2f2; border:1.5px solid #fecaca; color:#991b1b; }
+.dbadge { display:inline-block; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600; margin:2px; }
+.dbadge-green { background:#dcfce7; color:#065f46; }
+.dbadge-yellow { background:#fef3c7; color:#92400e; }
+.dbadge-red { background:#fee2e2; color:#991b1b; }
+.dbadge-blue { background:#dbeafe; color:#1e40af; }
+.dgrid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
+hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
+
+</style>
 </head>
 <body>
 
@@ -809,7 +861,7 @@ textarea{resize:vertical}
   <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
     <span style="font-size:16px">🌐</span>
     <div style="font-size:12.5px;color:#374151;line-height:1.6">
-      <strong>GitHub:</strong> <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
+      <strong>All in One Script Generator:</strong> <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
       Latest version always available there. Please always refresh the website.
     </div>
   </div>
@@ -1048,55 +1100,7 @@ textarea{resize:vertical}
 
   <!-- BACKEND HTML SECTION -->
   <div id="admin-section-backend" class="hidden">
-<style>
-.docs-wrap { margin:0 -24px; padding:0; font-family:'Sora',sans-serif; }
-.docs-wrap { --dshopee:#ee4d2d; --dsurface:#ffffff; --dsurface2:#f9fafb; --dborder:#e5e7eb; --dtext:#1a1a1a; --dmuted:#6b7280; --dgreen:#059669; --dblue:#2563eb; --dyellow:#d97706; --dpurple:#7c3aed; --dred:#dc2626; --dcode-bg:#f3f4f6; }
-.docs-layout { display:grid; grid-template-columns:230px 1fr; min-height:80vh; background:#fff; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,.07); overflow:hidden; }
-.docs-sidebar { background:var(--dsurface2); padding:24px 18px; border-right:1.5px solid var(--dborder); position:sticky; top:0; max-height:90vh; overflow-y:auto; }
-.docs-sidebar-logo { margin-bottom:20px; }
-.docs-sidebar-logo .ds-badge { display:inline-block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; background:var(--dshopee); color:white; padding:3px 10px; border-radius:6px; margin-bottom:8px; }
-.docs-sidebar-logo h2 { font-size:16px; font-weight:800; color:var(--dtext); margin:0 0 2px; }
-.docs-sidebar-logo p { font-size:11px; color:var(--dmuted); margin:0; }
-.docs-nav-group { margin-bottom:16px; }
-.docs-nav-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:var(--dmuted); margin-bottom:8px; }
-.docs-nav-item { display:flex; align-items:center; gap:8px; padding:6px 10px; border-radius:8px; font-size:12px; color:var(--dtext); cursor:pointer; text-decoration:none; transition:background .15s; }
-.docs-nav-item:hover { background:rgba(0,0,0,.04); }
-.docs-nav-item.active { background:rgba(238,77,45,.08); color:var(--dshopee); font-weight:600; }
-.ddot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.docs-content { padding:32px 36px; overflow-y:auto; max-height:90vh; }
-.dsection { margin-bottom:32px; }
-.dsection h2 { font-size:20px; font-weight:800; color:var(--dtext); margin-bottom:12px; display:flex; align-items:center; gap:10px; }
-.dsection h2 .icon { font-size:22px; }
-.dsection h3 { font-size:14px; font-weight:700; color:var(--dtext); margin:20px 0 10px; }
-.dsection p { font-size:13px; line-height:1.7; color:var(--dtext); margin:0 0 14px; }
-.dsection code { background:var(--dcode-bg); padding:1px 6px; border-radius:5px; font-size:12px; font-family:'Courier New',monospace; color:var(--dshopee); }
-.dsection pre { background:var(--dcode-bg); border-radius:10px; padding:16px; font-size:12px; line-height:1.6; overflow-x:auto; margin:0 0 14px; font-family:'Courier New',monospace; }
-.dsection pre .key { color:var(--dblue); font-weight:600; }
-.dsection pre .str { color:var(--dgreen); }
-.dsection pre .cmt { color:var(--dmuted); }
-.dsection pre .kw { color:var(--dpurple); font-weight:600; }
-.dsection table { width:100%; border-collapse:collapse; margin:0 0 14px; font-size:12px; }
-.dsection table th { background:var(--dsurface2); border:1px solid var(--dborder); padding:8px 12px; text-align:left; font-weight:700; color:var(--dtext); }
-.dsection table td { border:1px solid var(--dborder); padding:8px 12px; color:var(--dtext); vertical-align:top; }
-.dflow { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 14px; }
-.dflow-box { background:var(--dsurface2); border:1.5px solid var(--dborder); border-radius:10px; padding:8px 16px; font-size:12px; font-weight:600; color:var(--dtext); }
-.dflow-arrow { color:var(--dmuted); font-size:18px; }
-.dflow-box.dhighlight { background:#fff5f3; border-color:var(--dshopee); color:var(--dshopee); }
-.dsteps { padding-left:18px; margin:0 0 14px; }
-.dsteps li { font-size:13px; line-height:2; color:var(--dtext); }
-.dcard { background:var(--dsurface); border:1.5px solid var(--dborder); border-radius:12px; padding:14px 16px; margin-bottom:10px; }
-.dcard-title { font-size:13px; font-weight:700; color:var(--dtext); margin-bottom:6px; }
-.dalert { border-radius:10px; padding:12px 16px; font-size:12px; line-height:1.6; margin:14px 0; }
-.dalert-yellow { background:#fffbeb; border:1.5px solid #fde68a; color:#92400e; }
-.dalert-red { background:#fef2f2; border:1.5px solid #fecaca; color:#991b1b; }
-.dbadge { display:inline-block; padding:2px 8px; border-radius:6px; font-size:11px; font-weight:600; margin:2px; }
-.dbadge-green { background:#dcfce7; color:#065f46; }
-.dbadge-yellow { background:#fef3c7; color:#92400e; }
-.dbadge-red { background:#fee2e2; color:#991b1b; }
-.dbadge-blue { background:#dbeafe; color:#1e40af; }
-.dgrid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px; }
-hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
-</style>
+
 
 <div class="docs-wrap">
 <div class="docs-layout">
@@ -1736,12 +1740,38 @@ setTimeout(function(){
   <!-- VERSION UPDATES SECTION -->
   <div id="admin-section-versions" class="hidden">
 
-  <div>
-    <div style="font-weight:800;font-size:20px;color:#1a1a1a;margin-bottom:4px">📝 Version <span style="color:#ee4d2d">Updates</span></div>
-    <p style="font-size:13px;color:#9ca3af;margin-bottom:20px">All changes, bug fixes, and improvements — listed by version.</p>
+  <div class="docs-wrap">
+  <div class="docs-layout">
 
-    <!-- v14 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+  <!-- SIDEBAR -->
+  <aside class="docs-sidebar">
+    <div class="docs-sidebar-logo">
+      <span class="ds-badge">Shopee Return & Refund</span>
+      <h2>Version Updates</h2>
+      <p>All changes, fixes and improvements</p>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-label">Versions</div>
+    <a class="docs-nav-item active" onclick="scrollToVer('v14')" id="vnav-v14"><span class="ddot" style="background:#ee4d2d"></span>v14 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v13')" id="vnav-v13"><span class="ddot" style="background:#6b7280"></span>v13</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v12')" id="vnav-v12"><span class="ddot" style="background:#6b7280"></span>v12</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v11')" id="vnav-v11"><span class="ddot" style="background:#6b7280"></span>v11</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v10')" id="vnav-v10"><span class="ddot" style="background:#6b7280"></span>v10</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v9')" id="vnav-v9"><span class="ddot" style="background:#6b7280"></span>v9</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v8')" id="vnav-v8"><span class="ddot" style="background:#6b7280"></span>v8</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v7')" id="vnav-v7"><span class="ddot" style="background:#6b7280"></span>v7</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v6')" id="vnav-v6"><span class="ddot" style="background:#6b7280"></span>v6</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v5')" id="vnav-v5"><span class="ddot" style="background:#6b7280"></span>v5</a>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
+    <div class="ddiv" id="vsec-top"></div>
+
+      <div id="vsec-v14" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v14 — Current</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">5 May 2026</div>
@@ -1782,9 +1812,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-    <!-- v13 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v13" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v13</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">4 May 2026</div>
@@ -1818,9 +1849,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-    <!-- v12 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v12" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v12</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">1 May 2026</div>
@@ -1840,9 +1872,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-    <!-- v11 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v11" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v11</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">1 May 2026</div>
@@ -1867,10 +1900,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-
-    <!-- v10 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v10" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v10</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">30 April 2026</div>
@@ -1896,9 +1929,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-    <!-- v9 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v9" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v9</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">30 April 2026</div>
@@ -1923,9 +1957,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-    <!-- v8 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v8" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v8</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">29 April 2026</div>
@@ -1957,9 +1992,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-    <!-- v7 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v7" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v7</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">29 April 2026</div>
@@ -1986,9 +2022,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-    <!-- v6 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v6" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v6</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">23 April 2026</div>
@@ -2016,9 +2053,10 @@ setTimeout(function(){
         </div>
       </div>
     </div>
+      </div>
 
-    <!-- v5 -->
-    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div id="vsec-v5" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v5</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">23 April 2026</div>
@@ -2081,8 +2119,24 @@ setTimeout(function(){
     </div>
 
   </div>
+      </div>
+
 
   </div>
+  </div>
+  </div>
+
+  <script>
+  function scrollToVer(id){
+    const el = document.getElementById('vsec-'+id);
+    const container = el?.closest('.docs-content');
+    if(el && container) container.scrollTop = el.offsetTop - 16;
+    document.querySelectorAll('#admin-section-versions .docs-nav-item').forEach(a=>a.classList.remove('active'));
+    const nav = document.getElementById('vnav-'+id);
+    if(nav) nav.classList.add('active');
+  }
+  </script>
+</div>
 
 </div>
 </div>
