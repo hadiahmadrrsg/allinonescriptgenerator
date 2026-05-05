@@ -436,6 +436,7 @@ textarea{resize:vertical}
     <div style="flex:1"></div>
     <input type="text" id="snip-search-lib" class="snip-search" placeholder="🔍 Search snippets..." oninput="renderSnippetsPanel()" style="max-width:220px">
     <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;font-weight:600;color:#6b7280;white-space:nowrap"><input type="checkbox" id="snip-select-all" onchange="snipToggleAll(this.checked)"> Select All</label>
+    <button id="snip-undo-btn" onclick="snipUndoDelete()" style="padding:5px 12px;border-radius:8px;border:1px solid #d1fae5;background:#f0fdf4;color:#059669;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;display:none">↩ Undo</button>
     <button id="snip-delete-selected" onclick="snipDeleteSelected()" style="padding:5px 12px;border-radius:8px;border:1px solid #fecaca;background:#fff5f5;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;opacity:0.4;white-space:nowrap">🗑️ Delete (<span id="snip-selected-count">0</span>)</button>
   </div>
 
@@ -802,16 +803,24 @@ textarea{resize:vertical}
   <!-- Header (shown for all tabs) -->
   <div style="margin-bottom:20px">
     <div style="font-weight:700;font-size:20px;color:#1a1a1a">⚙️ Admin Panel</div>
-    <div style="color:#9ca3af;font-size:13px" id="db-count"></div>
+    <div id="db-count" style="display:none"></div>
+  </div>
+  <!-- GitHub info bubble -->
+  <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:16px">🌐</span>
+    <div style="font-size:12.5px;color:#374151;line-height:1.6">
+      <strong>GitHub:</strong> <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
+      Latest version always available there. Please always refresh the website.
+    </div>
   </div>
 
   <!-- Admin Sub-Tabs -->
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
     <button id="admin-tab-bookmarklet" onclick="setAdminTab('bookmarklet')" class="admin-sub-btn active">🔗 Bookmarklet</button>
+    <button id="admin-tab-versions" onclick="setAdminTab('versions')" class="admin-sub-btn">📝 Version Updates</button>
     <button id="admin-tab-scripts" onclick="setAdminTab('scripts')" class="admin-sub-btn">📜 Script Flows</button>
     <button id="admin-tab-evidence" onclick="setAdminTab('evidence')" class="admin-sub-btn">📋 Evidence Collection</button>
     <button id="admin-tab-backend" onclick="setAdminTab('backend')" class="admin-sub-btn">🔧 Backend HTML</button>
-    <button id="admin-tab-versions" onclick="setAdminTab('versions')" class="admin-sub-btn">📝 Version Updates</button>
   </div>
 
   <!-- BOOKMARKLET SECTION -->
@@ -1727,16 +1736,9 @@ setTimeout(function(){
   <!-- VERSION UPDATES SECTION -->
   <div id="admin-section-versions" class="hidden">
 
-  <div style="background:white;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.07);padding:32px 40px">
-    <h1 style="font-size:26px;font-weight:800;color:#1a1a1a;margin-bottom:6px">📝 Version <span style="color:#ee4d2d">Updates</span></h1>
-    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:12px;padding:18px 20px;margin-top:16px">
-      <div style="font-weight:700;font-size:14px;color:#c2410c;margin-bottom:8px">🌐 GitHub</div>
-      <div style="font-size:13px;color:#374151;line-height:1.7">
-        Maintained at <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
-        Latest version always available there. Share the URL with your team for easy updates.
-      </div>
-    </div>
-    <p style="font-size:14px;color:#6b7280;margin-bottom:32px">All changes, bug fixes, and improvements — listed by version.</p>
+  <div>
+    <div style="font-weight:800;font-size:20px;color:#1a1a1a;margin-bottom:4px">📝 Version <span style="color:#ee4d2d">Updates</span></div>
+    <p style="font-size:13px;color:#9ca3af;margin-bottom:20px">All changes, bug fixes, and improvements — listed by version.</p>
 
     <!-- v14 -->
     <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
@@ -3095,7 +3097,7 @@ function renderIssueDescPanel(){
 }
 
 function renderAdminPanel(){
-  document.getElementById('db-count').textContent=`${db.length} total scripts in database`;
+  
   // Populate section filter
   const secFilter = document.getElementById('filter-section');
   if(secFilter.options.length<=1){
@@ -3678,14 +3680,28 @@ function snipUpdateSelectedCount(){
   if(delBtn) delBtn.style.opacity = checked.length > 0 ? '1' : '0.4';
 }
 
+let _snipDeletedItems = [];
 function snipDeleteSelected(){
-  const checked = document.querySelectorAll('.snip-checkbox:checked');
-  if(checked.length === 0) return;
-  const ids = new Set([...checked].map(cb=>Number(cb.dataset.id)));
-  snippetsDB = snippetsDB.filter(s=>!ids.has(s.id));
+  const checked = [...document.querySelectorAll('.snip-check:checked')];
+  if(!checked.length) return;
+  const ids = checked.map(c=>parseInt(c.dataset.id));
+  _snipDeletedItems = snippetsDB.filter(s=>ids.includes(s.id));
+  snippetsDB = snippetsDB.filter(s=>!ids.includes(s.id));
   saveSnippetsToStorage();
   renderSnippetsPanel();
-  showSnipToast(`${ids.size} snippet${ids.size>1?'s':''} deleted`);
+  const undoBtn = document.getElementById('snip-undo-btn');
+  if(undoBtn){ undoBtn.style.display=''; undoBtn.textContent='↩ Undo ('+_snipDeletedItems.length+')'; }
+  setTimeout(()=>{ if(undoBtn) undoBtn.style.display='none'; _snipDeletedItems=[]; }, 8000);
+}
+function snipUndoDelete(){
+  if(!_snipDeletedItems.length) return;
+  snippetsDB.push(..._snipDeletedItems);
+  snippetsDB.sort((a,b)=>a.created-b.created);
+  _snipDeletedItems=[];
+  saveSnippetsToStorage();
+  renderSnippetsPanel();
+  const undoBtn = document.getElementById('snip-undo-btn');
+  if(undoBtn) undoBtn.style.display='none';
 }
 
 function fillSnippetPlaceholders(text){
