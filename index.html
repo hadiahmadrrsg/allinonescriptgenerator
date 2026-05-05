@@ -465,7 +465,7 @@ textarea{resize:vertical}
       <div style="border:2px dashed #e5e7eb;border-radius:10px;padding:24px;text-align:center">
         <div style="font-size:32px;margin-bottom:8px">📁</div>
         <div style="font-size:13px;color:#6b7280;margin-bottom:12px">Upload a CSV file exported from Excel or Google Sheets</div>
-        <input type="file" id="snip-import-file" accept=".csv,.tsv,.txt" onchange="handleSnipImportFile(this)" style="font-family:'Sora',sans-serif;font-size:12px">
+        <input type="file" id="snip-import-file" accept=".json,.csv,.tsv,.txt" onchange="handleSnipImportFile(this)" style="font-family:'Sora',sans-serif;font-size:12px">
       </div>
     </div>
 
@@ -592,7 +592,7 @@ textarea{resize:vertical}
         </div>
         <div style="flex:1;min-width:200px;background:#f9fafb;border-radius:10px;padding:12px 16px;border:1px solid #e5e7eb">
           <div style="font-weight:700;font-size:24px;color:#ee4d2d;margin-bottom:4px">②</div>
-          <div style="font-size:12px;color:#374151;line-height:1.6">Enter the URL where this HTML file is saved</div>
+          <div style="font-size:12px;color:#374151;line-height:1.6">Click <strong>⚡ Generate Bookmarklet</strong></div>
         </div>
         <div style="flex:1;min-width:200px;background:#f9fafb;border-radius:10px;padding:12px 16px;border:1px solid #e5e7eb">
           <div style="font-weight:700;font-size:24px;color:#ee4d2d;margin-bottom:4px">③</div>
@@ -804,13 +804,9 @@ textarea{resize:vertical}
   <!-- Bookmarklet Setup -->
   <div style="margin-bottom:24px;background:#fff5f3;border-radius:12px;border:1.5px solid #fbd5cc;padding:18px 20px">
     <div style="font-weight:700;font-size:14px;color:#374151;margin-bottom:4px">🔗 DMS Bookmarklet Setup</div>
-    <div style="font-size:12px;color:#9ca3af;margin-bottom:14px">Generate a bookmarklet that scrapes DMS and opens this Script Generator with all fields pre-filled — same as the original Google Sheets setup.</div>
-    <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px">
-      <div style="flex:1;min-width:260px">
-        <span class="lbl" style="font-size:11px">Click Generate to get your DMS bookmarklet</span>
-        <input type="text" id="bm-url-input" placeholder="No URL needed — just click ⚡ Generate below" style="font-size:12px;padding:7px 10px;border-radius:9px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;width:100%;outline:none">
-      </div>
-      <button onclick="generateBookmarklet()" style="padding:8px 18px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;white-space:nowrap">⚡ Generate</button>
+    <div style="font-size:12px;color:#9ca3af;margin-bottom:14px">Generate a bookmarklet that scrapes case data from DMS. After scraping, come back here and paste with DMS Auto-Fill.</div>
+    <div style="margin-bottom:12px">
+      <button onclick="generateBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif">⚡ Generate Bookmarklet</button>
     </div>
     <div id="bm-output" class="hidden">
       <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:16px 20px;margin-bottom:12px;text-align:center">
@@ -826,7 +822,7 @@ textarea{resize:vertical}
         <div style="font-weight:700;color:#166534;margin-bottom:10px">✅ How to use the DMS Bookmarklet:</div>
         <div style="font-weight:600;color:#374151;margin-bottom:4px">Step 1 — Install the bookmarklet (one-time only)</div>
         <ol style="margin:0 0 10px 0;padding-left:18px;line-height:2">
-          <li>Click <strong>⚡ Generate</strong> above</li>
+          <li>Click <strong>⚡ Generate Bookmarklet</strong> above</li>
           <li>Drag the orange <strong>📋 DMS → Script Generator</strong> button to your browser bookmark bar</li>
           <li>Or copy the code below → create a new bookmark → paste as the URL</li>
         </ol>
@@ -1373,7 +1369,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <div class="dflow-box highlight">Copy JSON to clipboard + show overlay</div>
     </div>
 
-    <p>The bookmarklet is generated from <code>bmCode</code> — a template string inside the HTML. The <code>__SCRIPT_GENERATOR_URL__</code> placeholder is replaced with the actual URL when you click <strong>⚡ Generate</strong> in Admin.</p>
+    <p>The bookmarklet is generated from <code>bmCode</code> — a template string inside the HTML. No URL is needed. Click <strong>⚡ Generate</strong> in Admin to create the bookmarklet, then drag it to the bookmark bar. It scrapes DMS data and copies to clipboard.</p>
 
     <h3>Auto-fill in the Generator</h3>
     <ol class="dsteps">
@@ -1568,7 +1564,7 @@ EVIDENCE_DB = {
       </div>
       <div class="dcard">
         <div class="dcard-title">🔗 Bookmarklet Setup</div>
-        <p style="margin:0;font-size:13px;color:var(--dmuted)">Enter the URL where this HTML is saved → click Generate → drag the orange button to bookmark bar. Must regenerate whenever the file is moved.</p>
+        <p style="margin:0;font-size:13px;color:var(--dmuted)">Click Generate → drag the orange button to bookmark bar. The bookmarklet scrapes DMS data and copies it to clipboard.</p>
       </div>
     </div>
   </div>
@@ -1612,7 +1608,7 @@ EVIDENCE_DB = {
     <div class="dcard">
       <div class="dcard-title"><span class="dbadge badge-red">Error</span> &nbsp;url is not defined (console)</div>
       <p style="margin:6px 0 4px;font-size:13px">Page loads with a console error about <code>url</code>.</p>
-      <p style="margin:0;font-size:13px;color:var(--muted)"><strong>Fix:</strong> The <code>bmCode</code> variable uses a template literal with <code>${url}</code> which JavaScript evaluates at parse time. The bookmarklet template must use a plain string placeholder like <code>__SCRIPT_GENERATOR_URL__</code> instead.</p>
+      <p style="margin:0;font-size:13px;color:var(--muted)"><strong>Fix:</strong> The bookmarklet no longer requires a URL. It scrapes DMS data and copies to clipboard. The agent then manually pastes into the generator using DMS Auto-Fill.</p>
     </div>
   </div>
 
@@ -2767,22 +2763,13 @@ function copyAll(){
 // ═══════════════════════════════════════════════════════════════
 // DMS AUTO-FILL (mirrors appscript.json flow)
 // ═══════════════════════════════════════════════════════════════
-const bmCode = "javascript:(function(){var W=__SCRIPT_GENERATOR_URL__;var rid=prompt(\"Enter Case RID:\",window.location.pathname.split('/').pop()||\"\");if(!rid)return;function isProductTableHeader(text){return(text.indexOf('Returnable Status')!==-1||text.indexOf('dms_new_rr_returnable_status')!==-1)&&(text.indexOf('Products')!==-1||text.indexOf('dms_general_products')!==-1)}function isOrderDetailHeader(text){return(text.indexOf('dms_general_parcel')!==-1||text.indexOf('Parcel')!==-1)&&(text.indexOf('dms_general_products')!==-1||text.indexOf('Products')!==-1)&&(text.indexOf('cs_portal_bundle_id')!==-1||text.indexOf('Bundle ID')!==-1)}function extractVariation(lines){for(var k=1;k<lines.length;k++){var l=lines[k].trim();if(/^Variation\\s*:/i.test(l)){return l.replace(/^Variation\\s*:\\s*/i,'').trim()}if(/^dms_general_variation\\s*:/i.test(l)){return l.replace(/^dms_general_variation\\s*:\\s*/i,'').trim()}}return''}function extractProducts(){var products=[];var allRows=document.querySelectorAll('tr');var inProductTable=false;for(var i=0;i<allRows.length;i++){var row=allRows[i];var text=row.innerText.trim();if(!inProductTable){if(isProductTableHeader(text)){inProductTable=true}continue}if(isOrderDetailHeader(text)){break}if(row.className.indexOf('ant-table-row')===-1||row.className.indexOf('measure')!==-1)continue;var lines=text.split(/\\n/);var name=lines[0].trim().replace(/\\s+X\\d+\\s*$/g,'').trim();var variation=extractVariation(lines);var cleanVar=variation.replace(/\\s*[A-Z0-9]{6,}(\\s|_|$)/g,' ').replace(/[_]/g,' ').replace(/\\s+/g,' ').trim();if(name.length>10){products.push({name:name,variation:cleanVar})}}return products}function formatProducts(products){if(products.length===0)return'Info';if(products.length===1)return products[0].name;var nameCount={};for(var i=0;i<products.length;i++){nameCount[products[i].name]=(nameCount[products[i].name]||0)+1}var result=[];for(var j=0;j<products.length;j++){var p=products[j];if(nameCount[p.name]>1&&p.variation){result.push('- '+p.name+' ('+p.variation+')')}else{result.push('- '+p.name)}}return result.join('\\n')}function doScrape(){var t=document.body.innerText;var products=extractProducts();var pn=formatProducts(products);var reqType=(t.match(/Request Type[\\s]*:[\\s]*(.*?)(?=\\n|$)/i)||[])[1]||'';var rawProposal=(t.match(/Request Proposal[\\s]*:?[\\s]*(.+?)(?=\\s{2,}|Refund Amount|\\t|\\n|$)/i)||[])[1]||'';var sellerDR='';var sdrMatch=t.match(/Seller 1st Dispute[\\s\\S]*?Dispute Reason[\\s]*:[\\s]*(.+?)(?=\\n|$)/i);if(sdrMatch){sellerDR=sdrMatch[1].trim()}if(sellerDR==='-'||sellerDR==='None'||sellerDR==='')sellerDR='';var isSellerDispute=false;if(/^\\s*Seller\\s*Dispute/i.test(reqType)){isSellerDispute=true}else if(sellerDR&&sellerDR.length>2&&!/Buyer\\s*Request/i.test(reqType)){isSellerDispute=true}var sellerSubType='';if(/without\\s*buyer/i.test(reqType)){sellerSubType='Without Buyer'}else if(/with\\s*buyer/i.test(reqType)||isSellerDispute){sellerSubType='With Buyer'}var userTypeStr='Buyer';var requestTypeStr='';if(isSellerDispute){userTypeStr='Seller';requestTypeStr='Seller Dispute'}else{if(rawProposal.match(/Return\\s*[&]\\s*Refund/i)||rawProposal.match(/Return\\s*and\\s*Refund/i)||rawProposal==='Return&Refund'){requestTypeStr='Return & Refund'}else if(rawProposal.match(/Refund\\s*Only/i)){requestTypeStr='Refund Only'}}var returnReason='';var rrPatterns=[/Real Return Reason[\\s]*:[\\s]*(.+?)(?=\\t|\\n|$)/i,/Real Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=\\s{2,}|\\t|\\n|$)/i,/Real\\s+Return\\s+Reason\\s*[:\\-]?\\s*(.+?)$/im];for(var rp=0;rp<rrPatterns.length;rp++){var rrm=t.match(rrPatterns[rp]);if(rrm&&rrm[1]&&rrm[1].trim()!=='-'&&rrm[1].trim()!=='None'&&rrm[1].trim()!=='Not Available'&&rrm[1].trim().length>3){returnReason=rrm[1].trim();break}}if(!returnReason||returnReason==='-'){var rrFallback=[/(?:^|\\n|\\t)Return Reason[\\s]*:[\\s]*(.+?)(?=\\s{2,}|Real Return|\\t|\\n|$)/i,/Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=Return Reason Remark|Real Return|\\t{2,}|\\n|$)/i];for(var rf=0;rf<rrFallback.length;rf++){var rfm=t.match(rrFallback[rf]);if(rfm&&rfm[1]&&rfm[1].trim()!=='-'&&rfm[1].trim()!=='None'&&rfm[1].trim()!=='Not Available'&&rfm[1].trim().length>3){returnReason=rfm[1].trim();break}}}returnReason=returnReason.replace(/\\s*Auto[- ]?Approve.*$/i,'').trim();returnReason=returnReason.replace(/\\s*Images and Videos.*$/i,'').trim();returnReason=returnReason.replace(/\\s*Return Reason Remark.*$/i,'').trim();var refundAmt='';var gtMatch=(t.match(/Grand Total[:\\s\\n]*\\$?([\\d,]+\\.?\\d*)/i)||[])[1]||'';refundAmt=gtMatch.replace(/,/g,'');var slaWallet='';var slaMatches=t.match(/Maximum Compensation Amount[:\\s]*\\$?([\\d]+\\.?\\d*)/gi);if(slaMatches){for(var sm=0;sm<slaMatches.length;sm++){var smv=(slaMatches[sm].match(/([\\d]+\\.?\\d*)$/)||[])[1]||'';if(smv&&parseFloat(smv)>0){slaWallet=smv;break}}}var d={rid:rid,orderSN:(t.match(/Order SN[:\\s]*([A-Z0-9]+)/i)||[])[1]||'',userType:userTypeStr,requestType:requestTypeStr,buyerUsername:((t.match(/Buyer Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\s*(?:Buyer|Seller)?\s*$/i,'').trim(),sellerUsername:((t.match(/Seller Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\s*(?:Buyer|Seller)?\s*$/i,'').trim(),shopName:(t.match(/Shop Name[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',productName:pn,requestProposal:rawProposal,returnReason:returnReason,refundAmount:refundAmt,buyerCategory:(t.match(/Buyer Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerCategory:(t.match(/Seller Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerDisputeReason:sellerDR,slaWallet:slaWallet,sellerSubType:sellerSubType};var json=JSON.stringify(d,null,2);navigator.clipboard.writeText(json).catch(function(){});var existing=document.getElementById('_sg_overlay');if(existing)existing.remove();var fields=[d.orderSN?'<b>Order SN:</b> '+d.orderSN:'',d.userType?'<b>User Type:</b> '+d.userType+(d.requestType?' \u00b7 '+d.requestType:'')+(d.sellerSubType?' \u00b7 '+d.sellerSubType:''):'',d.buyerUsername?'<b>Buyer Username:</b> '+d.buyerUsername:'',d.sellerUsername?'<b>Seller Username:</b> '+d.sellerUsername:'',d.productName&&d.productName!=='Info'?'<b>Product:</b> '+d.productName.substring(0,60):'',d.returnReason?'<b>Return Reason:</b> '+d.returnReason:'',d.sellerDisputeReason?'<b>Dispute Reason:</b> '+d.sellerDisputeReason:'',d.refundAmount?'<b>Refund Amount:</b> $'+d.refundAmount:'',d.slaWallet?'<b>SLA Wallet:</b> '+d.slaWallet:''].filter(Boolean).map(function(f){return '<div style=\"padding:4px 0;border-bottom:1px solid #f3f4f6\">'+f+'</div>';}).join('');var overlay=document.createElement('div');overlay.id='_sg_overlay';overlay.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:white;border-radius:20px;padding:36px 40px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;font-size:16px;min-width:520px;max-width:600px;border:3px solid #ee4d2d';overlay.innerHTML='<div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px\"><div style=\"font-weight:700;font-size:15px;color:#ee4d2d\">\u2705 DMS Data Scraped!</div><button onclick=\"this.closest(\\'#_sg_overlay\\').remove()\" style=\"background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;padding:0;line-height:1\">&times;</button></div>'+fields+'<div style=\"margin-top:12px;background:#fff7ed;border-radius:8px;padding:8px 10px;font-size:11px;color:#92400e\"><b>Next:</b> Go to Script Generator \u2192 click \ud83d\udccb DMS Auto-Fill \u2192 paste (Ctrl+V)</div>';document.body.appendChild(overlay);setTimeout(function(){var o=document.getElementById('_sg_overlay');if(o)o.style.transition='opacity 0.5s';if(o)o.style.opacity='0';setTimeout(function(){var o2=document.getElementById('_sg_overlay');if(o2)o2.remove();},500);},15000);}function clickViewDetailAndScrape(){if(document.body.innerText.indexOf('Maximum Compensation Amount')!==-1){doScrape();return;}var found=null;var all=document.querySelectorAll('*');for(var i=0;i<all.length;i++){var el=all[i];var txt=(el.innerText||el.textContent||'').trim();if(txt==='View Detail'&&el.children.length===0){found=el;break;}}if(found){found.click();var waited=0;var checkComp=setInterval(function(){waited+=100;if(document.body.innerText.indexOf('Maximum Compensation Amount')!==-1||waited>=1500){clearInterval(checkComp);doScrape();}},100);}else{doScrape();}}var attempts=0;var maxAttempts=16;var checkInterval=500;function waitAndScrape(){var t=document.body.innerText;var hasOrderSN=/Order SN[\\s]*:[\\s]*[A-Z0-9]{5,}/i.test(t);var hasReqType=/Request Type[\\s]*:/i.test(t);attempts++;if(hasOrderSN&&hasReqType){clickViewDetailAndScrape()}else if(attempts>=maxAttempts){clickViewDetailAndScrape()}else{setTimeout(waitAndScrape,checkInterval)}}waitAndScrape()})();";
+const bmCode = "javascript:(function(){var rid=prompt(\"Enter Case RID:\",window.location.pathname.split('/').pop()||\"\");if(!rid)return;function isProductTableHeader(text){return(text.indexOf('Returnable Status')!==-1||text.indexOf('dms_new_rr_returnable_status')!==-1)&&(text.indexOf('Products')!==-1||text.indexOf('dms_general_products')!==-1)}function isOrderDetailHeader(text){return(text.indexOf('dms_general_parcel')!==-1||text.indexOf('Parcel')!==-1)&&(text.indexOf('dms_general_products')!==-1||text.indexOf('Products')!==-1)&&(text.indexOf('cs_portal_bundle_id')!==-1||text.indexOf('Bundle ID')!==-1)}function extractVariation(lines){for(var k=1;k<lines.length;k++){var l=lines[k].trim();if(/^Variation\\s*:/i.test(l)){return l.replace(/^Variation\\s*:\\s*/i,'').trim()}if(/^dms_general_variation\\s*:/i.test(l)){return l.replace(/^dms_general_variation\\s*:\\s*/i,'').trim()}}return''}function extractProducts(){var products=[];var allRows=document.querySelectorAll('tr');var inProductTable=false;for(var i=0;i<allRows.length;i++){var row=allRows[i];var text=row.innerText.trim();if(!inProductTable){if(isProductTableHeader(text)){inProductTable=true}continue}if(isOrderDetailHeader(text)){break}if(row.className.indexOf('ant-table-row')===-1||row.className.indexOf('measure')!==-1)continue;var lines=text.split(/\\n/);var name=lines[0].trim().replace(/\\s+X\\d+\\s*$/g,'').trim();var variation=extractVariation(lines);var cleanVar=variation.replace(/\\s*[A-Z0-9]{6,}(\\s|_|$)/g,' ').replace(/[_]/g,' ').replace(/\\s+/g,' ').trim();if(name.length>10){products.push({name:name,variation:cleanVar})}}return products}function formatProducts(products){if(products.length===0)return'Info';if(products.length===1)return products[0].name;var nameCount={};for(var i=0;i<products.length;i++){nameCount[products[i].name]=(nameCount[products[i].name]||0)+1}var result=[];for(var j=0;j<products.length;j++){var p=products[j];if(nameCount[p.name]>1&&p.variation){result.push('- '+p.name+' ('+p.variation+')')}else{result.push('- '+p.name)}}return result.join('\\n')}function doScrape(){var t=document.body.innerText;var products=extractProducts();var pn=formatProducts(products);var reqType=(t.match(/Request Type[\\s]*:[\\s]*(.*?)(?=\\n|$)/i)||[])[1]||'';var rawProposal=(t.match(/Request Proposal[\\s]*:?[\\s]*(.+?)(?=\\s{2,}|Refund Amount|\\t|\\n|$)/i)||[])[1]||'';var sellerDR='';var sdrMatch=t.match(/Seller 1st Dispute[\\s\\S]*?Dispute Reason[\\s]*:[\\s]*(.+?)(?=\\n|$)/i);if(sdrMatch){sellerDR=sdrMatch[1].trim()}if(sellerDR==='-'||sellerDR==='None'||sellerDR==='')sellerDR='';var isSellerDispute=false;if(/^\\s*Seller\\s*Dispute/i.test(reqType)){isSellerDispute=true}else if(sellerDR&&sellerDR.length>2&&!/Buyer\\s*Request/i.test(reqType)){isSellerDispute=true}var sellerSubType='';if(/without\\s*buyer/i.test(reqType)){sellerSubType='Without Buyer'}else if(/with\\s*buyer/i.test(reqType)||isSellerDispute){sellerSubType='With Buyer'}var userTypeStr='Buyer';var requestTypeStr='';if(isSellerDispute){userTypeStr='Seller';requestTypeStr='Seller Dispute'}else{if(rawProposal.match(/Return\\s*[&]\\s*Refund/i)||rawProposal.match(/Return\\s*and\\s*Refund/i)||rawProposal==='Return&Refund'){requestTypeStr='Return & Refund'}else if(rawProposal.match(/Refund\\s*Only/i)){requestTypeStr='Refund Only'}}var returnReason='';var rrPatterns=[/Real Return Reason[\\s]*:[\\s]*(.+?)(?=\\t|\\n|$)/i,/Real Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=\\s{2,}|\\t|\\n|$)/i,/Real\\s+Return\\s+Reason\\s*[:\\-]?\\s*(.+?)$/im];for(var rp=0;rp<rrPatterns.length;rp++){var rrm=t.match(rrPatterns[rp]);if(rrm&&rrm[1]&&rrm[1].trim()!=='-'&&rrm[1].trim()!=='None'&&rrm[1].trim()!=='Not Available'&&rrm[1].trim().length>3){returnReason=rrm[1].trim();break}}if(!returnReason||returnReason==='-'){var rrFallback=[/(?:^|\\n|\\t)Return Reason[\\s]*:[\\s]*(.+?)(?=\\s{2,}|Real Return|\\t|\\n|$)/i,/Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=Return Reason Remark|Real Return|\\t{2,}|\\n|$)/i];for(var rf=0;rf<rrFallback.length;rf++){var rfm=t.match(rrFallback[rf]);if(rfm&&rfm[1]&&rfm[1].trim()!=='-'&&rfm[1].trim()!=='None'&&rfm[1].trim()!=='Not Available'&&rfm[1].trim().length>3){returnReason=rfm[1].trim();break}}}returnReason=returnReason.replace(/\\s*Auto[- ]?Approve.*$/i,'').trim();returnReason=returnReason.replace(/\\s*Images and Videos.*$/i,'').trim();returnReason=returnReason.replace(/\\s*Return Reason Remark.*$/i,'').trim();var refundAmt='';var gtMatch=(t.match(/Grand Total[:\\s\\n]*\\$?([\\d,]+\\.?\\d*)/i)||[])[1]||'';refundAmt=gtMatch.replace(/,/g,'');var slaWallet='';var slaMatches=t.match(/Maximum Compensation Amount[:\\s]*\\$?([\\d]+\\.?\\d*)/gi);if(slaMatches){for(var sm=0;sm<slaMatches.length;sm++){var smv=(slaMatches[sm].match(/([\\d]+\\.?\\d*)$/)||[])[1]||'';if(smv&&parseFloat(smv)>0){slaWallet=smv;break}}}var d={rid:rid,orderSN:(t.match(/Order SN[:\\s]*([A-Z0-9]+)/i)||[])[1]||'',userType:userTypeStr,requestType:requestTypeStr,buyerUsername:((t.match(/Buyer Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\s*(?:Buyer|Seller)?\s*$/i,'').trim(),sellerUsername:((t.match(/Seller Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\s*(?:Buyer|Seller)?\s*$/i,'').trim(),shopName:(t.match(/Shop Name[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',productName:pn,requestProposal:rawProposal,returnReason:returnReason,refundAmount:refundAmt,buyerCategory:(t.match(/Buyer Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerCategory:(t.match(/Seller Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerDisputeReason:sellerDR,slaWallet:slaWallet,sellerSubType:sellerSubType};var json=JSON.stringify(d,null,2);navigator.clipboard.writeText(json).catch(function(){});var existing=document.getElementById('_sg_overlay');if(existing)existing.remove();var fields=[d.orderSN?'<b>Order SN:</b> '+d.orderSN:'',d.userType?'<b>User Type:</b> '+d.userType+(d.requestType?' \u00b7 '+d.requestType:'')+(d.sellerSubType?' \u00b7 '+d.sellerSubType:''):'',d.buyerUsername?'<b>Buyer Username:</b> '+d.buyerUsername:'',d.sellerUsername?'<b>Seller Username:</b> '+d.sellerUsername:'',d.productName&&d.productName!=='Info'?'<b>Product:</b> '+d.productName.substring(0,60):'',d.returnReason?'<b>Return Reason:</b> '+d.returnReason:'',d.sellerDisputeReason?'<b>Dispute Reason:</b> '+d.sellerDisputeReason:'',d.refundAmount?'<b>Refund Amount:</b> $'+d.refundAmount:'',d.slaWallet?'<b>SLA Wallet:</b> '+d.slaWallet:''].filter(Boolean).map(function(f){return '<div style=\"padding:4px 0;border-bottom:1px solid #f3f4f6\">'+f+'</div>';}).join('');var overlay=document.createElement('div');overlay.id='_sg_overlay';overlay.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:white;border-radius:20px;padding:36px 40px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;font-size:16px;min-width:520px;max-width:600px;border:3px solid #ee4d2d';overlay.innerHTML='<div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px\"><div style=\"font-weight:700;font-size:15px;color:#ee4d2d\">\u2705 DMS Data Scraped!</div><button onclick=\"this.closest(\\'#_sg_overlay\\').remove()\" style=\"background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;padding:0;line-height:1\">&times;</button></div>'+fields+'<div style=\"margin-top:12px;background:#fff7ed;border-radius:8px;padding:8px 10px;font-size:11px;color:#92400e\"><b>Next:</b> Go to Script Generator \u2192 click \ud83d\udccb DMS Auto-Fill \u2192 paste (Ctrl+V)</div>';document.body.appendChild(overlay);setTimeout(function(){var o=document.getElementById('_sg_overlay');if(o)o.style.transition='opacity 0.5s';if(o)o.style.opacity='0';setTimeout(function(){var o2=document.getElementById('_sg_overlay');if(o2)o2.remove();},500);},15000);}function clickViewDetailAndScrape(){if(document.body.innerText.indexOf('Maximum Compensation Amount')!==-1){doScrape();return;}var found=null;var all=document.querySelectorAll('*');for(var i=0;i<all.length;i++){var el=all[i];var txt=(el.innerText||el.textContent||'').trim();if(txt==='View Detail'&&el.children.length===0){found=el;break;}}if(found){found.click();var waited=0;var checkComp=setInterval(function(){waited+=100;if(document.body.innerText.indexOf('Maximum Compensation Amount')!==-1||waited>=1500){clearInterval(checkComp);doScrape();}},100);}else{doScrape();}}var attempts=0;var maxAttempts=16;var checkInterval=500;function waitAndScrape(){var t=document.body.innerText;var hasOrderSN=/Order SN[\\s]*:[\\s]*[A-Z0-9]{5,}/i.test(t);var hasReqType=/Request Type[\\s]*:/i.test(t);attempts++;if(hasOrderSN&&hasReqType){clickViewDetailAndScrape()}else if(attempts>=maxAttempts){clickViewDetailAndScrape()}else{setTimeout(waitAndScrape,checkInterval)}}waitAndScrape()})();";
 
 //')||loc.startsWith('http')) input.value = loc;
 
 function generateBookmarklet(){
-  const input = document.getElementById('bm-url-input');
-  if(!input.value){
-    const loc = window.location.href.split('?')[0];
-    if(loc.startsWith('file://')||loc.startsWith('http')) input.value = loc;
-  }
-  const url = input.value.trim();
-  if(!url){ alert('Please enter the file path or URL of this Script Generator.'); return; }
-  // Save URL to localStorage so it survives new downloads
-  try{ localStorage.setItem('sg_bookmarklet_url', url); }catch(e){}
-  // Build the raw bookmarklet code
-  state.bookmarkletCode = bmCode.replace('__SCRIPT_GENERATOR_URL__', JSON.stringify(url));
+  // No URL needed — bookmarklet just scrapes DMS and copies to clipboard
+  state.bookmarkletCode = bmCode;
   document.getElementById('bm-link').href = state.bookmarkletCode;
   document.getElementById('bm-code-text').value = state.bookmarkletCode;
   document.getElementById('bm-output').classList.remove('hidden');
@@ -2889,7 +2876,7 @@ function autoFillFromDMS(data){
   var sellerSubType = (data.sellerSubType==='Without Buyer') ? 'Without Buyer' : 'With Buyer';
   var orderSN      = data.orderSN||'';
   var productName  = data.productName||'';
-  var refundAmt    = data.refundAmount||'';
+  var refundAmt    = ''; // Left empty — agent fills manually
   var slaWallet    = data.slaWallet||'';
   var returnReason = normalizeReturnReason(data.returnReason||'');
   var sellerReason = normalizeSellerDisputeReason(data.sellerDisputeReason||'');
@@ -2958,20 +2945,13 @@ function checkUrlParams(){
     const raw=params.get('data');
     if(raw){ const data=JSON.parse(decodeURIComponent(raw)); autoFillFromDMS(data); }
   }catch(e){}
-  // Auto-restore saved bookmarklet URL from previous session
+  // Auto-generate bookmarklet (no URL needed)
   try{
-    const saved = localStorage.getItem('sg_bookmarklet_url');
-    if(saved){
-      const inp = document.getElementById('bm-url-input');
-      if(inp) inp.value = saved;
-      state.bookmarkletCode = bmCode.replace('__SCRIPT_GENERATOR_URL__', JSON.stringify(saved));
-      const link = document.getElementById('bm-link');
-      const code = document.getElementById('bm-code-text');
-      const out  = document.getElementById('bm-output');
-      if(link) link.href = state.bookmarkletCode;
-      if(code) code.value = state.bookmarkletCode;
-      if(out)  out.classList.remove('hidden');
-    }
+    state.bookmarkletCode = bmCode;
+    const link = document.getElementById('bm-link');
+    const code = document.getElementById('bm-code-text');
+    if(link) link.href = state.bookmarkletCode;
+    if(code) code.value = state.bookmarkletCode;
   }catch(e){}
 }
 
@@ -3037,15 +3017,7 @@ function renderIssueDescPanel(){
 }
 
 function renderAdminPanel(){
-  const bmi=document.getElementById('bm-url-input');
-  if(bmi&&!bmi.value){
-    const loc=window.location.href.split('?')[0];
-    if(loc.startsWith('file://')||loc.startsWith('http')){bmi.value=loc;}
-  }
   document.getElementById('db-count').textContent=`${db.length} total scripts in database`;
-  // Auto-fill bookmarklet URL with current page URL
-  const bmInput = document.getElementById('bm-url-input');
-  if(bmInput && !bmInput.value) bmInput.value = window.location.href.split('?')[0];
   // Populate section filter
   const secFilter = document.getElementById('filter-section');
   if(secFilter.options.length<=1){
@@ -3651,22 +3623,15 @@ function fillSnippetPlaceholders(text){
 // ── Export / Import (CSV/Excel format) ──
 function exportSnippets(){
   if(!snippetsDB.length){ alert('No snippets to export.'); return; }
-  const header = ['Title','Shortcut','Category','Content'];
-  const rows = snippetsDB.map(s=>[
-    s.title||'', s.shortcut||'', s.cat||'phrase', s.content||''
-  ]);
-  const csvContent = [header, ...rows].map(row=>
-    row.map(cell=>{
-      const val = String(cell??'');
-      return (val.includes(',')||val.includes('\n')||val.includes('"'))
-        ? '"'+val.replace(/"/g,'""')+'"' : val;
-    }).join(',')
-  ).join('\n');
-  const blob = new Blob(['\uFEFF'+csvContent], {type:'text/csv;charset=utf-8;'});
+  const exportData = snippetsDB.map(s=>({
+    title:s.title||'', shortcut:s.shortcut||'', category:s.cat||'phrase', content:s.content||''
+  }));
+  const json = JSON.stringify(exportData, null, 2);
+  const blob = new Blob([json], {type:'application/json;charset=utf-8;'});
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = 'snippets_export_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.download = 'snippets_backup_'+new Date().toISOString().slice(0,10)+'.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -3741,8 +3706,25 @@ function parseSnipCSV(raw){
 function applySnippetImport(){
   const raw = document.getElementById('snip-import-input').value.trim();
   if(!raw){ alert('Please paste or upload data first.'); return; }
-  const parsed = parseSnipCSV(raw);
-  if(!parsed.length){ alert('No valid rows found. Check that your data has at least: Title and Content columns (4 columns: Title | Shortcut | Category | Content).'); return; }
+
+  // Try JSON format first
+  let parsed = [];
+  try{
+    const jsonData = JSON.parse(raw);
+    if(Array.isArray(jsonData)){
+      parsed = jsonData.map(s=>({
+        title: s.title||'',
+        shortcut: s.shortcut||'',
+        cat: s.category||s.cat||'General',
+        content: s.content||''
+      })).filter(s=>s.title||s.content);
+    }
+  }catch(e){
+    // Not JSON — try CSV/TSV
+    parsed = parseSnipCSV(raw);
+  }
+
+  if(!parsed.length){ alert('No valid snippets found. Supported formats: JSON (from Export) or CSV/TSV (Title, Shortcut, Category, Content).'); return; }
   let added = 0;
   parsed.forEach(s=>{
     snippetsDB.push({
