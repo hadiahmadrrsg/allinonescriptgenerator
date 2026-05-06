@@ -362,6 +362,15 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
           <textarea id="inp-need-probing" rows="1" class="hidden" oninput="setState('need_probing',this.value)"></textarea>
         </div>
 
+        <!-- Evidence Deadline — shown for Request Evidence flows -->
+        <div id="field-evidence-deadline" class="field-gap hidden">
+          <span class="lbl" style="color:#d97706">📅 Evidence Deadline</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="date" id="inp-ev-deadline-date" style="flex:1;padding:8px 10px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;font-size:13px;outline:none" onchange="setState('ev_deadline_date',this.value)">
+            <input type="time" id="inp-ev-deadline-time" style="width:120px;padding:8px 10px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;font-size:13px;outline:none" onchange="setState('ev_deadline_time',this.value)">
+          </div>
+        </div>
+
 
       </div>
 
@@ -1261,7 +1270,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <tr><td><code>Buyer|Close Request</code></td><td>Empathy → Result Sharing</td></tr>
       <tr><td><code>Seller|Accept Request</code></td><td>Empathy → Result Sharing (Reject scripts + Root Cause)</td></tr>
       <tr><td><code>Seller|Reject Request</code></td><td>Empathy → Result Sharing (connector) → Offering Help</td></tr>
-      <tr><td><code>Seller|Request Evidence</code></td><td>Empathy → Result Sharing → Magic Word</td></tr>
+      <tr><td><code>Seller|Request Evidence</code></td><td>Empathy → Result Sharing (+ 📅 Deadline) → Magic Word</td></tr>
       <tr><td><code>Seller|Close Request</code></td><td>Empathy → Result Sharing</td></tr>
       <tr><td><code>Seller|Close Request + RTB</code></td><td>Empathy → Result Sharing (Ninjavan) → CSAT → Magic Word</td></tr>
     </table>
@@ -1293,8 +1302,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <tbody>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">1</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Accept Request</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">5</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → 📌 Next Steps → CSAT Pitching → Magic Word<br><span style="font-size:11px;color:#6b7280">💰 Refund Amount injected · 📌 Next Steps if agent fills it in</span></td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">2</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Reject Request</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing (+ Root Cause) → Offering Help Reject<br><span style="font-size:11px;color:#6b7280">🚫 Root Cause input completes connector sentence in Result Sharing</span></td></tr>
-        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Request Evidence</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → Magic Word<br><span style="font-size:11px;color:#6b7280">📋 Evidence details appended to Result Sharing</span></td></tr>
-        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">4</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Request Evidence from Seller</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → Magic Word<br><span style="font-size:11px;color:#6b7280">📋 Evidence details appended to Result Sharing</span></td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Request Evidence</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → Magic Word<br><span style="font-size:11px;color:#6b7280">📋 Evidence details + 📅 Deadline appended to Result Sharing</span></td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">4</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Request Evidence from Seller</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → Magic Word<br><span style="font-size:11px;color:#6b7280">📋 Evidence details + 📅 Deadline appended to Result Sharing</span></td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">5</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Close Request</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">2</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing</td></tr>
       </tbody>
     </table>
@@ -1332,6 +1341,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">⏱️ SLA Wallet</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Approve Compensation Request only</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">💰 Refund Amount</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Buyer Accept Request only</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">📋 Evidence Panel</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Request Evidence, Request Evidence from Seller</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">📅 Evidence Deadline</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Request Evidence, Request Evidence from Seller</td></tr>
       </tbody>
     </table>
 
@@ -1917,6 +1927,7 @@ function renderForm(){
   // Detail fields
   document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
   document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
+  document.getElementById('field-evidence-deadline').classList.toggle('hidden', !isProbing);
   if(isProbing) evGenInit();
   // Hide entire detail container when no inner fields are relevant
   const anyDetail = isReject || isProbing || (isBuyer && (isAccept || res==='Close Request'));
@@ -1936,6 +1947,7 @@ function setResult(r){
   const isAccept = r==='Accept Request';
   document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
   document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
+  document.getElementById('field-evidence-deadline').classList.toggle('hidden', !isProbing);
   if(isProbing) evGenInit();
   document.getElementById('field-amount-refund').classList.toggle('hidden', !(isBuyer && isAccept));
   const isSellerApprove = !isBuyer && r==='Approve Compensation Request';
@@ -2334,6 +2346,17 @@ function generateScript(){
   // Request Evidence data → appended as a new paragraph inside Result Sharing
   if(liveProbing && rsIdx>=0){
     sections[rsIdx].text += `\n\n${liveProbing}`;
+  }
+
+  // Evidence Deadline → appended after evidence text
+  const evDeadlineDate = document.getElementById('inp-ev-deadline-date')?.value || '';
+  const evDeadlineTime = document.getElementById('inp-ev-deadline-time')?.value || '';
+  if((state.result==='Request Evidence'||state.result==='Request Evidence from Seller') && evDeadlineDate && rsIdx>=0){
+    const d = new Date(evDeadlineDate);
+    const formatted = d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    const timeStr = evDeadlineTime ? new Date('2000-01-01T'+evDeadlineTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}) : '';
+    const deadlineText = timeStr ? `${formatted}, ${timeStr}` : formatted;
+    sections[rsIdx].text += `\n\nKindly provide us with the requested evidence(s) by ${deadlineText}.`;
   }
 
 
@@ -3551,7 +3574,7 @@ function downloadSelf(){
   const blob=new Blob(['<!DOCTYPE html>\n'+document.documentElement.outerHTML],{type:'text/html'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='All in One Script Generator v14.html';
+  a.download='All in One Script Generator v13.html';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
