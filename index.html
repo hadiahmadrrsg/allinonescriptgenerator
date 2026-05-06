@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v14</title>
+<title>All in One Script Generator - v12</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -202,7 +202,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v14</div>
+        <div class="logo-title">All in One Script Generator - v12</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
       </div>
     </div>
@@ -381,7 +381,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         <h3 id="output-title">Generated Script</h3>
         <div class="flex-gap">
           <button class="btn-sm" onclick="generateScript()">🔄 Regenerate</button>
-          <button class="btn-sm" onclick="undoLastAction()" id="btn-undo" style="display:none">↩ Undo</button>
+          <button class="btn-sm" onclick="undoLastAction()" id="btn-undo" style="opacity:0.4;pointer-events:none" title="Undo last delete">↩ Undo</button>
           <button class="btn-copy" id="btn-copy" onclick="copyAll()">📋 Copy All</button>
         </div>
       </div>
@@ -488,7 +488,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div style="flex:1"></div>
     <input type="text" id="snip-search-lib" class="snip-search" placeholder="🔍 Search snippets..." oninput="renderSnippetsPanel()" style="max-width:220px">
     <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;font-weight:600;color:#6b7280;white-space:nowrap"><input type="checkbox" id="snip-select-all" onchange="snipToggleAll(this.checked)"> Select All</label>
-    <button id="snip-undo-btn" onclick="snipUndoDelete()" style="padding:5px 12px;border-radius:8px;border:1px solid #d1fae5;background:#f0fdf4;color:#059669;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;display:none">↩ Undo</button>
+    <button id="snip-undo-btn" onclick="snipUndoDelete()" style="padding:5px 12px;border-radius:8px;border:1px solid #d1fae5;background:#f0fdf4;color:#059669;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;opacity:0.4;pointer-events:none" title="Undo last delete">↩ Undo</button>
     <button id="snip-delete-selected" onclick="snipDeleteSelected()" style="padding:5px 12px;border-radius:8px;border:1px solid #fecaca;background:#fff5f5;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;opacity:0.4;white-space:nowrap">🗑️ Delete (<span id="snip-selected-count">0</span>)</button>
   </div>
 
@@ -1110,7 +1110,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   <div class="docs-sidebar-logo">
     <span class="ds-badge">Shopee Return & Refund</span>
     <h2>All in One Script Generator</h2>
-    <p>Technical Documentation — v14</p>
+    <p>Technical Documentation — v12</p>
   </div>
 
   <div class="docs-nav-group">
@@ -1695,6 +1695,7 @@ EVIDENCE_DB = {
   </div>
 
   <hr class="ddiv">
+</main>
 </div>
 
 <script>
@@ -1753,16 +1754,16 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v14')" id="vnav-v14"><span class="ddot" style="background:#ee4d2d"></span>v14 — Current</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v13')" id="vnav-v13"><span class="ddot" style="background:#6b7280"></span>v13</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v12')" id="vnav-v12"><span class="ddot" style="background:#6b7280"></span>v12</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v11')" id="vnav-v11"><span class="ddot" style="background:#6b7280"></span>v11</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v10')" id="vnav-v10"><span class="ddot" style="background:#6b7280"></span>v10</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v9')" id="vnav-v9"><span class="ddot" style="background:#6b7280"></span>v9</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v8')" id="vnav-v8"><span class="ddot" style="background:#6b7280"></span>v8</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v7')" id="vnav-v7"><span class="ddot" style="background:#6b7280"></span>v7</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v6')" id="vnav-v6"><span class="ddot" style="background:#6b7280"></span>v6</a>
-    <a class="docs-nav-item" onclick="scrollToVer('v5')" id="vnav-v5"><span class="ddot" style="background:#6b7280"></span>v5</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v11')" id="vnav-v11"><span class="ddot" style="background:#ee4d2d"></span>v14 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v10')" id="vnav-v10"><span class="ddot" style="background:#6b7280"></span>v13</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v9')" id="vnav-v9"><span class="ddot" style="background:#6b7280"></span>v12</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v8')" id="vnav-v8"><span class="ddot" style="background:#6b7280"></span>v11</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v7')" id="vnav-v7"><span class="ddot" style="background:#6b7280"></span>v10</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v6')" id="vnav-v6"><span class="ddot" style="background:#6b7280"></span>v9</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v5')" id="vnav-v5"><span class="ddot" style="background:#6b7280"></span>v8</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v4')" id="vnav-v4"><span class="ddot" style="background:#6b7280"></span>v7</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v3')" id="vnav-v3"><span class="ddot" style="background:#6b7280"></span>v6</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v2')" id="vnav-v2"><span class="ddot" style="background:#6b7280"></span>v5</a>
     </div>
   </aside>
 
@@ -1770,10 +1771,40 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
-      <div id="vsec-v14" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v12" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v14 — Current</div>
+        <div style="color:white;font-weight:800;font-size:16px">v12 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">6 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🐛 Bug Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Backend HTML overflow</strong> — added &lt;/main&gt;</li>
+            <li><strong>Snippet Delete</strong> — selector fix + undo</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Permanent Undo button</strong> in Snippets</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📝 Updates</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Versions renumbered</strong> — v1 through v12</li>
+          </ul>
+        </div>
+      </div>
+        </div>
+      </div>
+
+      <div id="vsec-v11" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v11</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">5 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -1814,10 +1845,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v13" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v10" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v13</div>
+        <div style="color:white;font-weight:800;font-size:16px">v10</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">4 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -1851,10 +1882,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v12" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v9" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v12</div>
+        <div style="color:white;font-weight:800;font-size:16px">v9</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">1 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -1874,10 +1905,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v11" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v8" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v11</div>
+        <div style="color:white;font-weight:800;font-size:16px">v8</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">1 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -1902,10 +1933,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v10" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v7" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v10</div>
+        <div style="color:white;font-weight:800;font-size:16px">v7</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">30 April 2026</div>
       </div>
       <div style="padding:20px">
@@ -1931,10 +1962,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v9" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v6" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v9</div>
+        <div style="color:white;font-weight:800;font-size:16px">v6</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">30 April 2026</div>
       </div>
       <div style="padding:20px">
@@ -1959,10 +1990,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v8" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v5" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v8</div>
+        <div style="color:white;font-weight:800;font-size:16px">v5</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">29 April 2026</div>
       </div>
       <div style="padding:20px">
@@ -1994,10 +2025,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v7" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v4" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v7</div>
+        <div style="color:white;font-weight:800;font-size:16px">v4</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">29 April 2026</div>
       </div>
       <div style="padding:20px">
@@ -2024,10 +2055,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v6" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v3" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v6</div>
+        <div style="color:white;font-weight:800;font-size:16px">v3</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">23 April 2026</div>
       </div>
       <div style="padding:20px">
@@ -2055,10 +2086,10 @@ setTimeout(function(){
     </div>
       </div>
 
-      <div id="vsec-v5" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v2" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v5</div>
+        <div style="color:white;font-weight:800;font-size:16px">v2</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">23 April 2026</div>
       </div>
       <div style="padding:20px">
@@ -2077,7 +2108,7 @@ setTimeout(function(){
     <!-- v4 (original uploaded) -->
     <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v4 — Original Upload</div>
+        <div style="color:white;font-weight:800;font-size:16px">v1 — Original</div>
         <div style="color:rgba(255,255,255,.7);font-size:12px">22 April 2026</div>
       </div>
       <div style="padding:20px">
@@ -3606,10 +3637,17 @@ function editSnippet(id){
 }
 
 function deleteSnippet(id){
+  const deleted = snippetsDB.find(s=>s.id===id);
   snippetsDB = snippetsDB.filter(s=>s.id!==id);
   saveSnippetsToStorage();
   renderSnippetsPanel();
   showSnipToast('Snippet deleted');
+  if(deleted){
+    _snipDeletedItems = [deleted];
+    const undoBtn = document.getElementById('snip-undo-btn');
+    if(undoBtn){ undoBtn.style.opacity='1'; undoBtn.style.pointerEvents='auto'; undoBtn.textContent='\u21a9 Undo (1)'; }
+    setTimeout(()=>{ if(undoBtn){ undoBtn.style.opacity='0.4'; undoBtn.style.pointerEvents='none'; undoBtn.textContent='\u21a9 Undo'; } _snipDeletedItems=[]; }, 8000);
+  }
 }
 
 function duplicateSnippet(id){
@@ -3736,7 +3774,7 @@ function snipUpdateSelectedCount(){
 
 let _snipDeletedItems = [];
 function snipDeleteSelected(){
-  const checked = [...document.querySelectorAll('.snip-check:checked')];
+  const checked = [...document.querySelectorAll('.snip-checkbox:checked')];
   if(!checked.length) return;
   const ids = checked.map(c=>parseInt(c.dataset.id));
   _snipDeletedItems = snippetsDB.filter(s=>ids.includes(s.id));
@@ -3744,8 +3782,8 @@ function snipDeleteSelected(){
   saveSnippetsToStorage();
   renderSnippetsPanel();
   const undoBtn = document.getElementById('snip-undo-btn');
-  if(undoBtn){ undoBtn.style.display=''; undoBtn.textContent='↩ Undo ('+_snipDeletedItems.length+')'; }
-  setTimeout(()=>{ if(undoBtn) undoBtn.style.display='none'; _snipDeletedItems=[]; }, 8000);
+  if(undoBtn){ undoBtn.style.opacity='1'; undoBtn.style.pointerEvents='auto'; undoBtn.textContent='↩ Undo ('+_snipDeletedItems.length+')'; }
+  setTimeout(()=>{ if(undoBtn){ undoBtn.style.opacity='0.4'; undoBtn.style.pointerEvents='none'; undoBtn.textContent='↩ Undo'; } _snipDeletedItems=[]; }, 8000);
 }
 function snipUndoDelete(){
   if(!_snipDeletedItems.length) return;
@@ -3755,7 +3793,7 @@ function snipUndoDelete(){
   saveSnippetsToStorage();
   renderSnippetsPanel();
   const undoBtn = document.getElementById('snip-undo-btn');
-  if(undoBtn) undoBtn.style.display='none';
+  if(undoBtn){ undoBtn.style.opacity='0.4'; undoBtn.style.pointerEvents='none'; undoBtn.textContent='↩ Undo'; }
 }
 
 function fillSnippetPlaceholders(text){
