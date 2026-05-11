@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v13</title>
+<title>All in One Script Generator - v15</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -92,6 +92,7 @@ textarea{resize:vertical}
 .tbl-script{font-size:13px;color:#374151;line-height:1.5;white-space:pre-wrap;word-break:break-word}
 .tbl-tag{display:inline-block;font-size:10px;font-weight:600;padding:1px 6px;border-radius:6px;margin-bottom:2px}
 .hidden{display:none!important}
+@keyframes evPulse{0%,100%{transform:scale(1);box-shadow:none}50%{transform:scale(1.12);box-shadow:0 0 12px rgba(220,38,38,.5)}}
 /* Detail on the case section */
 #section-detail{background:#fafafa;border-radius:12px;padding:12px;border:1px dashed #e5e7eb}
 .ev-gen-panel{border:2px solid #d97706;border-radius:12px;overflow:hidden;margin-top:4px}
@@ -202,9 +203,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v13</div>
+        <div class="logo-title">All in One Script Generator - v15</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
-        <div id="header-datetime" style="font-size:11px;color:#d4d4d8;font-weight:500;margin-top:2px"></div>
       </div>
     </div>
     <div class="flex-gap">
@@ -334,12 +334,12 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
             </div>
             <div class="ev-gen-body">
               <div class="field-gap">
-                <span class="lbl">Return Reason</span>
+                <span class="lbl" id="ev-gen-lbl-reason" style="font-size:13px;font-weight:800;color:#fff;background:#dc2626;padding:4px 12px;border-radius:6px;display:inline-block;letter-spacing:.06em;margin-bottom:8px">RETURN REASON</span>
                 <div id="ev-gen-reasons" style="display:flex;gap:6px;flex-wrap:wrap"></div>
                 <div id="ev-gen-reason-sync" style="font-size:10px;color:#d97706;margin-top:4px;font-weight:500;display:none">↑ Auto-synced from Return Reason above</div>
               </div>
               <div id="ev-gen-risk-section" class="field-gap" style="display:none">
-                <span class="lbl">Risk Level</span>
+                <span class="lbl" id="ev-gen-lbl-risk" style="font-size:13px;font-weight:800;color:#fff;background:#d97706;padding:4px 12px;border-radius:6px;display:inline-block;letter-spacing:.06em;margin-bottom:8px">RISK LEVEL</span>
                 <div id="ev-gen-risks" style="display:flex;gap:6px;flex-wrap:wrap"></div>
               </div>
               <div id="ev-gen-seller-cat-section" class="field-gap" style="display:none">
@@ -347,7 +347,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
                 <div id="ev-gen-seller-cats" style="display:flex;gap:6px;flex-wrap:wrap"></div>
               </div>
               <div id="ev-gen-type-section" class="field-gap" style="display:none">
-                <span class="lbl">Evidence Type</span>
+                <span class="lbl" id="ev-gen-lbl-type" style="font-size:13px;font-weight:800;color:#fff;background:#059669;padding:4px 12px;border-radius:6px;display:inline-block;letter-spacing:.06em;margin-bottom:8px">EVIDENCE TYPE</span>
                 <div id="ev-gen-types" style="display:flex;gap:6px;flex-wrap:wrap"></div>
               </div>
               <div id="ev-gen-output-section" style="display:none">
@@ -360,15 +360,6 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
             </div>
           </div>
           <textarea id="inp-need-probing" rows="1" class="hidden" oninput="setState('need_probing',this.value)"></textarea>
-        </div>
-
-        <!-- Evidence Deadline — shown for Request Evidence flows -->
-        <div id="field-evidence-deadline" class="field-gap hidden">
-          <span class="lbl" style="color:#d97706">📅 Evidence Deadline</span>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="date" id="inp-ev-deadline-date" style="flex:1;padding:8px 10px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;font-size:13px;outline:none" onchange="setState('ev_deadline_date',this.value)">
-            <input type="time" id="inp-ev-deadline-time" style="width:120px;padding:8px 10px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;font-size:13px;outline:none" onchange="setState('ev_deadline_time',this.value)">
-          </div>
         </div>
 
 
@@ -391,7 +382,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         <h3 id="output-title">Generated Script</h3>
         <div class="flex-gap">
           <button class="btn-sm" onclick="generateScript()">🔄 Regenerate</button>
-          <button class="btn-sm" onclick="undoLastAction()" id="btn-undo" style="opacity:0.4;pointer-events:none" title="Undo last delete">↩ Undo</button>
+          <button class="btn-sm" onclick="undoLastAction()" id="btn-undo" style="display:none">↩ Undo</button>
           <button class="btn-copy" id="btn-copy" onclick="copyAll()">📋 Copy All</button>
         </div>
       </div>
@@ -498,7 +489,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div style="flex:1"></div>
     <input type="text" id="snip-search-lib" class="snip-search" placeholder="🔍 Search snippets..." oninput="renderSnippetsPanel()" style="max-width:220px">
     <label style="display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11px;font-weight:600;color:#6b7280;white-space:nowrap"><input type="checkbox" id="snip-select-all" onchange="snipToggleAll(this.checked)"> Select All</label>
-    <button id="snip-undo-btn" onclick="snipUndoDelete()" style="padding:5px 12px;border-radius:8px;border:1px solid #d1fae5;background:#f0fdf4;color:#059669;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;opacity:0.4;pointer-events:none" title="Undo last delete">↩ Undo</button>
+    <button id="snip-undo-btn" onclick="snipUndoDelete()" style="padding:5px 12px;border-radius:8px;border:1px solid #d1fae5;background:#f0fdf4;color:#059669;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;display:none">↩ Undo</button>
     <button id="snip-delete-selected" onclick="snipDeleteSelected()" style="padding:5px 12px;border-radius:8px;border:1px solid #fecaca;background:#fff5f5;color:#ef4444;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif;opacity:0.4;white-space:nowrap">🗑️ Delete (<span id="snip-selected-count">0</span>)</button>
   </div>
 
@@ -879,6 +870,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   <!-- Admin Sub-Tabs -->
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
     <button id="admin-tab-bookmarklet" onclick="setAdminTab('bookmarklet')" class="admin-sub-btn active">🔗 Bookmarklet</button>
+    <button id="admin-tab-versions" onclick="setAdminTab('versions')" class="admin-sub-btn">📝 Version Updates</button>
     <button id="admin-tab-scripts" onclick="setAdminTab('scripts')" class="admin-sub-btn">📜 Script Flows</button>
     <button id="admin-tab-evidence" onclick="setAdminTab('evidence')" class="admin-sub-btn">📋 Evidence Collection</button>
     <button id="admin-tab-backend" onclick="setAdminTab('backend')" class="admin-sub-btn">🔧 Backend HTML</button>
@@ -1119,7 +1111,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   <div class="docs-sidebar-logo">
     <span class="ds-badge">Shopee Return & Refund</span>
     <h2>All in One Script Generator</h2>
-    <p>Technical Documentation — v13</p>
+    <p>Technical Documentation — v15</p>
   </div>
 
   <div class="docs-nav-group">
@@ -1270,7 +1262,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <tr><td><code>Buyer|Close Request</code></td><td>Empathy → Result Sharing</td></tr>
       <tr><td><code>Seller|Accept Request</code></td><td>Empathy → Result Sharing (Reject scripts + Root Cause)</td></tr>
       <tr><td><code>Seller|Reject Request</code></td><td>Empathy → Result Sharing (connector) → Offering Help</td></tr>
-      <tr><td><code>Seller|Request Evidence</code></td><td>Empathy → Result Sharing (+ 📅 Deadline) → Magic Word</td></tr>
+      <tr><td><code>Seller|Request Evidence</code></td><td>Empathy → Result Sharing → Magic Word</td></tr>
       <tr><td><code>Seller|Close Request</code></td><td>Empathy → Result Sharing</td></tr>
       <tr><td><code>Seller|Close Request + RTB</code></td><td>Empathy → Result Sharing (Ninjavan) → CSAT → Magic Word</td></tr>
     </table>
@@ -1302,8 +1294,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <tbody>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">1</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Accept Request</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">5</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → 📌 Next Steps → CSAT Pitching → Magic Word<br><span style="font-size:11px;color:#6b7280">💰 Refund Amount injected · 📌 Next Steps if agent fills it in</span></td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">2</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Reject Request</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing (+ Root Cause) → Offering Help Reject<br><span style="font-size:11px;color:#6b7280">🚫 Root Cause input completes connector sentence in Result Sharing</span></td></tr>
-        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Request Evidence</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → Magic Word<br><span style="font-size:11px;color:#6b7280">📋 Evidence details + 📅 Deadline appended to Result Sharing</span></td></tr>
-        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">4</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Request Evidence from Seller</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → Magic Word<br><span style="font-size:11px;color:#6b7280">📋 Evidence details + 📅 Deadline appended to Result Sharing</span></td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Request Evidence</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → Magic Word<br><span style="font-size:11px;color:#6b7280">📋 Evidence details appended to Result Sharing</span></td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">4</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Request Evidence from Seller</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">3</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing → Magic Word<br><span style="font-size:11px;color:#6b7280">📋 Evidence details appended to Result Sharing</span></td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center;font-weight:700">5</td><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">Close Request</td><td style="border:1px solid #e5e7eb;padding:8px 12px;text-align:center">2</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Empathy → Result Sharing</td></tr>
       </tbody>
     </table>
@@ -1341,9 +1333,10 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">⏱️ SLA Wallet</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Approve Compensation Request only</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">💰 Refund Amount</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Buyer Accept Request only</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">📋 Evidence Panel</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Request Evidence, Request Evidence from Seller</td></tr>
-        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px;font-weight:600">📅 Evidence Deadline</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Request Evidence, Request Evidence from Seller</td></tr>
       </tbody>
     </table>
+
+  </div>
 
   </div>
 
@@ -1703,8 +1696,7 @@ EVIDENCE_DB = {
   </div>
 
   <hr class="ddiv">
-
-</main>
+</div>
 
 <script>
 function scrollTo(id) {
@@ -1747,7 +1739,404 @@ setTimeout(function(){
   </div>
 
   <!-- VERSION UPDATES SECTION -->
-  
+  <div id="admin-section-versions" class="hidden">
+
+  <div class="docs-wrap">
+  <div class="docs-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="docs-sidebar">
+    <div class="docs-sidebar-logo">
+      <span class="ds-badge">Shopee Return & Refund</span>
+      <h2>Version Updates</h2>
+      <p>All changes, fixes and improvements</p>
+    </div>
+
+    <div class="docs-nav-group">
+      <div class="docs-nav-label">Versions</div>
+    <a class="docs-nav-item active" onclick="scrollToVer('v15')" id="vnav-v15"><span class="ddot" style="background:#ee4d2d"></span>v15 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v13')" id="vnav-v13"><span class="ddot" style="background:#6b7280"></span>v13</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v12')" id="vnav-v12"><span class="ddot" style="background:#6b7280"></span>v12</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v11')" id="vnav-v11"><span class="ddot" style="background:#6b7280"></span>v11</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v10')" id="vnav-v10"><span class="ddot" style="background:#6b7280"></span>v10</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v9')" id="vnav-v9"><span class="ddot" style="background:#6b7280"></span>v9</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v8')" id="vnav-v8"><span class="ddot" style="background:#6b7280"></span>v8</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v7')" id="vnav-v7"><span class="ddot" style="background:#6b7280"></span>v7</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v6')" id="vnav-v6"><span class="ddot" style="background:#6b7280"></span>v6</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v5')" id="vnav-v5"><span class="ddot" style="background:#6b7280"></span>v5</a>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
+    <div class="ddiv" id="vsec-top"></div>
+
+      <div id="vsec-v15" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v15 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">5 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Seller Dispute › Without Buyer</strong> now shows 3 separate flows in Admin Script Flows: Approve Compensation, Reject Compensation, Request Evidence</li>
+            <li><strong>Approve Compensation Request</strong> has its own assembly — uses Cancel Request (payment released) scripts with SLA Wallet</li>
+            <li><strong>Offering Help Reject</strong> section added to Buyer Reject Request (10 new buyer-specific scripts) and Seller Accept Request</li>
+            <li><strong>Bookmarklet redesigned</strong> — Copy Code + manual bookmark creation (fixes Chrome blocking <code>javascript:</code> href on GitHub Pages)</li>
+            <li><strong>Snippet Export/Import</strong> switched from CSV to JSON format — no Excel needed</li>
+            <li><strong>Script Map</strong> in Backend HTML replaced with clean numbered table format (12 flows with section chains)</li>
+            <li><strong>Flow summary bar</strong> added inside each Script Flows accordion — shows sections and special notes</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Bookmarklet no longer requires URL input — removed redirect issue on GitHub Pages</li>
+            <li>Refund Amount removed from DMS Auto-Fill — agent fills manually</li>
+            <li>SLA Wallet field now only shows for Approve Compensation Request (removed from Seller Accept)</li>
+            <li>Admin Script Flows grouping rewritten — uses SCRIPT_ASSEMBLY directly, scripts follow section order, no more script leaking between flows</li>
+            <li>Removed 10 orphaned Seller Accept wallet compensation scripts from RAW_DB</li>
+            <li>Removed Magic Word / Closing from Buyer Reject Request and Seller Accept Request</li>
+            <li>DMS Auto-Fill button redesigned — bigger with helper text inside blue box</li>
+            <li>"Case Information" renamed to "Scraped Case Information"</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#9333ea;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Database</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>RAW_DB: 200 scripts (10 added buyer Offering Help, 10 removed seller wallet compensation)</li>
+            <li>SCRIPT_ASSEMBLY: 12 flows (added Seller|Approve Compensation Request)</li>
+            <li>EVIDENCE_DB: 109 entries (unchanged)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v13" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v13</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">4 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>📖 Instructions tab</strong> — new top-level tab with comprehensive usage guide: Quick Start (4-step walkthrough), DMS Bookmarklet setup & daily usage, Evidence Collection flow, Snippet Library guide with shortcuts & placeholders, and Quick Reference Cheat Sheet</li>
+            <li>Quick navigation buttons to jump between guide sections</li>
+            <li>Available Flows diagram showing all 13 Buyer/Seller decision results</li>
+            <li>Tab Overview table explaining what each tab does</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📝 Updates</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Bookmarklet refund amount now scrapes from <strong>Grand Total</strong> (Payment Info) instead of generic "Refund Amount" — fixes mismatch with voucher orders</li>
+            <li>Added "Every case is different" reminder above Case Details</li>
+            <li>Added snippet backup reminder in Snippets tab</li>
+            <li>3 example snippets seeded on first use (Apology for Delay, SLA Wallet Reminder, Evidence Follow-Up)</li>
+            <li>Removed Add Script feature and description text from admin panels</li>
+            <li>Evidence Collection admin: Export/Import moved above filter, colored headers with entry counts</li>
+            <li>Script Flows: colored group headers (Buyer/Seller With/Without), {issue_description} panel redesigned as collapsible card</li>
+            <li>Subtitle fixed: "Return & Dispute" → "Return & Refund"</li>
+            <li><strong>Seller Accept Request</strong>: Result Sharing + Root Cause now uses Reject Request scripts (shares rejection reasoning scripts with Root Cause field)</li>
+            <li>🚫 Root Cause: Why Reject field now shows for Seller Accept Request (since it uses reject scripts with {reject_cause} placeholder)</li>
+            <li>Admin Script Flows: Edit/Del buttons now side by side (horizontal) instead of stacked</li>
+            <li>Backend HTML: updated Seller Accept flow description and SLA Wallet injection docs to match new flow</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v12" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v12</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">1 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Renamed to "All in One Script Generator"</strong> — page title, header, and Generator nav tab renamed to "Script Generator"</li>
+            <li><strong>Admin and Backend View merged into single Admin tab</strong> with 5 sub-tabs: Bookmarklet, Script Flows, Evidence Collection, Backend HTML, Version Updates</li>
+            <li>Admin password removed — all admin features now accessible directly</li>
+            <li>Shopee logo made bigger (36px → 48px)</li>
+            <li>Bookmarklet "Drag to bookmark bar" section redesigned — larger emphasized yellow banner with bigger button</li>
+            <li>Evidence Collection admin sub-tab now has <strong>filter dropdowns</strong> (Category + Return Reason) — filtered entries auto-expand</li>
+            <li>Backend HTML sidebar CSS restored — fixed broken layout after tab merge</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v11" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v11</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">1 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Snippet bundle delete</strong> — Select All checkbox + Delete (count) button inline beside search bar. Checkboxes on each card for multi-select</li>
+            <li><strong>Snippet copy button</strong> — 📋 Copy on each card copies content with placeholders filled from current case details</li>
+            <li><strong>Snippet Library documentation</strong> added to Backend View → Technical Documentation</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🐛 Bug Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Functional Damaged → "product is faulty"</strong> — when "Functional Damaged" is selected in the Evidence Collection panel (Buyer or Seller), the empathy paragraph always uses "product is faulty". Triggered by evidence panel selection, not Return Reason dropdown</li>
+            <li><strong>Delete button fix</strong> — removed <code>confirm()</code> that was blocked in certain environments</li>
+            <li><strong>Custom snippet categories</strong> — free-text input replaces fixed dropdown</li>
+            <li><strong>Snippet toast</strong> — renamed to "Snippet Pasted:" with content preview, doubled in size</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v10" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v10</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">30 April 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Seller Dispute › With Buyer → Cancel Request</strong> — new decision result replacing "Reject Request" for With Buyer flows</li>
+            <li>10 new Result Sharing scripts for Cancel Request — positive dispute resolution ("dispute resolved, payment will be released")</li>
+            <li>Cancel Request flow: Empathy → Result Sharing → CSAT Pitching → Magic Word / Closing (shares empathy + CSAT + closing with Accept Request)</li>
+            <li>RAW_DB: 190 → 200 entries (+10 Cancel Request scripts)</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📝 Updates</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Seller With Buyer results: Accept Request, <strong>Cancel Request</strong>, Request Evidence, Close Request, Close Request + RTB</li>
+            <li>Seller Without Buyer keeps Reject Compensation Request (unchanged)</li>
+            <li>Admin flows dropdown updated with Cancel Request under With Buyer</li>
+            <li>SCRIPT_ASSEMBLY, FLOW_QR_MAP, FLOW_TR_MAP all updated</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v9" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v9</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">30 April 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📝 Updates</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Evidence text updated</strong> from new Excel file (Claude - RRSG Evidence Collection) — structure, categories, and evidence types preserved exactly as before</li>
+            <li>Buyer Evidence: 53/60 entries updated with new evidence text</li>
+            <li>Seller Forward Leg: 24/38 entries updated (full scripts from individual seller sheets)</li>
+            <li>Seller Return Leg: 4/8 entries updated (MAIN + WEIGHT VERIFICATION for both risk levels)</li>
+            <li>Entries without matching data in the new Excel kept their original text unchanged</li>
+            <li><strong>Buyer Incomplete Order → Low/Medium Risk</strong>: evidence type renamed from "GENERAL" to "GENERAL / WEIGHT VERIFICATION / MISSING QUANTITY / MISSING PART" to match the source sheet</li>
+            <li><strong>Added Category level for Seller evidence</strong>: new step between Risk Level and Evidence Type — SELLER [MANDATORY] / SELLER [SUPPORTING] for Forward Leg, SELLER [MAIN] / SELLER [SUPPORTING] for Return Leg</li>
+            <li>Evidence Collection tab, inline Generator panel, Admin accordion, and CSV export all updated with Category level</li>
+            <li>CSV export now has 7 columns: Category, Return Reason, Risk Level, Seller Category, Evidence Type, Evidence Bullets, Full Script</li>
+            <li><strong>Fixed missing Seller Forward Leg entries</strong>: Functional Damaged Low/Medium Risk, Expired Product (both risks), Counterfeit, Return in Original Condition (COM) — all restored with evidence text from Excel</li>
+            <li><strong>Removed Apply Patch feature</strong> — patch button, JS, modal, and docs section all deleted</li>
+            <li><strong>Removed 5 empty evidence entries</strong> that had no evidence text in the source Excel: NON-3PL RELATED for High Risk (Incomplete Order, Wrong Product, Physical Damaged), Non-integrated (Incomplete Order), and WRONG/INCOMPLETE for Virtual Goods Direct Debit. Total: 106 entries, 0 empty</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v8" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v8</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">29 April 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🐛 Bug Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Seller Dispute {username} now uses Seller Username</strong> in generated scripts — previously all Seller Dispute scripts used the Buyer Username. Fixed in both <code>generateScript()</code> and <code>reshuffleSection()</code></li>
+            <li><strong>DMS Auto-Fill: Buyer/Seller Username fields were swapped</strong> for Seller Dispute — now correctly fills each field</li>
+            <li><strong>Bookmarklet: "Seller Dispute (with buyer)" was misdetected as Buyer Request</strong> — the word "buyer" in the Request Type caused the Seller Dispute check to fail. Fixed regex to match "Seller Dispute" at the start regardless of what follows</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Bookmarklet now scrapes With Buyer / Without Buyer</strong> from DMS "Request Type" field (e.g. "Seller Dispute (without buyer)")</li>
+            <li>DMS overlay popup shows With/Without Buyer info alongside User Type</li>
+            <li>Auto-Fill now auto-selects With Buyer or Without Buyer toggle for Seller Dispute cases</li>
+            <li>Green banner shows the sub-type: "✅ Case auto-filled — Seller · Seller Dispute · Without Buyer"</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📝 Updates</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Evidence Collection panel reminder changed to <strong>"Please review and edit the evidence details accordingly"</strong></li>
+            <li>Removed password protection from Backend View — now opens directly without login</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v7" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v7</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">29 April 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Inline Evidence Collection panel</strong> — integrated directly into the Generator tab, replacing the old "Paste the Evidence Collection here!" textarea</li>
+            <li>Evidence category auto-selected based on flow: Buyer → Request Evidence shows Buyer Evidence; Buyer → Request Evidence from Seller shows Seller Forward Leg; Seller → Request Evidence shows Forward Leg + Return Leg toggle</li>
+            <li>Return Reason in evidence panel <strong>auto-syncs</strong> from the main Return Reason dropdown — agents only need to pick Risk Level and Evidence Type</li>
+            <li>Selected evidence text <strong>auto-injected</strong> into the generated script (Result Sharing paragraph) — no manual paste needed</li>
+            <li><strong>Request Evidence added to Seller Dispute › Without Buyer</strong> — uses same Forward Leg + Return Leg toggle, maps to Seller|Request Evidence in SCRIPT_ASSEMBLY</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📝 Updates</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Admin flows dropdown: added Without Buyer → Request Evidence option</li>
+            <li>Backend View docs: added Request Evidence card under Without Buyer section</li>
+            <li>Version Updates page now auto-updates with every change</li>
+            <li><strong>Removed Type B (Without Emoji)</strong> entirely — 130 entries removed from RAW_DB, db init simplified, patch system cleaned up. RAW_DB now 190 entries (Type A only)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v6" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v6</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">23 April 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Backend HTML renamed to <strong>Backend View</strong> with two sub-views: Technical Documentation and Version Updates</li>
+            <li>Admin flows dropdown restructured with <code>&lt;optgroup&gt;</code>: Buyer Request, Seller › With Buyer, Seller › Without Buyer</li>
+            <li>Evidence Collection section added to Backend View technical docs — covers data structure, categories, risk levels, CSV format</li>
+            <li>Admin Evidence Collection panel now shows full visible accordion list (Return Reason → Risk → Type → evidence text)</li>
+            <li>Evidence CSV Export updated to 6 columns: Category, Return Reason, Risk Level, Evidence Type, Evidence Bullets, Full Script</li>
+            <li>Evidence CSV Import supports both new 6-column format (with bullets) and old 5-column format (backwards compatible)</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📝 Updates</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Seller section in Backend View script map now split into <strong>With Buyer</strong> (5 flows) and <strong>Without Buyer</strong> (Approve/Reject Compensation)</li>
+            <li>Without Buyer flows documented — maps internally to Accept/Reject Request in SCRIPT_ASSEMBLY</li>
+            <li>SLA Wallet visibility noted for Approve Compensation Request</li>
+            <li>Root Cause visibility noted for Reject Compensation Request</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v5" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v5</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">23 April 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🐛 Bug Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>CRITICAL:</strong> <code>reshuffleSection()</code> — <code>lookupType</code> was undefined, causing crash on Reshuffle button click</li>
+            <li><strong>CRITICAL:</strong> <code>reshuffleSection()</code> — <code>getPool()</code> used <code>state.type_return</code> which was 'With Buyer'/'Without Buyer' for Seller instead of 'Seller Dispute', returning empty pool</li>
+            <li><code>setResult()</code> — SLA Wallet field visibility was not toggled when switching between results</li>
+            <li><code>switchView()</code> — duplicate <code>view-evidence</code> hide calls and duplicate <code>evSetCat()</code> calls removed</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- v4 (original uploaded) -->
+    <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v4 — Original Upload</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">22 April 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ Features at Upload</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Fixed console syntax error &amp; script generation crashes</li>
+            <li>Evidence Collection: removed Script box, kept Evidence Required box only + Copy button + warning</li>
+            <li>Rebuilt Evidence DB from new Excel file (106 scripts); generated CSV import template</li>
+            <li>Admin: added Import/Export CSV for Evidence Collection</li>
+            <li>Renamed: User Details → Case Details, User Type → Dispute Type, Buyer → Buyer Request, Seller → Seller Dispute, Need Probing → Request Evidence</li>
+            <li>Renamed admin tabs: Scripts → Script Flows, Evidence Flows → Evidence Collection</li>
+            <li>Updated all placeholder texts (username, order SN, product name)</li>
+            <li>Evidence Collection tab moved beside Generator in nav; Buyer Evidence tab moved first</li>
+            <li>Username split into Buyer Username + Seller Username (separate fields)</li>
+            <li>DMS bookmarklet overlay now shows both Buyer &amp; Seller Username</li>
+            <li>New button: Request Evidence from Seller (Buyer only, uses Seller Username in script)</li>
+            <li>Seller Dispute → Request Type now has <strong>With Buyer / Without Buyer</strong></li>
+            <li>Without Buyer: Approve Compensation Request + Reject Compensation Request (reuse existing script pools)</li>
+            <li>Next Steps auto-injects silently (no more Yes button or textarea)</li>
+            <li>SLA Wallet now only shows for Accept Request + Approve Compensation Request</li>
+            <li>Root Cause now shows for Reject Request + Reject Compensation Request</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🏗️ Architecture</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Single self-contained HTML file (2,741 lines)</li>
+            <li>RAW_DB: 190 script entries (Type A with Emoji)</li>
+            <li>SCRIPT_ASSEMBLY: 10 flows (Buyer: 5, Seller: 5)</li>
+            <li>EVIDENCE_DB: 106 evidence scripts across 3 categories (Buyer, Seller Forward, Seller Return)</li>
+            <li>BUYER_REASONS: 10 reasons × 5 phrases each</li>
+            <li>SELLER_REASONS: 9 reasons × 5 phrases each</li>
+            <li>DMS bookmarklet with clipboard + overlay integration pattern</li>
+            <li>Password-protected Admin (pw: hadi) and Backend View</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+      </div>
+
+
+  </div>
+  </div>
+  </div>
+
+  <script>
+  function scrollToVer(id){
+    const el = document.getElementById('vsec-'+id);
+    const container = el?.closest('.docs-content');
+    if(el && container) container.scrollTop = el.offsetTop - 16;
+    document.querySelectorAll('#admin-section-versions .docs-nav-item').forEach(a=>a.classList.remove('active'));
+    const nav = document.getElementById('vnav-'+id);
+    if(nav) nav.classList.add('active');
+  }
+  </script>
 </div>
 
 </div>
@@ -1901,7 +2290,7 @@ function renderForm(){
     : ['Accept Request','Cancel Request','Request Evidence','Close Request','Close Request + RTB'];
   const results = state.user==='Buyer'?['Accept Request','Reject Request','Request Evidence','Close Request','Request Evidence from Seller']:sellerResults;
   if(state.result !== '' && !results.includes(state.result)) state.result=results[0];
-  const resultLabel = r => r==='Accept Request' ? 'Accept Request' : r==='Reject Request' ? 'Reject Request' : r;
+  const resultLabel = r => r==='Accept Request' ? (state.user==='Seller' && state.seller_sub_type==='With Buyer' ? 'Accept Buyer Request' : 'Accept Request') : r==='Reject Request' ? 'Reject Request' : r;
   document.getElementById('result-btns').innerHTML = results.map(r=>`<button class="grid-btn${r===state.result?' active':''}" data-value="${esc(r)}" onclick="setResult('${esc(r)}')" style="${(r==='Close Request + RTB'||r==='Request Evidence from Seller'||r==='Approve Compensation Request'||r==='Reject Compensation Request'||(state.seller_sub_type==='Without Buyer'&&r==='Request Evidence'))?'grid-column:1/-1;':''}">${esc(resultLabel(r))}</button>`).join('');
 
   // Reason dropdown
@@ -1927,7 +2316,6 @@ function renderForm(){
   // Detail fields
   document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
   document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
-  document.getElementById('field-evidence-deadline').classList.toggle('hidden', !isProbing);
   if(isProbing) evGenInit();
   // Hide entire detail container when no inner fields are relevant
   const anyDetail = isReject || isProbing || (isBuyer && (isAccept || res==='Close Request'));
@@ -1947,7 +2335,6 @@ function setResult(r){
   const isAccept = r==='Accept Request';
   document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
   document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
-  document.getElementById('field-evidence-deadline').classList.toggle('hidden', !isProbing);
   if(isProbing) evGenInit();
   document.getElementById('field-amount-refund').classList.toggle('hidden', !(isBuyer && isAccept));
   const isSellerApprove = !isBuyer && r==='Approve Compensation Request';
@@ -2283,6 +2670,30 @@ function evGenUpdateHidden(){
 }
 
 function generateScript(){
+  // ── Validate evidence panel selections if visible ──
+  const evPanel = document.getElementById('field-need-probing');
+  if(evPanel && !evPanel.classList.contains('hidden')){
+    const missing = [];
+    if(!evGen.reason) missing.push('Return Reason');
+    if(!evGen.risk)   missing.push('Risk Level');
+    if(!evGen.type)   missing.push('Evidence Type');
+    if(missing.length > 0){
+      // Flash the missing labels
+      const labelMap = {'Return Reason':'ev-gen-lbl-reason','Risk Level':'ev-gen-lbl-risk','Evidence Type':'ev-gen-lbl-type'};
+      missing.forEach(m=>{
+        const lbl = document.getElementById(labelMap[m]);
+        if(lbl){ lbl.style.animation='evPulse .5s ease 2'; setTimeout(()=>lbl.style.animation='',1100); }
+      });
+      // Show toast
+      const toast = document.getElementById('snip-toast');
+      toast.innerHTML = '⚠️ Please select: <strong>' + missing.join(', ') + '</strong> before generating';
+      toast.style.background = '#dc2626';
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'),3500);
+      return;
+    }
+  }
+
   // Always start completely fresh
   state.generatedSections = null;
   state.editingSection = null;
@@ -2346,17 +2757,6 @@ function generateScript(){
   // Request Evidence data → appended as a new paragraph inside Result Sharing
   if(liveProbing && rsIdx>=0){
     sections[rsIdx].text += `\n\n${liveProbing}`;
-  }
-
-  // Evidence Deadline → appended after evidence text
-  const evDeadlineDate = document.getElementById('inp-ev-deadline-date')?.value || '';
-  const evDeadlineTime = document.getElementById('inp-ev-deadline-time')?.value || '';
-  if((state.result==='Request Evidence'||state.result==='Request Evidence from Seller') && evDeadlineDate && rsIdx>=0){
-    const d = new Date(evDeadlineDate);
-    const formatted = d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
-    const timeStr = evDeadlineTime ? new Date('2000-01-01T'+evDeadlineTime).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',hour12:true}) : '';
-    const deadlineText = timeStr ? `${formatted}, ${timeStr}` : formatted;
-    sections[rsIdx].text += `\n\nKindly provide us with the requested evidence(s) by ${deadlineText}.`;
   }
 
 
@@ -2526,7 +2926,7 @@ function copyAll(){
 // ═══════════════════════════════════════════════════════════════
 // DMS AUTO-FILL (mirrors appscript.json flow)
 // ═══════════════════════════════════════════════════════════════
-const bmCode = "javascript:(function(){var rid=prompt(\"Enter Case RID:\",window.location.pathname.split('/').pop()||\"\");if(!rid)return;function isProductTableHeader(text){return(text.indexOf('Returnable Status')!==-1||text.indexOf('dms_new_rr_returnable_status')!==-1)&&(text.indexOf('Products')!==-1||text.indexOf('dms_general_products')!==-1)}function isOrderDetailHeader(text){return(text.indexOf('dms_general_parcel')!==-1||text.indexOf('Parcel')!==-1)&&(text.indexOf('dms_general_products')!==-1||text.indexOf('Products')!==-1)&&(text.indexOf('cs_portal_bundle_id')!==-1||text.indexOf('Bundle ID')!==-1)}function extractVariation(lines){for(var k=1;k<lines.length;k++){var l=lines[k].trim();if(/^Variation\\s*:/i.test(l)){return l.replace(/^Variation\\s*:\\s*/i,'').trim()}if(/^dms_general_variation\\s*:/i.test(l)){return l.replace(/^dms_general_variation\\s*:\\s*/i,'').trim()}}return''}function extractProducts(){var products=[];var allRows=document.querySelectorAll('tr');var inProductTable=false;for(var i=0;i<allRows.length;i++){var row=allRows[i];var text=row.innerText.trim();if(!inProductTable){if(isProductTableHeader(text)){inProductTable=true}continue}if(isOrderDetailHeader(text)){break}if(row.className.indexOf('ant-table-row')===-1||row.className.indexOf('measure')!==-1)continue;var lines=text.split(/\\n/);var name=lines[0].trim().replace(/\\s+X\\d+\\s*$/g,'').trim();var variation=extractVariation(lines);var cleanVar=variation.replace(/\\s*[A-Z0-9]{6,}(\\s|_|$)/g,' ').replace(/[_]/g,' ').replace(/\\s+/g,' ').trim();if(name.length>10){products.push({name:name,variation:cleanVar})}}return products}function formatProducts(products){if(products.length===0)return'Info';if(products.length===1)return products[0].name;var nameCount={};for(var i=0;i<products.length;i++){nameCount[products[i].name]=(nameCount[products[i].name]||0)+1}var result=[];for(var j=0;j<products.length;j++){var p=products[j];if(nameCount[p.name]>1&&p.variation){result.push('- '+p.name+' ('+p.variation+')')}else{result.push('- '+p.name)}}return result.join('\\n')}function doScrape(){var t=document.body.innerText;var products=extractProducts();var pn=formatProducts(products);var reqType=(t.match(/Request Type[\\s]*:[\\s]*(.*?)(?=\\n|$)/i)||[])[1]||'';var rawProposal=(t.match(/Request Proposal[\\s]*:?[\\s]*(.+?)(?=\\s{2,}|Refund Amount|\\t|\\n|$)/i)||[])[1]||'';var sellerDR='';var sdrMatch=t.match(/Seller 1st Dispute[\\s\\S]*?Dispute Reason[\\s]*:[\\s]*(.+?)(?=\\n|$)/i);if(sdrMatch){sellerDR=sdrMatch[1].trim()}if(sellerDR==='-'||sellerDR==='None'||sellerDR==='')sellerDR='';var isSellerDispute=false;if(/^\\s*Seller\\s*Dispute/i.test(reqType)){isSellerDispute=true}else if(sellerDR&&sellerDR.length>2&&!/Buyer\\s*Request/i.test(reqType)){isSellerDispute=true}var sellerSubType='';if(/without\\s*buyer/i.test(reqType)){sellerSubType='Without Buyer'}else if(/with\\s*buyer/i.test(reqType)||isSellerDispute){sellerSubType='With Buyer'}var userTypeStr='Buyer';var requestTypeStr='';if(isSellerDispute){userTypeStr='Seller';requestTypeStr='Seller Dispute'}else{if(rawProposal.match(/Return\\s*[&]\\s*Refund/i)||rawProposal.match(/Return\\s*and\\s*Refund/i)||rawProposal==='Return&Refund'){requestTypeStr='Return & Refund'}else if(rawProposal.match(/Refund\\s*Only/i)){requestTypeStr='Refund Only'}}var returnReason='';var rrPatterns=[/Real Return Reason[\\s]*:[\\s]*(.+?)(?=\\t|\\n|$)/i,/Real Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=\\s{2,}|\\t|\\n|$)/i,/Real\\s+Return\\s+Reason\\s*[:\\-]?\\s*(.+?)$/im];for(var rp=0;rp<rrPatterns.length;rp++){var rrm=t.match(rrPatterns[rp]);if(rrm&&rrm[1]&&rrm[1].trim()!=='-'&&rrm[1].trim()!=='None'&&rrm[1].trim()!=='Not Available'&&rrm[1].trim().length>3){returnReason=rrm[1].trim();break}}if(!returnReason||returnReason==='-'){var rrFallback=[/(?:^|\\n|\\t)Return Reason[\\s]*:[\\s]*(.+?)(?=\\s{2,}|Real Return|\\t|\\n|$)/i,/Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=Return Reason Remark|Real Return|\\t{2,}|\\n|$)/i];for(var rf=0;rf<rrFallback.length;rf++){var rfm=t.match(rrFallback[rf]);if(rfm&&rfm[1]&&rfm[1].trim()!=='-'&&rfm[1].trim()!=='None'&&rfm[1].trim()!=='Not Available'&&rfm[1].trim().length>3){returnReason=rfm[1].trim();break}}}returnReason=returnReason.replace(/\\s*Auto[- ]?Approve.*$/i,'').trim();returnReason=returnReason.replace(/\\s*Images and Videos.*$/i,'').trim();returnReason=returnReason.replace(/\\s*Return Reason Remark.*$/i,'').trim();var refundAmt='';var gtMatch=(t.match(/Grand Total[:\\s\\n]*\\$?([\\d,]+\\.?\\d*)/i)||[])[1]||'';refundAmt=gtMatch.replace(/,/g,'');var slaWallet='';var slaMatches=t.match(/Maximum Compensation Amount[:\\s]*\\$?([\\d]+\\.?\\d*)/gi);if(slaMatches){for(var sm=0;sm<slaMatches.length;sm++){var smv=(slaMatches[sm].match(/([\\d]+\\.?\\d*)$/)||[])[1]||'';if(smv&&parseFloat(smv)>0){slaWallet=smv;break}}}var d={rid:rid,orderSN:(t.match(/Order SN[:\\s]*([A-Z0-9]+)/i)||[])[1]||'',userType:userTypeStr,requestType:requestTypeStr,buyerUsername:((t.match(/Buyer Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\s*(?:Buyer|Seller)?\s*$/i,'').trim(),sellerUsername:((t.match(/Seller Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\s*(?:Buyer|Seller)?\s*$/i,'').trim(),shopName:(t.match(/Shop Name[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',productName:pn,requestProposal:rawProposal,returnReason:returnReason,refundAmount:refundAmt,buyerCategory:(t.match(/Buyer Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerCategory:(t.match(/Seller Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerDisputeReason:sellerDR,slaWallet:slaWallet,sellerSubType:sellerSubType};var json=JSON.stringify(d,null,2);navigator.clipboard.writeText(json).catch(function(){});var existing=document.getElementById('_sg_overlay');if(existing)existing.remove();var fields=[d.orderSN?'<b>Order SN:</b> '+d.orderSN:'',d.userType?'<b>User Type:</b> '+d.userType+(d.requestType?' \u00b7 '+d.requestType:'')+(d.sellerSubType?' \u00b7 '+d.sellerSubType:''):'',d.buyerUsername?'<b>Buyer Username:</b> '+d.buyerUsername:'',d.sellerUsername?'<b>Seller Username:</b> '+d.sellerUsername:'',d.productName&&d.productName!=='Info'?'<b>Product:</b> '+d.productName.substring(0,60):'',d.returnReason?'<b>Return Reason:</b> '+d.returnReason:'',d.sellerDisputeReason?'<b>Dispute Reason:</b> '+d.sellerDisputeReason:'',d.refundAmount?'<b>Refund Amount:</b> $'+d.refundAmount:'',d.slaWallet?'<b>SLA Wallet:</b> '+d.slaWallet:''].filter(Boolean).map(function(f){return '<div style=\"padding:4px 0;border-bottom:1px solid #f3f4f6\">'+f+'</div>';}).join('');var backdrop=document.createElement('div');backdrop.id='_sg_backdrop';backdrop.style.cssText='position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:99998;background:rgba(0,0,0,0.2)';backdrop.onclick=function(){var o=document.getElementById('_sg_overlay');if(o)o.remove();backdrop.remove()};document.body.appendChild(backdrop);var overlay=document.createElement('div');overlay.id='_sg_overlay';overlay.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:white;border-radius:20px;padding:36px 40px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;font-size:16px;min-width:520px;max-width:600px;border:3px solid #ee4d2d';overlay.innerHTML='<div style=\"text-align:center;margin-bottom:12px;padding:8px 16px;background:#f0fdf4;border-radius:10px;font-size:14px;color:#059669;font-weight:600\">👆 Click anywhere to dismiss</div><div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px\"><div style=\"font-weight:700;font-size:15px;color:#ee4d2d\">\u2705 DMS Data Scraped!</div><button onclick=\"this.closest(\\'#_sg_overlay\\').remove();var bd=document.getElementById(\\'_sg_backdrop\\');if(bd)bd.remove()\" style=\"background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;padding:0;line-height:1\">&times;</button></div>'+fields+'<div style=\"margin-top:12px;background:#fff7ed;border-radius:8px;padding:8px 10px;font-size:11px;color:#92400e\"><b>Next:</b> Go to Script Generator \u2192 click \ud83d\udccb DMS Auto-Fill \u2192 paste (Ctrl+V)</div>';document.body.appendChild(overlay);setTimeout(function(){var o=document.getElementById('_sg_overlay');if(o)o.style.transition='opacity 0.5s';if(o)o.style.opacity='0';setTimeout(function(){var o2=document.getElementById('_sg_overlay');if(o2)o2.remove();var bd=document.getElementById('_sg_backdrop');if(bd)bd.remove();},500);},5000);}function clickViewDetailAndScrape(){if(document.body.innerText.indexOf('Maximum Compensation Amount')!==-1){doScrape();return;}var found=null;var all=document.querySelectorAll('*');for(var i=0;i<all.length;i++){var el=all[i];var txt=(el.innerText||el.textContent||'').trim();if(txt==='View Detail'&&el.children.length===0){found=el;break;}}if(found){found.click();var waited=0;var checkComp=setInterval(function(){waited+=80;if(document.body.innerText.indexOf('Maximum Compensation Amount')!==-1||waited>=800){clearInterval(checkComp);doScrape();}},80);}else{doScrape();}}var attempts=0;var maxAttempts=10;var checkInterval=200;function waitAndScrape(){var t=document.body.innerText;var hasOrderSN=/Order SN[\\s]*:[\\s]*[A-Z0-9]{5,}/i.test(t);var hasReqType=/Request Type[\\s]*:/i.test(t);attempts++;if(hasOrderSN&&hasReqType){clickViewDetailAndScrape()}else if(attempts>=maxAttempts){clickViewDetailAndScrape()}else{setTimeout(waitAndScrape,checkInterval)}}waitAndScrape()})();";
+const bmCode = "javascript:(function(){var rid=prompt(\"Enter Case RID:\",window.location.pathname.split('/').pop()||\"\");if(!rid)return;function isProductTableHeader(text){return(text.indexOf('Returnable Status')!==-1||text.indexOf('dms_new_rr_returnable_status')!==-1)&&(text.indexOf('Products')!==-1||text.indexOf('dms_general_products')!==-1)}function isOrderDetailHeader(text){return(text.indexOf('dms_general_parcel')!==-1||text.indexOf('Parcel')!==-1)&&(text.indexOf('dms_general_products')!==-1||text.indexOf('Products')!==-1)&&(text.indexOf('cs_portal_bundle_id')!==-1||text.indexOf('Bundle ID')!==-1)}function extractVariation(lines){for(var k=1;k<lines.length;k++){var l=lines[k].trim();if(/^Variation\\s*:/i.test(l)){return l.replace(/^Variation\\s*:\\s*/i,'').trim()}if(/^dms_general_variation\\s*:/i.test(l)){return l.replace(/^dms_general_variation\\s*:\\s*/i,'').trim()}}return''}function extractProducts(){var products=[];var allRows=document.querySelectorAll('tr');var inProductTable=false;for(var i=0;i<allRows.length;i++){var row=allRows[i];var text=row.innerText.trim();if(!inProductTable){if(isProductTableHeader(text)){inProductTable=true}continue}if(isOrderDetailHeader(text)){break}if(row.className.indexOf('ant-table-row')===-1||row.className.indexOf('measure')!==-1)continue;var lines=text.split(/\\n/);var name=lines[0].trim().replace(/\\s+X\\d+\\s*$/g,'').trim();var variation=extractVariation(lines);var cleanVar=variation.replace(/\\s*[A-Z0-9]{6,}(\\s|_|$)/g,' ').replace(/[_]/g,' ').replace(/\\s+/g,' ').trim();if(name.length>10){products.push({name:name,variation:cleanVar})}}return products}function formatProducts(products){if(products.length===0)return'Info';if(products.length===1)return products[0].name;var nameCount={};for(var i=0;i<products.length;i++){nameCount[products[i].name]=(nameCount[products[i].name]||0)+1}var result=[];for(var j=0;j<products.length;j++){var p=products[j];if(nameCount[p.name]>1&&p.variation){result.push('- '+p.name+' ('+p.variation+')')}else{result.push('- '+p.name)}}return result.join('\\n')}function doScrape(){var t=document.body.innerText;var products=extractProducts();var pn=formatProducts(products);var reqType=(t.match(/Request Type[\\s]*:[\\s]*(.*?)(?=\\n|$)/i)||[])[1]||'';var rawProposal=(t.match(/Request Proposal[\\s]*:?[\\s]*(.+?)(?=\\s{2,}|Refund Amount|\\t|\\n|$)/i)||[])[1]||'';var sellerDR='';var sdrMatch=t.match(/Seller 1st Dispute[\\s\\S]*?Dispute Reason[\\s]*:[\\s]*(.+?)(?=\\n|$)/i);if(sdrMatch){sellerDR=sdrMatch[1].trim()}if(sellerDR==='-'||sellerDR==='None'||sellerDR==='')sellerDR='';var isSellerDispute=false;if(/^\\s*Seller\\s*Dispute/i.test(reqType)){isSellerDispute=true}else if(sellerDR&&sellerDR.length>2&&!/Buyer\\s*Request/i.test(reqType)){isSellerDispute=true}var sellerSubType='';if(/without\\s*buyer/i.test(reqType)){sellerSubType='Without Buyer'}else if(/with\\s*buyer/i.test(reqType)||isSellerDispute){sellerSubType='With Buyer'}var userTypeStr='Buyer';var requestTypeStr='';if(isSellerDispute){userTypeStr='Seller';requestTypeStr='Seller Dispute'}else{if(rawProposal.match(/Return\\s*[&]\\s*Refund/i)||rawProposal.match(/Return\\s*and\\s*Refund/i)||rawProposal==='Return&Refund'){requestTypeStr='Return & Refund'}else if(rawProposal.match(/Refund\\s*Only/i)){requestTypeStr='Refund Only'}}var returnReason='';var rrPatterns=[/Real Return Reason[\\s]*:[\\s]*(.+?)(?=\\t|\\n|$)/i,/Real Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=\\s{2,}|\\t|\\n|$)/i,/Real\\s+Return\\s+Reason\\s*[:\\-]?\\s*(.+?)$/im];for(var rp=0;rp<rrPatterns.length;rp++){var rrm=t.match(rrPatterns[rp]);if(rrm&&rrm[1]&&rrm[1].trim()!=='-'&&rrm[1].trim()!=='None'&&rrm[1].trim()!=='Not Available'&&rrm[1].trim().length>3){returnReason=rrm[1].trim();break}}if(!returnReason||returnReason==='-'){var rrFallback=[/(?:^|\\n|\\t)Return Reason[\\s]*:[\\s]*(.+?)(?=\\s{2,}|Real Return|\\t|\\n|$)/i,/Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=Return Reason Remark|Real Return|\\t{2,}|\\n|$)/i];for(var rf=0;rf<rrFallback.length;rf++){var rfm=t.match(rrFallback[rf]);if(rfm&&rfm[1]&&rfm[1].trim()!=='-'&&rfm[1].trim()!=='None'&&rfm[1].trim()!=='Not Available'&&rfm[1].trim().length>3){returnReason=rfm[1].trim();break}}}returnReason=returnReason.replace(/\\s*Auto[- ]?Approve.*$/i,'').trim();returnReason=returnReason.replace(/\\s*Images and Videos.*$/i,'').trim();returnReason=returnReason.replace(/\\s*Return Reason Remark.*$/i,'').trim();var refundAmt='';var gtMatch=(t.match(/Grand Total[:\\s\\n]*\\$?([\\d,]+\\.?\\d*)/i)||[])[1]||'';refundAmt=gtMatch.replace(/,/g,'');var slaWallet='';var slaMatches=t.match(/Maximum Compensation Amount[:\\s]*\\$?([\\d]+\\.?\\d*)/gi);if(slaMatches){for(var sm=0;sm<slaMatches.length;sm++){var smv=(slaMatches[sm].match(/([\\d]+\\.?\\d*)$/)||[])[1]||'';if(smv&&parseFloat(smv)>0){slaWallet=smv;break}}}var d={rid:rid,orderSN:(t.match(/Order SN[:\\s]*([A-Z0-9]+)/i)||[])[1]||'',userType:userTypeStr,requestType:requestTypeStr,buyerUsername:((t.match(/Buyer Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\s*(?:Buyer|Seller)?\s*$/i,'').trim(),sellerUsername:((t.match(/Seller Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\s*(?:Buyer|Seller)?\s*$/i,'').trim(),shopName:(t.match(/Shop Name[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',productName:pn,requestProposal:rawProposal,returnReason:returnReason,refundAmount:refundAmt,buyerCategory:(t.match(/Buyer Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerCategory:(t.match(/Seller Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerDisputeReason:sellerDR,slaWallet:slaWallet,sellerSubType:sellerSubType};var json=JSON.stringify(d,null,2);navigator.clipboard.writeText(json).catch(function(){});var existing=document.getElementById('_sg_overlay');if(existing)existing.remove();var fields=[d.orderSN?'<b>Order SN:</b> '+d.orderSN:'',d.userType?'<b>User Type:</b> '+d.userType+(d.requestType?' \u00b7 '+d.requestType:'')+(d.sellerSubType?' \u00b7 '+d.sellerSubType:''):'',d.buyerUsername?'<b>Buyer Username:</b> '+d.buyerUsername:'',d.sellerUsername?'<b>Seller Username:</b> '+d.sellerUsername:'',d.productName&&d.productName!=='Info'?'<b>Product:</b> '+d.productName.substring(0,60):'',d.returnReason?'<b>Return Reason:</b> '+d.returnReason:'',d.sellerDisputeReason?'<b>Dispute Reason:</b> '+d.sellerDisputeReason:'',d.refundAmount?'<b>Refund Amount:</b> $'+d.refundAmount:'',d.slaWallet?'<b>SLA Wallet:</b> '+d.slaWallet:''].filter(Boolean).map(function(f){return '<div style=\"padding:4px 0;border-bottom:1px solid #f3f4f6\">'+f+'</div>';}).join('');var overlay=document.createElement('div');overlay.id='_sg_overlay';overlay.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99999;background:white;border-radius:20px;padding:36px 40px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;font-size:16px;min-width:520px;max-width:600px;border:3px solid #ee4d2d';overlay.innerHTML='<div style=\"display:flex;align-items:center;justify-content:space-between;margin-bottom:10px\"><div style=\"font-weight:700;font-size:15px;color:#ee4d2d\">\u2705 DMS Data Scraped!</div><button onclick=\"this.closest(\\'#_sg_overlay\\').remove()\" style=\"background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;padding:0;line-height:1\">&times;</button></div>'+fields+'<div style=\"margin-top:12px;background:#fff7ed;border-radius:8px;padding:8px 10px;font-size:11px;color:#92400e\"><b>Next:</b> Go to Script Generator \u2192 click \ud83d\udccb DMS Auto-Fill \u2192 paste (Ctrl+V)</div>';document.body.appendChild(overlay);setTimeout(function(){var o=document.getElementById('_sg_overlay');if(o)o.style.transition='opacity 0.5s';if(o)o.style.opacity='0';setTimeout(function(){var o2=document.getElementById('_sg_overlay');if(o2)o2.remove();},500);},15000);}function clickViewDetailAndScrape(){if(document.body.innerText.indexOf('Maximum Compensation Amount')!==-1){doScrape();return;}var found=null;var all=document.querySelectorAll('*');for(var i=0;i<all.length;i++){var el=all[i];var txt=(el.innerText||el.textContent||'').trim();if(txt==='View Detail'&&el.children.length===0){found=el;break;}}if(found){found.click();var waited=0;var checkComp=setInterval(function(){waited+=100;if(document.body.innerText.indexOf('Maximum Compensation Amount')!==-1||waited>=1500){clearInterval(checkComp);doScrape();}},100);}else{doScrape();}}var attempts=0;var maxAttempts=16;var checkInterval=500;function waitAndScrape(){var t=document.body.innerText;var hasOrderSN=/Order SN[\\s]*:[\\s]*[A-Z0-9]{5,}/i.test(t);var hasReqType=/Request Type[\\s]*:/i.test(t);attempts++;if(hasOrderSN&&hasReqType){clickViewDetailAndScrape()}else if(attempts>=maxAttempts){clickViewDetailAndScrape()}else{setTimeout(waitAndScrape,checkInterval)}}waitAndScrape()})();";
 
 //')||loc.startsWith('http')) input.value = loc;
 
@@ -2978,7 +3378,7 @@ function renderAdminPanel(){
 }
 
 function setAdminTab(item){state.adminTab=item;renderAdminPanel();
-  const tabs=['bookmarklet','scripts','evidence','backend'];
+  const tabs=['bookmarklet','scripts','evidence','backend','versions'];
   tabs.forEach(t=>{
     const btn=document.getElementById('admin-tab-'+t);
     const sec=document.getElementById('admin-section-'+t);
@@ -3022,23 +3422,118 @@ let snippetsDB = [];
 let snipFilter = 'all';
 let snipEditId = null;
 
-function loadSnippets(){
-  try{ snippetsDB = JSON.parse(localStorage.getItem('sg_snippets')||'[]'); }catch(e){ snippetsDB=[]; }
-  // Seed 3 example snippets on first use
-  if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
-    snippetsDB = [
-      {id:1,title:'Apology for Delay',shortcut:'/sorry-delay',cat:'Apology',content:'We sincerely apologize for the delay in processing your request for order {order_sn}. We understand this may have caused inconvenience and we appreciate your patience, {buyer_username}.',created:Date.now(),updated:Date.now()},
-      {id:2,title:'SLA Wallet Reminder',shortcut:'/sla-wallet',cat:'Seller',content:'Please be informed that the compensation for order {order_sn} [{product_name}] will be credited to your Shopee wallet. Kindly check your wallet balance within the next few business days.',created:Date.now(),updated:Date.now()},
-      {id:3,title:'Evidence Follow-Up',shortcut:'/ev-followup',cat:'Evidence',content:'Hi {buyer_username}, we are still waiting for the required evidence for order {order_sn} [{product_name}]. Kindly submit the requested documents before the deadline to avoid case closure. Thank you for your cooperation.',created:Date.now(),updated:Date.now()}
-    ];
-    saveSnippetsToStorage();
-    localStorage.setItem('sg_snippets_seeded','1');
-  }
+// ═══ PERSISTENT SNIPPET STORAGE ═══
+// Uses IndexedDB (primary — survives browser "clear cookies" & daily resets)
+// Falls back to localStorage if IndexedDB fails
+// Both are written on every save for maximum reliability
+
+const _SG_DB_NAME = 'sg_snippet_store';
+const _SG_DB_VER  = 1;
+const _SG_STORE   = 'snip_data';
+const _SG_KEY     = 'snippets_v1';
+
+function _sgOpenDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(_SG_DB_NAME, _SG_DB_VER);
+    req.onupgradeneeded = e => {
+      try { e.target.result.createObjectStore(_SG_STORE); } catch(ex){}
+    };
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror   = e => reject(e);
+  });
 }
+
 function saveSnippetsToStorage(){
-  try{ localStorage.setItem('sg_snippets', JSON.stringify(snippetsDB)); }catch(e){}
+  const data = JSON.stringify(snippetsDB);
+  // 1. Save to localStorage (fast, synchronous)
+  try { localStorage.setItem('sg_snippets', data); } catch(e){}
+  // 2. Save to IndexedDB (persistent, async — survives browser storage clearing)
+  _sgOpenDB().then(db => {
+    try {
+      const tx = db.transaction(_SG_STORE, 'readwrite');
+      tx.objectStore(_SG_STORE).put(data, _SG_KEY);
+    } catch(e){}
+  }).catch(()=>{});
 }
+
+const _SG_DEFAULT_SNIPPETS = [
+  {id:1,title:'Apology for Delay',shortcut:'/sorry-delay',cat:'Apology',content:'We sincerely apologize for the delay in processing your request for order {order_sn}. We understand this may have caused inconvenience and we appreciate your patience, {buyer_username}.',created:Date.now(),updated:Date.now()},
+  {id:2,title:'SLA Wallet Reminder',shortcut:'/sla-wallet',cat:'Seller',content:'Please be informed that the compensation for order {order_sn} [{product_name}] will be credited to your Shopee wallet. Kindly check your wallet balance within the next few business days.',created:Date.now(),updated:Date.now()},
+  {id:3,title:'Evidence Follow-Up',shortcut:'/ev-followup',cat:'Evidence',content:'Hi {buyer_username}, we are still waiting for the required evidence for order {order_sn} [{product_name}]. Kindly submit the requested documents before the deadline to avoid case closure. Thank you for your cooperation.',created:Date.now(),updated:Date.now()}
+];
+
+function _sgApplyData(data, source){
+  try {
+    const parsed = data ? JSON.parse(data) : [];
+    if(Array.isArray(parsed) && parsed.length > 0){
+      // Keep whichever source has more snippets (user-imported > defaults)
+      if(parsed.length >= snippetsDB.length){
+        snippetsDB = parsed;
+        // Mirror to the other storage so they stay in sync
+        if(source === 'idb') try{ localStorage.setItem('sg_snippets', data); }catch(e){}
+        if(source === 'ls')  _sgOpenDB().then(db=>{ try{ db.transaction(_SG_STORE,'readwrite').objectStore(_SG_STORE).put(data,_SG_KEY); }catch(e){} }).catch(()=>{});
+      }
+    }
+  } catch(e){}
+}
+
+function loadSnippets(){
+  // Step 1: load from localStorage immediately for fast first render
+  const lsData = localStorage.getItem('sg_snippets');
+  _sgApplyData(lsData, 'ls');
+
+  // Step 2: load from IndexedDB (async) — may have more data if ls was cleared
+  _sgOpenDB().then(db => {
+    const tx  = db.transaction(_SG_STORE, 'readonly');
+    const req = tx.objectStore(_SG_STORE).get(_SG_KEY);
+    req.onsuccess = e => {
+      const idbData = e.target.result;
+      if(idbData){
+        const lsParsed  = lsData  ? tryParseSnips(lsData)  : [];
+        const idbParsed = tryParseSnips(idbData);
+        // If IndexedDB has more snippets than what localStorage gave us, use IDB
+        if(idbParsed.length > snippetsDB.length){
+          snippetsDB = idbParsed;
+          // Restore localStorage from IDB
+          try{ localStorage.setItem('sg_snippets', idbData); }catch(ex){}
+          renderSnippetsPanel();
+        }
+      }
+      // If both are empty, seed defaults once
+      if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
+        snippetsDB = _SG_DEFAULT_SNIPPETS;
+        saveSnippetsToStorage();
+        localStorage.setItem('sg_snippets_seeded','1');
+        renderSnippetsPanel();
+      }
+    };
+    req.onerror = () => {
+      // IDB failed — seed from defaults if needed
+      if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
+        snippetsDB = _SG_DEFAULT_SNIPPETS;
+        saveSnippetsToStorage();
+        localStorage.setItem('sg_snippets_seeded','1');
+        renderSnippetsPanel();
+      }
+    };
+  }).catch(() => {
+    // No IndexedDB — seed if needed
+    if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
+      snippetsDB = _SG_DEFAULT_SNIPPETS;
+      saveSnippetsToStorage();
+      localStorage.setItem('sg_snippets_seeded','1');
+      renderSnippetsPanel();
+    }
+  });
+}
+
+function tryParseSnips(data){
+  try{ const p = JSON.parse(data); return Array.isArray(p)?p:[]; }catch(e){ return []; }
+}
+
 loadSnippets();
+// Auto-save on page close/refresh — catches any unsaved state
+window.addEventListener('beforeunload', () => { saveSnippetsToStorage(); });
 
 // ── Shortcut Expansion in Edit Textareas ──
 let snipAcIndex = -1; // active autocomplete index
@@ -3231,17 +3726,10 @@ function editSnippet(id){
 }
 
 function deleteSnippet(id){
-  const deleted = snippetsDB.find(s=>s.id===id);
   snippetsDB = snippetsDB.filter(s=>s.id!==id);
   saveSnippetsToStorage();
   renderSnippetsPanel();
   showSnipToast('Snippet deleted');
-  if(deleted){
-    _snipDeletedItems = [deleted];
-    const undoBtn = document.getElementById('snip-undo-btn');
-    if(undoBtn){ undoBtn.style.opacity='1'; undoBtn.style.pointerEvents='auto'; undoBtn.textContent='\u21a9 Undo (1)'; }
-    setTimeout(()=>{ if(undoBtn){ undoBtn.style.opacity='0.4'; undoBtn.style.pointerEvents='none'; undoBtn.textContent='\u21a9 Undo'; } _snipDeletedItems=[]; }, 8000);
-  }
 }
 
 function duplicateSnippet(id){
@@ -3368,7 +3856,7 @@ function snipUpdateSelectedCount(){
 
 let _snipDeletedItems = [];
 function snipDeleteSelected(){
-  const checked = [...document.querySelectorAll('.snip-checkbox:checked')];
+  const checked = [...document.querySelectorAll('.snip-check:checked')];
   if(!checked.length) return;
   const ids = checked.map(c=>parseInt(c.dataset.id));
   _snipDeletedItems = snippetsDB.filter(s=>ids.includes(s.id));
@@ -3376,8 +3864,8 @@ function snipDeleteSelected(){
   saveSnippetsToStorage();
   renderSnippetsPanel();
   const undoBtn = document.getElementById('snip-undo-btn');
-  if(undoBtn){ undoBtn.style.opacity='1'; undoBtn.style.pointerEvents='auto'; undoBtn.textContent='↩ Undo ('+_snipDeletedItems.length+')'; }
-  setTimeout(()=>{ if(undoBtn){ undoBtn.style.opacity='0.4'; undoBtn.style.pointerEvents='none'; undoBtn.textContent='↩ Undo'; } _snipDeletedItems=[]; }, 8000);
+  if(undoBtn){ undoBtn.style.display=''; undoBtn.textContent='↩ Undo ('+_snipDeletedItems.length+')'; }
+  setTimeout(()=>{ if(undoBtn) undoBtn.style.display='none'; _snipDeletedItems=[]; }, 8000);
 }
 function snipUndoDelete(){
   if(!_snipDeletedItems.length) return;
@@ -3387,7 +3875,7 @@ function snipUndoDelete(){
   saveSnippetsToStorage();
   renderSnippetsPanel();
   const undoBtn = document.getElementById('snip-undo-btn');
-  if(undoBtn){ undoBtn.style.opacity='0.4'; undoBtn.style.pointerEvents='none'; undoBtn.textContent='↩ Undo'; }
+  if(undoBtn) undoBtn.style.display='none';
 }
 
 function fillSnippetPlaceholders(text){
@@ -3574,7 +4062,7 @@ function downloadSelf(){
   const blob=new Blob(['<!DOCTYPE html>\n'+document.documentElement.outerHTML],{type:'text/html'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='All in One Script Generator v13.html';
+  a.download='All in One Script Generator v15.html';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
@@ -4060,7 +4548,6 @@ function updateEvScriptCount(){
   <div style="margin-bottom:24px">
     <div style="font-weight:800;font-size:22px;color:#1a1a1a;margin-bottom:4px">📋 Evidence Collection</div>
     <div style="color:#9ca3af;font-size:13px">Select category → Return Reason → Risk Level → Evidence Type → Copy script</div>
-    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:8px 14px;margin-top:10px;display:flex;align-items:center;gap:8px"><span style="font-size:14px">📋</span><div style="font-size:12px;color:#374151"><strong>[RRSG] Evidence Collection:</strong> <a href="https://docs.google.com/spreadsheets/d/1_FgVE4wgEHoswz_NvJBAOUOdU6weAN085-NJrFIgNlU/edit?usp=sharing" target="_blank" style="color:#ee4d2d;font-weight:600">Google Sheets</a></div></div>
   </div>
 
   <!-- Category Tabs -->
@@ -4118,6 +4605,5 @@ function updateEvScriptCount(){
   </div>
 </div>
 <div id="snip-toast" class="snip-toast"></div>
-<script>document.getElementById("header-datetime").textContent=new Date().toLocaleString("en-GB",{day:"numeric",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true});</script>
 </body>
 </html>
