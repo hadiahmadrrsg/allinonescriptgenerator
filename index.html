@@ -205,10 +205,10 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <div class="logo-text">
         <div class="logo-title">All in One Script Generator - v15</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
+        <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
       </div>
     </div>
-    <div style="display:flex;align-items:center;gap:16px">
-      <div id="header-refresh-time" style="color:rgba(255,255,255,.8);font-size:11px;white-space:nowrap"></div>
+    <div class="flex-gap">
       <button class="nav-btn active" id="nav-gen" onclick="switchView('generator')">⚡ Script Generator</button>
       <button class="nav-btn inactive" id="nav-ev" onclick="switchView('evidence')">📋 Evidence Collection</button>
       <button class="nav-btn inactive" id="nav-snip" onclick="switchView('snippets')">📝 Snippets</button>
@@ -319,7 +319,9 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         <!-- Reject Root Cause — shown on Reject Request / Reject Request -->
         <div id="field-reject-cause" class="field-gap hidden">
           <span class="lbl" style="color:#dc2626">🚫 Root Cause: Why Reject</span>
-          <textarea id="inp-reject-cause" rows="2" placeholder="State the root cause for rejecting this request..." oninput="setState('reject_cause',this.value)"></textarea>
+          <textarea id="inp-reject-cause" rows="2" placeholder="State the root cause for rejecting this request... (type /shortcut + Space to expand snippets)" oninput="setState('reject_cause',this.value)" onkeydown="handleRejectCauseSnipKey(event,this)" onkeyup="handleRejectCauseSnipInput(event,this)"></textarea>
+          <div id="snip-autocomplete-reject" class="snip-ac-dropdown hidden" style="position:relative;z-index:50"></div>
+          <div style="font-size:10px;color:#059669;margin-top:4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span style="background:#f0fdf4;padding:1px 6px;border-radius:4px;font-weight:600">💡 Type a shortcut + Space to expand snippets</span></div>
         </div>
 
         <!-- Request Evidence field — inline evidence panel -->
@@ -1101,7 +1103,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   </div><!-- end admin-section-scripts -->
 
   <!-- BACKEND HTML SECTION -->
-  <div id="admin-section-backend" class="hidden">
+  <div id="admin-section-backend" class="hidden" style="overflow:hidden;max-height:85vh">
 
 
 <div class="docs-wrap">
@@ -1697,6 +1699,7 @@ EVIDENCE_DB = {
   </div>
 
   <hr class="ddiv">
+</main>
 </div>
 
 <script>
@@ -1787,6 +1790,9 @@ setTimeout(function(){
             <li><strong>Generate Script validation</strong> — when evidence panel is visible, all 3 fields (Return Reason, Risk Level, Evidence Type) must be selected before generating; shows red toast with missing fields and pulses the labels</li>
             <li><strong>Google Sheets link restored</strong> in Evidence Collection tab — links to [RRSG] Evidence Collection spreadsheet</li>
             <li><strong>Refreshed date/time</strong> restored in header bar — shows when the page was last loaded</li>
+            <li><strong>Seller Category multi-select</strong> — Evidence Collection now allows selecting both SELLER [MANDATORY] and SELLER [SUPPORTING] together; output combines both scripts</li>
+            <li><strong>Snippet shortcuts in Root Cause</strong> — the 🚫 Root Cause: Why Reject textarea now supports snippet expansion (type /shortcut + Space) with autocomplete</li>
+            <li><strong>Admin Script Flows: Request Type sub-grouping</strong> — within each section, scripts are now visually separated by Request Type (Return & Refund / Refund Only / Both) when multiple types exist</li>
           </ul>
         </div>
         <div>
@@ -1794,6 +1800,8 @@ setTimeout(function(){
           <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
             <li>Version Updates section centered with max-width constraint — no longer stretches full screen</li>
             <li>v14 and v15 now separated as distinct version entries</li>
+            <li><strong>Header layout fixed</strong> — timestamp now sits below subtitle (matching v13 style) instead of cramping nav buttons</li>
+            <li><strong>Backend HTML overflow fixed</strong> — added missing <code>&lt;/main&gt;</code> closing tag</li>
           </ul>
         </div>
       </div>
@@ -2490,10 +2498,8 @@ function applyImport(){
 const NEXT_STEPS_CONNECTORS = [
   "What's next:",
   "So, what comes next:",
-  "Here's what we'll do next:",
   "Here's what happens next:",
-  "Moving forward, here's what to do:",
-  "To proceed, please take note of the following:",
+  "Please take note of the following:",
 ];
 
 const NEXT_STEPS_REFUND_ONLY = '• ${RefundChannel} : You will receive your refund ${RefundSLA_BaseOnPaymentMethod}.\n• Shopee Coins: If Shopee Coins were used for this order, they will be returned to your account within 48 hours.\n\nFor more details, you can check out the full return and refund timeline in our Help Center. If you need any assistance, our Customer Service team is ready to help!';
@@ -2514,7 +2520,7 @@ const NEXT_STEPS_RETURN = `• Please select your preferred return method (Pick-
 // ═══════════════════════════════════════════════════════════════
 // INLINE EVIDENCE PANEL (inside Generator)
 // ═══════════════════════════════════════════════════════════════
-const evGen = { cat:null, reason:null, risk:null, sellerCat:null, type:null };
+const evGen = { cat:null, reason:null, risk:null, sellerCat:[], type:null };
 
 function evGenGetCatKey(cat){
   if(cat==='SF') return 'seller';
@@ -2533,7 +2539,7 @@ function evGenAutoCategory(){
 
 function evGenInit(){
   const cats = evGenAutoCategory();
-  evGen.reason = null; evGen.risk = null; evGen.sellerCat = null; evGen.type = null;
+  evGen.reason = null; evGen.risk = null; evGen.sellerCat = []; evGen.type = null;
   evGen.cat = cats[0];
   const titleEl = document.getElementById('lbl-evidence-title');
   if(titleEl){
@@ -2559,7 +2565,7 @@ function evGenInit(){
 }
 
 function evGenSetCat(cat){
-  evGen.cat = cat; evGen.reason = null; evGen.risk = null; evGen.sellerCat = null; evGen.type = null;
+  evGen.cat = cat; evGen.reason = null; evGen.risk = null; evGen.sellerCat = []; evGen.type = null;
   document.querySelectorAll('.ev-gen-cat-btn').forEach(b=>b.classList.toggle('active',b.textContent.includes(cat==='SF'?'Forward':'Return')));
   evGenRenderReasons();
 }
@@ -2585,7 +2591,7 @@ function evGenRenderReasons(){
 }
 
 function evGenSetReason(r){
-  evGen.reason = r; evGen.risk = null; evGen.sellerCat = null; evGen.type = null;
+  evGen.reason = r; evGen.risk = null; evGen.sellerCat = []; evGen.type = null;
   document.querySelectorAll('#ev-gen-reasons .ev-gen-pill').forEach(b=>b.className='ev-gen-pill'+(b.textContent===r?' active-reason':''));
   document.getElementById('ev-gen-reason-sync').style.display = 'none';
   evGenRenderRisks();
@@ -2602,11 +2608,11 @@ function evGenRenderRisks(){
   if(evGen.risk && risks.includes(evGen.risk)){
     if(evGenIsSeller()) evGenRenderSellerCats();
     else evGenRenderTypes();
-  } else { evGen.risk = null; evGen.sellerCat = null; evGen.type = null; evGenHideBelow('risk'); evGenUpdateHidden(); }
+  } else { evGen.risk = null; evGen.sellerCat = []; evGen.type = null; evGenHideBelow('risk'); evGenUpdateHidden(); }
 }
 
 function evGenSetRisk(r){
-  evGen.risk = r; evGen.sellerCat = null; evGen.type = null;
+  evGen.risk = r; evGen.sellerCat = []; evGen.type = null;
   document.querySelectorAll('#ev-gen-risks .ev-gen-pill').forEach(b=>b.className='ev-gen-pill'+(b.textContent===r?' active-risk':''));
   if(evGenIsSeller()){
     evGenRenderSellerCats();
@@ -2618,28 +2624,38 @@ function evGenSetRisk(r){
 }
 
 function evGenRenderSellerCats(){
+  if(!Array.isArray(evGen.sellerCat)) evGen.sellerCat = [];
   const data = EVIDENCE_DB[evGenGetCatKey(evGen.cat)] || {};
   const cats = Object.keys((data[evGen.reason]||{})[evGen.risk] || {});
   document.getElementById('ev-gen-seller-cat-section').style.display = '';
   document.getElementById('ev-gen-seller-cats').innerHTML = cats.map(c =>
-    `<button class="ev-gen-pill${c===evGen.sellerCat?' active-risk':''}" onclick="evGenSetSellerCat('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</button>`
+    `<button class="ev-gen-pill${evGen.sellerCat.includes(c)?' active-risk':''}" onclick="evGenSetSellerCat('${esc(c).replace(/'/g,"\\'")}')">${esc(c)}</button>`
   ).join('');
   document.getElementById('ev-gen-output-section').style.display = 'none';
-  if(evGen.sellerCat && cats.includes(evGen.sellerCat)) evGenRenderTypes();
-  else { evGen.sellerCat = null; evGen.type = null; evGenHideBelow('sellerCat'); evGenUpdateHidden(); }
+  if(evGen.sellerCat.length > 0 && evGen.sellerCat.every(c=>cats.includes(c))) evGenRenderTypes();
+  else { evGen.sellerCat = []; evGen.type = null; evGenHideBelow('sellerCat'); evGenUpdateHidden(); }
 }
 
 function evGenSetSellerCat(c){
-  evGen.sellerCat = c; evGen.type = null;
-  document.querySelectorAll('#ev-gen-seller-cats .ev-gen-pill').forEach(b=>b.className='ev-gen-pill'+(b.textContent===c?' active-risk':''));
-  evGenRenderTypes();
+  if(!Array.isArray(evGen.sellerCat)) evGen.sellerCat = [];
+  const idx = evGen.sellerCat.indexOf(c);
+  if(idx >= 0) evGen.sellerCat.splice(idx, 1);
+  else evGen.sellerCat.push(c);
+  evGen.type = null;
+  document.querySelectorAll('#ev-gen-seller-cats .ev-gen-pill').forEach(b=>b.className='ev-gen-pill'+((evGen.sellerCat||[]).includes(b.textContent)?' active-risk':''));
+  if(evGen.sellerCat.length > 0) evGenRenderTypes();
+  else { evGenHideBelow('sellerCat'); evGenUpdateHidden(); }
 }
 
 function evGenRenderTypes(){
   const data = EVIDENCE_DB[evGenGetCatKey(evGen.cat)] || {};
-  let typesObj;
+  let typesObj = {};
   if(evGenIsSeller()){
-    typesObj = ((data[evGen.reason]||{})[evGen.risk]||{})[evGen.sellerCat] || {};
+    const cats = Array.isArray(evGen.sellerCat) ? evGen.sellerCat : (evGen.sellerCat ? [evGen.sellerCat] : []);
+    cats.forEach(c => {
+      const obj = ((data[evGen.reason]||{})[evGen.risk]||{})[c] || {};
+      Object.keys(obj).forEach(k => { if(!typesObj[k]) typesObj[k] = true; });
+    });
   } else {
     typesObj = (data[evGen.reason]||{})[evGen.risk] || {};
   }
@@ -2662,8 +2678,14 @@ function evGenShowOutput(){
   const catKey = evGenGetCatKey(evGen.cat);
   let text;
   if(evGenIsSeller()){
-    text = ((EVIDENCE_DB.bullets[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[evGen.sellerCat]?.[evGen.type] ||
-           ((EVIDENCE_DB[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[evGen.sellerCat]?.[evGen.type] || '';
+    const cats = Array.isArray(evGen.sellerCat) ? evGen.sellerCat : (evGen.sellerCat ? [evGen.sellerCat] : []);
+    const parts = [];
+    cats.forEach(c => {
+      const t = ((EVIDENCE_DB.bullets[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[c]?.[evGen.type] ||
+                ((EVIDENCE_DB[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[c]?.[evGen.type] || '';
+      if(t) parts.push(t);
+    });
+    text = parts.join('\n\n');
   } else {
     text = ((EVIDENCE_DB.bullets[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[evGen.type] ||
            ((EVIDENCE_DB[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[evGen.type] || '';
@@ -2686,9 +2708,15 @@ function evGenUpdateHidden(){
   const catKey = evGenGetCatKey(evGen.cat);
   let text = '';
   if(evGen.reason && evGen.risk && evGen.type){
-    if(evGenIsSeller() && evGen.sellerCat){
-      text = ((EVIDENCE_DB.bullets[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[evGen.sellerCat]?.[evGen.type] ||
-             ((EVIDENCE_DB[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[evGen.sellerCat]?.[evGen.type] || '';
+    const sc = Array.isArray(evGen.sellerCat) ? evGen.sellerCat : [];
+    if(evGenIsSeller() && sc.length > 0){
+      const parts = [];
+      sc.forEach(c => {
+        const t = ((EVIDENCE_DB.bullets[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[c]?.[evGen.type] ||
+                  ((EVIDENCE_DB[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[c]?.[evGen.type] || '';
+        if(t) parts.push(t);
+      });
+      text = parts.join('\n\n');
     } else if(!evGenIsSeller()){
       text = ((EVIDENCE_DB.bullets[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[evGen.type] ||
              ((EVIDENCE_DB[catKey]||{})[evGen.reason]||{})[evGen.risk]?.[evGen.type] || '';
@@ -2830,8 +2858,6 @@ function reshuffleSection(i){
 
       if(liveReject)   newText = newText.replace(/[.\s]+$/, '') + ` ${liveReject.replace(/\.+$/, '')}.`;
       if(liveProbing)  newText += `\n\n${liveProbing}`;
-      const liveNextSteps = (state.user==='Buyer' && (state.result==='Accept Request') ) ? (state.type_return==='Refund Only' ? NEXT_STEPS_REFUND_ONLY : NEXT_STEPS_RETURN) : '';
-      if(state.user==='Buyer' && liveNextSteps){ const connector=rand(NEXT_STEPS_CONNECTORS); newText += `\n\n${connector}\n${liveNextSteps}`; }
     }
 
     state.generatedSections[i].text = newText;
@@ -3362,7 +3388,43 @@ function renderAdminPanel(){
 
     orderedSecs.forEach(([sec, secItems])=>{
       html += `<div style="padding:8px 16px 4px 28px"><span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#ee4d2d">${esc(sec)}</span><span style="font-size:10px;color:#9ca3af;margin-left:6px">(${secItems.length})</span></div>`;
-      secItems.forEach(({id,data})=>{
+
+      // Sub-group by Request Type (data[0]) within each section
+      const byReqType = {};
+      secItems.forEach(s => {
+        const rt = s.data[0]; if(!byReqType[rt]) byReqType[rt] = []; byReqType[rt].push(s);
+      });
+      const rtKeys = Object.keys(byReqType);
+      const showRtHeaders = rtKeys.length > 1; // only show sub-headers if there are multiple request types
+
+      if(showRtHeaders){
+        // Render order: shared first, then specific
+        const rtOrder = rtKeys.sort((a,b) => {
+          if(a.includes(',')) return -1; if(b.includes(',')) return 1; return a.localeCompare(b);
+        });
+        rtOrder.forEach(rt => {
+          const rtLabel = rt.includes(',') ? '📦 Both (Return & Refund + Refund Only)' : (rt === 'Refund Only' ? '💰 Refund Only' : rt === 'Seller Dispute' ? '🏪 Seller Dispute' : '🔄 Return & Refund');
+          html += `<div style="padding:4px 16px 2px 40px"><span style="font-size:10px;font-weight:700;color:#6b7280;background:#f3f4f6;padding:2px 8px;border-radius:4px">${rtLabel}</span><span style="font-size:9px;color:#9ca3af;margin-left:4px">(${byReqType[rt].length})</span></div>`;
+          byReqType[rt].forEach(({id,data}) => {
+            const isEditing = state.editId===id;
+            if(isEditing){
+              html += `<div style="padding:4px 16px 8px 52px">`;
+              html += `<textarea class="edit-textarea" id="edit-ta-${id}" rows="4" style="font-size:12px;width:100%;border-radius:8px;border:1.5px solid #e5e7eb;padding:8px;font-family:'Sora',sans-serif">${esc(data[5])}</textarea>`;
+              html += `<div class="flex-gap" style="margin-top:6px"><button class="btn-orange" style="padding:4px 12px;font-size:12px" onclick="saveEdit(${id})">✓ Save</button><button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="cancelEdit()">Cancel</button></div>`;
+              html += `</div>`;
+            } else {
+              html += `<div style="padding:4px 16px 8px 52px;display:flex;gap:10px;align-items:flex-start">`;
+              html += `<div style="flex:1;font-size:12px;color:#374151;line-height:1.55;background:#f9fafb;border-radius:8px;padding:8px 10px;border:1px solid #f3f4f6;white-space:pre-wrap">${esc(data[5])}</div>`;
+              html += `<div style="display:flex;gap:4px;flex-shrink:0">`;
+              html += `<button class="btn-edit" style="font-size:11px;padding:4px 8px" onclick="startEdit(${id})">✏️ Edit</button>`;
+              html += `<button class="btn-del" style="font-size:11px;padding:4px 8px" onclick="delScript(${id})">🗑️ Del</button>`;
+              html += `</div></div>`;
+            }
+          });
+        });
+      } else {
+        // Single request type — no sub-headers needed
+        secItems.forEach(({id,data})=>{
         const isEditing = state.editId===id;
         if(isEditing){
           html += `<div style="padding:4px 16px 8px 40px">`;
@@ -3378,6 +3440,7 @@ function renderAdminPanel(){
           html += `</div></div>`;
         }
       });
+      } // end if/else showRtHeaders
     });
     html += `</div></div>`;
     }); // end grpFlows.forEach
@@ -3702,6 +3765,74 @@ function expandSnippetInTextarea(ta, found, snip, secIdx){
   // Brief green border flash
   ta.style.borderColor = '#059669';
   setTimeout(()=>{ ta.style.borderColor = '#ee4d2d'; }, 800);
+}
+
+// ── Root Cause textarea snippet expansion ──
+function handleRejectCauseSnipKey(e, ta){
+  const dropdown = document.getElementById('snip-autocomplete-reject');
+  const isAcOpen = dropdown && !dropdown.classList.contains('hidden') && snipAcMatches.length > 0;
+  if(isAcOpen && (e.key==='ArrowDown'||e.key==='ArrowUp')){
+    e.preventDefault();
+    if(e.key==='ArrowDown') snipAcIndex = Math.min(snipAcIndex+1, snipAcMatches.length-1);
+    else snipAcIndex = Math.max(snipAcIndex-1, -1);
+    dropdown.querySelectorAll('.snip-ac-item').forEach((el,i)=>el.classList.toggle('ac-active', i===snipAcIndex));
+    return;
+  }
+  if(isAcOpen && (e.key==='Tab'||e.key==='Enter') && snipAcIndex >= 0){
+    e.preventDefault();
+    const snip = snippetsDB.find(s=>s.id===snipAcMatches[snipAcIndex].id);
+    if(snip){
+      const partial = findPartialShortcutAtCursor(ta);
+      if(partial) expandRejectCauseSnippet(ta, partial, snip);
+    }
+    dropdown.classList.add('hidden'); snipAcMatches = [];
+    return;
+  }
+  if(e.key===' '||e.key==='Spacebar'){
+    const found = findShortcutAtCursor(ta);
+    if(found){
+      const snip = getSnippetByShortcut(found.code);
+      if(snip){ e.preventDefault(); expandRejectCauseSnippet(ta, found, snip); }
+    }
+  }
+  if(e.key==='Escape' && isAcOpen){ dropdown.classList.add('hidden'); snipAcMatches = []; }
+}
+function handleRejectCauseSnipInput(e, ta){
+  const dropdown = document.getElementById('snip-autocomplete-reject');
+  if(!dropdown) return;
+  const partial = findPartialShortcutAtCursor(ta);
+  if(partial && partial.code.length >= 2){
+    const matches = getSnippetMatches(partial.code);
+    if(matches.length > 0){
+      snipAcMatches = matches; snipAcIndex = -1;
+      dropdown.innerHTML = matches.map((s,i)=>`<div class="snip-ac-item" onmousedown="selectRejectCauseAc(${s.id})"><div><span class="snip-ac-title">${esc(s.title)}</span><span class="snip-ac-code">${esc(s.shortcut)}</span></div></div>`).join('');
+      dropdown.classList.remove('hidden');
+      return;
+    }
+  }
+  dropdown.classList.add('hidden'); snipAcMatches = [];
+}
+function selectRejectCauseAc(snippetId){
+  const ta = document.getElementById('inp-reject-cause');
+  const dropdown = document.getElementById('snip-autocomplete-reject');
+  if(!ta) return;
+  const snip = snippetsDB.find(s=>s.id===snippetId);
+  if(!snip) return;
+  const partial = findPartialShortcutAtCursor(ta);
+  if(partial) expandRejectCauseSnippet(ta, partial, snip);
+  if(dropdown){ dropdown.classList.add('hidden'); snipAcMatches = []; }
+}
+function expandRejectCauseSnippet(ta, found, snip){
+  const val = ta.value;
+  const filledContent = fillSnippetPlaceholders(snip.content);
+  ta.value = val.substring(0, found.start) + filledContent + val.substring(found.end);
+  const newPos = found.start + filledContent.length;
+  ta.setSelectionRange(newPos, newPos); ta.focus();
+  setState('reject_cause', ta.value);
+  const dropdown = document.getElementById('snip-autocomplete-reject');
+  if(dropdown){ dropdown.classList.add('hidden'); snipAcMatches = []; }
+  showSnipToast(filledContent);
+  ta.style.borderColor='#059669'; setTimeout(()=>{ta.style.borderColor='';},800);
 }
 
 function toggleSnipAddForm(){
