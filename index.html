@@ -207,7 +207,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
       </div>
     </div>
-    <div class="flex-gap">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div id="header-refresh-time" style="color:rgba(255,255,255,.8);font-size:11px;white-space:nowrap"></div>
       <button class="nav-btn active" id="nav-gen" onclick="switchView('generator')">⚡ Script Generator</button>
       <button class="nav-btn inactive" id="nav-ev" onclick="switchView('evidence')">📋 Evidence Collection</button>
       <button class="nav-btn inactive" id="nav-snip" onclick="switchView('snippets')">📝 Snippets</button>
@@ -1741,7 +1742,7 @@ setTimeout(function(){
   <!-- VERSION UPDATES SECTION -->
   <div id="admin-section-versions" class="hidden">
 
-  <div class="docs-wrap">
+  <div class="docs-wrap" style="max-width:960px;margin:0 auto !important;padding:24px">
   <div class="docs-layout">
 
   <!-- SIDEBAR -->
@@ -1755,6 +1756,7 @@ setTimeout(function(){
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
     <a class="docs-nav-item active" onclick="scrollToVer('v15')" id="vnav-v15"><span class="ddot" style="background:#ee4d2d"></span>v15 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v14')" id="vnav-v14"><span class="ddot" style="background:#6b7280"></span>v14</a>
     <a class="docs-nav-item" onclick="scrollToVer('v13')" id="vnav-v13"><span class="ddot" style="background:#6b7280"></span>v13</a>
     <a class="docs-nav-item" onclick="scrollToVer('v12')" id="vnav-v12"><span class="ddot" style="background:#6b7280"></span>v12</a>
     <a class="docs-nav-item" onclick="scrollToVer('v11')" id="vnav-v11"><span class="ddot" style="background:#6b7280"></span>v11</a>
@@ -1775,7 +1777,34 @@ setTimeout(function(){
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
         <div style="color:white;font-weight:800;font-size:16px">v15 — Current</div>
-        <div style="color:rgba(255,255,255,.8);font-size:12px">5 May 2026</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">11 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Evidence panel labels redesigned</strong> — RETURN REASON, RISK LEVEL, EVIDENCE TYPE now use large bold colored badges (red, amber, green) for instant visibility</li>
+            <li><strong>Generate Script validation</strong> — when evidence panel is visible, all 3 fields (Return Reason, Risk Level, Evidence Type) must be selected before generating; shows red toast with missing fields and pulses the labels</li>
+            <li><strong>Google Sheets link restored</strong> in Evidence Collection tab — links to [RRSG] Evidence Collection spreadsheet</li>
+            <li><strong>Refreshed date/time</strong> restored in header bar — shows when the page was last loaded</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Version Updates section centered with max-width constraint — no longer stretches full screen</li>
+            <li>v14 and v15 now separated as distinct version entries</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v14" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v14</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">5 May 2026</div>
       </div>
       <div style="padding:20px">
         <div style="margin-bottom:16px">
@@ -4519,9 +4548,22 @@ function updateEvScriptCount(){
   if(el) el.textContent = `${count} evidence scripts loaded`;
 }
 
-</script>
+// Set refreshed date/time in header
+(function(){
+  const now = new Date();
+  const d = now.getDate();
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const m = months[now.getMonth()];
+  const y = now.getFullYear();
+  let h = now.getHours();
+  const ampm = h >= 12 ? 'pm' : 'am';
+  h = h % 12 || 12;
+  const min = String(now.getMinutes()).padStart(2,'0');
+  const el = document.getElementById('header-refresh-time');
+  if(el) el.textContent = `${d} ${m} ${y}, ${h}:${min} ${ampm}`;
+})();
 
-<!-- DOCS VIEW - Panel -->
+</script>
 
 
 <!-- Patch Modal -->
@@ -4548,6 +4590,13 @@ function updateEvScriptCount(){
   <div style="margin-bottom:24px">
     <div style="font-weight:800;font-size:22px;color:#1a1a1a;margin-bottom:4px">📋 Evidence Collection</div>
     <div style="color:#9ca3af;font-size:13px">Select category → Return Reason → Risk Level → Evidence Type → Copy script</div>
+  </div>
+
+  <!-- Google Sheets Link -->
+  <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:12px 18px;margin-bottom:24px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:16px">📋</span>
+    <span style="font-size:13px;font-weight:600;color:#374151">[RRSG] Evidence Collection:</span>
+    <a href="https://docs.google.com/spreadsheets/d/1_FgVE4wgEHoswz_NvJBAOUOdU6weAN085-NJrFIgNlU/edit?usp=sharing" target="_blank" style="font-size:13px;font-weight:600;color:#ee4d2d;text-decoration:none">Google Sheets</a>
   </div>
 
   <!-- Category Tabs -->
