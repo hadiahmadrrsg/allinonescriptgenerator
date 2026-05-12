@@ -3587,6 +3587,7 @@ const _SG_DB_NAME = 'sg_snippet_store';
 const _SG_DB_VER  = 1;
 const _SG_STORE   = 'snip_data';
 const _SG_KEY     = 'snippets_v1';
+let   _sgIdbChecked = false; // Guard: don't overwrite IDB until restore check completes
 
 function _sgOpenDB(){
   return new Promise((resolve, reject) => {
@@ -3603,7 +3604,10 @@ function saveSnippetsToStorage(){
   const data = JSON.stringify(snippetsDB);
   // 1. Save to localStorage (fast, synchronous)
   try { localStorage.setItem('sg_snippets', data); } catch(e){}
-  // 2. Save to IndexedDB (persistent, async — survives browser storage clearing)
+  // 2. Save to IndexedDB ONLY if the initial restore check has completed
+  //    This prevents the race condition where beforeunload writes empty [] to IDB
+  //    before the async restore from IDB has had a chance to run
+  if(!_sgIdbChecked) return;
   _sgOpenDB().then(db => {
     try {
       const tx = db.transaction(_SG_STORE, 'readwrite');
@@ -3622,12 +3626,12 @@ function _sgApplyData(data, source){
   try {
     const parsed = data ? JSON.parse(data) : [];
     if(Array.isArray(parsed) && parsed.length > 0){
-      // Keep whichever source has more snippets (user-imported > defaults)
       if(parsed.length >= snippetsDB.length){
         snippetsDB = parsed;
         // Mirror to the other storage so they stay in sync
+        // But only mirror ls→IDB AFTER the IDB check has completed (avoids overwriting backup)
         if(source === 'idb') try{ localStorage.setItem('sg_snippets', data); }catch(e){}
-        if(source === 'ls')  _sgOpenDB().then(db=>{ try{ db.transaction(_SG_STORE,'readwrite').objectStore(_SG_STORE).put(data,_SG_KEY); }catch(e){} }).catch(()=>{});
+        if(source === 'ls' && _sgIdbChecked) _sgOpenDB().then(db=>{ try{ db.transaction(_SG_STORE,'readwrite').objectStore(_SG_STORE).put(data,_SG_KEY); }catch(e){} }).catch(()=>{});
       }
     }
   } catch(e){}
@@ -3638,11 +3642,15 @@ function loadSnippets(){
   const lsData = localStorage.getItem('sg_snippets');
   _sgApplyData(lsData, 'ls');
 
+  // Safety timeout — if IDB doesn't respond within 3s, unlock saves anyway
+  setTimeout(() => { if(!_sgIdbChecked){ _sgIdbChecked = true; } }, 3000);
+
   // Step 2: load from IndexedDB (async) — may have more data if ls was cleared
   _sgOpenDB().then(db => {
     const tx  = db.transaction(_SG_STORE, 'readonly');
     const req = tx.objectStore(_SG_STORE).get(_SG_KEY);
     req.onsuccess = e => {
+      _sgIdbChecked = true; // IDB check complete — safe to write now
       const idbData = e.target.result;
       if(idbData){
         const lsParsed  = lsData  ? tryParseSnips(lsData)  : [];
@@ -3664,6 +3672,7 @@ function loadSnippets(){
       }
     };
     req.onerror = () => {
+      _sgIdbChecked = true; // IDB check failed — but safe to proceed
       // IDB failed — seed from defaults if needed
       if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
         snippetsDB = _SG_DEFAULT_SNIPPETS;
@@ -3673,7 +3682,7 @@ function loadSnippets(){
       }
     };
   }).catch(() => {
-    // No IndexedDB — seed if needed
+    _sgIdbChecked = true; // No IndexedDB — safe to proceed
     if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
       snippetsDB = _SG_DEFAULT_SNIPPETS;
       saveSnippetsToStorage();
