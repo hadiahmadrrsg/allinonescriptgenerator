@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v16</title>
+<title>All in One Script Generator - v17</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -203,7 +203,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v16</div>
+        <div class="logo-title">All in One Script Generator - v17</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
       </div>
@@ -443,21 +443,63 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <button onclick="importSnippetsPrompt()" style="padding:7px 16px;border-radius:10px;border:none;background:#059669;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">📤 Import</button>
     </div>
   </div>
-
-  <div style="background:#f0f9ff;border:1.5px solid #bae6fd;border-radius:10px;padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
-    <span style="font-size:14px">💾</span>
-    <span style="font-size:12px;font-weight:500;color:#0c4a6e">Snippets are stored in your browser only. Export a backup before updating to a new version — your snippets may not carry over.</span>
+  <!-- Cloud User Bar -->
+  <div id="snip-user-bar" style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:8px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+    <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+      <span style="font-size:14px">☁️</span>
+      <span style="color:#374151;font-weight:600">Cloud Sync:</span>
+      <span id="snip-user-name" style="color:#059669;font-weight:700"></span>
+    </div>
+    <div style="display:flex;gap:6px">
+      <button onclick="switchSnipUser()" style="padding:3px 10px;border-radius:6px;border:1px solid #d1d5db;background:white;color:#374151;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">👤 Switch User</button>
+      <button onclick="forceCloudSync()" style="padding:3px 10px;border-radius:6px;border:1px solid #059669;background:#059669;color:white;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">🔄 Sync Now</button>
+    </div>
   </div>
 
-    <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12.5px;color:#92400e;line-height:1.7">
-    <div style="font-weight:700;margin-bottom:6px">📥 How to upload snippets from Google Sheets</div>
-    <ol style="margin:0;padding-left:18px">
+  <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+    <span style="font-size:14px">☁️</span>
+    <span style="font-size:12px;font-weight:500;color:#065f46">Snippets are saved to the cloud using your User ID. Your snippets will persist even after clearing browser data — just enter the same name.</span>
+  </div>
+
+  <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12.5px;color:#92400e;line-height:1.8">
+    <div style="font-weight:700;margin-bottom:8px;font-size:13.5px">📖 How to use Snippets</div>
+
+    <div style="font-weight:700;margin-top:4px;color:#b45309">1️⃣ First time setup</div>
+    <ol style="margin:4px 0 10px;padding-left:18px">
+      <li>Go to the <strong>📝 Snippets</strong> tab</li>
+      <li>Enter your name or ID when prompted (e.g. <strong>hadi</strong>, <strong>john_doe</strong>)</li>
+      <li>This links all your snippets to you — remember your name!</li>
+    </ol>
+
+    <div style="font-weight:700;color:#b45309">2️⃣ Creating a snippet</div>
+    <ol style="margin:4px 0 10px;padding-left:18px">
+      <li>Click <strong>+ Add Snippet</strong></li>
+      <li>Fill in: <strong>Title</strong> (e.g. "Apology for delay"), <strong>Shortcut</strong> (e.g. <code style="background:#fef3c7;padding:1px 4px;border-radius:3px">/sorry-delay</code>), <strong>Category</strong>, and <strong>Content</strong></li>
+      <li>Use placeholders like <code style="background:#fef3c7;padding:1px 4px;border-radius:3px">{buyer_username}</code>, <code style="background:#fef3c7;padding:1px 4px;border-radius:3px">{order_sn}</code>, <code style="background:#fef3c7;padding:1px 4px;border-radius:3px">{product_name}</code> — they auto-fill from Case Details</li>
+      <li>Click <strong>Save</strong> — it saves locally and syncs to the cloud automatically</li>
+    </ol>
+
+    <div style="font-weight:700;color:#b45309">3️⃣ Using snippets in scripts</div>
+    <ol style="margin:4px 0 10px;padding-left:18px">
+      <li>After generating a script, type your shortcut (e.g. <code style="background:#fef3c7;padding:1px 4px;border-radius:3px">/sorry-delay</code>) in any editable text area + press <strong>Space</strong></li>
+      <li>The shortcut expands into the full snippet text with placeholders filled in</li>
+      <li>Also works in the <strong>🚫 Root Cause</strong> field — a popup appears as you type</li>
+    </ol>
+
+    <div style="font-weight:700;color:#b45309">4️⃣ Importing from Google Sheets</div>
+    <ol style="margin:4px 0 10px;padding-left:18px">
       <li>Open your Google Sheets snippet list</li>
       <li>Go to <strong>File → Download → Comma Separated Values (.csv)</strong></li>
-      <li>The file saves to your Downloads folder</li>
       <li>Click <strong>📤 Import</strong> → drag &amp; drop the CSV into the zone</li>
     </ol>
-    <div style="margin-top:8px;font-size:11.5px;color:#b45309">⚠️ Uploading will <strong>replace all</strong> current snippets.</div>
+    <div style="font-size:11.5px;color:#b45309">⚠️ Importing will <strong>replace all</strong> current snippets and sync to the cloud.</div>
+
+    <div style="font-weight:700;color:#b45309;margin-top:10px">5️⃣ If your snippets disappear</div>
+    <ol style="margin:4px 0 4px;padding-left:18px">
+      <li>Go to <strong>📝 Snippets</strong> tab → enter the <strong>same name/ID</strong> you used before</li>
+      <li>Click <strong>🔄 Sync Now</strong> — your snippets reload from the cloud</li>
+      <li>Forgot your name? Ask your team lead to check the Supabase dashboard</li>
+    </ol>
   </div>
 
   <!-- Add/Edit Form -->
@@ -774,8 +816,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       </div>
     </div>
 
-    <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:12px 16px">
-      <div style="font-size:13px;color:#c2410c;line-height:1.6"><strong>💾 Important:</strong> Snippets are stored in your browser only. Always <strong>Export</strong> a backup before updating to a new version — your snippets may not carry over. Use <strong>Import</strong> to restore them.</div>
+    <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 16px">
+      <div style="font-size:13px;color:#065f46;line-height:1.6"><strong>☁️ Cloud Sync:</strong> Snippets are now saved to the cloud via Supabase. Enter your name/ID once in the Snippets tab — your snippets persist across sessions, even after clearing browser data. Use <strong>🔄 Sync Now</strong> to force a refresh from the cloud.</div>
     </div>
   </div>
 
@@ -1118,7 +1160,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   <div class="docs-sidebar-logo">
     <span class="ds-badge">Shopee Return & Refund</span>
     <h2>All in One Script Generator</h2>
-    <p>Technical Documentation — v16</p>
+    <p>Technical Documentation — v17</p>
   </div>
 
   <div class="docs-nav-group">
@@ -1762,7 +1804,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v16')" id="vnav-v16"><span class="ddot" style="background:#ee4d2d"></span>v16 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v17')" id="vnav-v17"><span class="ddot" style="background:#ee4d2d"></span>v17 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v16')" id="vnav-v16"><span class="ddot" style="background:#6b7280"></span>v16</a>
     <a class="docs-nav-item" onclick="scrollToVer('v15')" id="vnav-v15"><span class="ddot" style="background:#6b7280"></span>v15</a>
     <a class="docs-nav-item" onclick="scrollToVer('v14')" id="vnav-v14"><span class="ddot" style="background:#6b7280"></span>v14</a>
     <a class="docs-nav-item" onclick="scrollToVer('v13')" id="vnav-v13"><span class="ddot" style="background:#6b7280"></span>v13</a>
@@ -1781,11 +1824,48 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
-      <div id="vsec-v16" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v17" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v16 — Current</div>
+        <div style="color:white;font-weight:800;font-size:16px">v17 — Current</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">12 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>☁️ Supabase cloud storage for Snippets</strong> — snippets are now saved to a cloud database (Supabase) per user. Each agent enters their name/ID once; snippets persist across sessions even after clearing browser data, cookies, or IndexedDB</li>
+            <li><strong>Cloud User Bar</strong> — green bar in Snippets tab shows current user, with <strong>👤 Switch User</strong> and <strong>🔄 Sync Now</strong> buttons</li>
+            <li><strong>Auto-sync on all CRUD</strong> — every add, edit, delete, duplicate, and import automatically syncs to Supabase in the background</li>
+            <li><strong>First-visit user prompt</strong> — entering the Snippets tab for the first time prompts for a user ID; existing local snippets are automatically pushed to the cloud</li>
+            <li><strong>Snippet instructions redesigned</strong> — full 5-step guide: first-time setup, creating snippets, using shortcuts in scripts, importing from Google Sheets, and recovering snippets after browser clears</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Snippet persistence issue resolved</strong> — replaced IndexedDB + localStorage dual-write system with Supabase as the single source of truth; localStorage now serves only as a fast render cache</li>
+            <li><strong>Generate Script validation removed</strong> — no longer blocks script generation when evidence fields aren't selected</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🗑️ Removed</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>IndexedDB snippet storage (replaced by Supabase)</li>
+            <li><code>_sgIdbChecked</code> race condition guard (no longer needed)</li>
+            <li><code>beforeunload</code> save handler (cloud sync handles persistence)</li>
+            <li>Old "browser only" warning and basic Google Sheets upload instructions</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
+      <div id="vsec-v16" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v16</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">12 May 2026</div>
       </div>
       <div style="padding:20px">
         <div style="margin-bottom:16px">
@@ -2302,7 +2382,13 @@ function switchView(v){
   document.getElementById('view-admin-panel').classList.toggle('hidden',v!=='admin');
   document.getElementById('view-guide').classList.toggle('hidden',v!=='guide');
   if(v==='evidence'){ document.getElementById('view-evidence').classList.remove('hidden'); evSetCat(evState.cat||'B'); }
-  if(v==='snippets') renderSnippetsPanel();
+  if(v==='snippets'){
+    if(!getSnipUserId()){
+      const uid = ensureSnipUserId();
+      if(uid) loadSnippets();
+    }
+    renderSnippetsPanel();
+  }
   if(v==='admin') renderAdminPanel();
   document.getElementById('nav-gen').className='nav-btn '+(v==='generator'?'active':'inactive');
   document.getElementById('nav-ev').className='nav-btn '+(v==='evidence'?'active':'inactive');
@@ -2790,30 +2876,6 @@ function evGenUpdateHidden(){
 }
 
 function generateScript(){
-  // ── Validate evidence panel selections if visible ──
-  const evPanel = document.getElementById('field-need-probing');
-  if(evPanel && !evPanel.classList.contains('hidden')){
-    const missing = [];
-    if(!evGen.reason) missing.push('Return Reason');
-    if(!evGen.risk)   missing.push('Risk Level');
-    const typeEmpty = Array.isArray(evGen.type) ? evGen.type.length === 0 : !evGen.type;
-    if(typeEmpty)     missing.push('Evidence Type');
-    if(missing.length > 0){
-      // Flash the missing labels
-      const labelMap = {'Return Reason':'ev-gen-lbl-reason','Risk Level':'ev-gen-lbl-risk','Evidence Type':'ev-gen-lbl-type'};
-      missing.forEach(m=>{
-        const lbl = document.getElementById(labelMap[m]);
-        if(lbl){ lbl.style.animation='evPulse .5s ease 2'; setTimeout(()=>lbl.style.animation='',1100); }
-      });
-      // Show toast
-      const toast = document.getElementById('snip-toast');
-      toast.innerHTML = '⚠️ Please select: <strong>' + missing.join(', ') + '</strong> before generating';
-      toast.style.background = '#dc2626';
-      toast.classList.add('show');
-      setTimeout(()=>toast.classList.remove('show'),3500);
-      return;
-    }
-  }
 
   // Always start completely fresh
   state.generatedSections = null;
@@ -3578,42 +3640,123 @@ let snippetsDB = [];
 let snipFilter = 'all';
 let snipEditId = null;
 
-// ═══ PERSISTENT SNIPPET STORAGE ═══
-// Uses IndexedDB (primary — survives browser "clear cookies" & daily resets)
-// Falls back to localStorage if IndexedDB fails
-// Both are written on every save for maximum reliability
+// ═══ SUPABASE CLOUD STORAGE ═══
+// Snippets are stored in Supabase (cloud) per user_id
+// localStorage is used as a fast cache only — Supabase is the source of truth
+const _SB_URL = 'https://imbiekajejqjsplzirxf.supabase.co/rest/v1';
+const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltYmlla2FqZWpxanNwbHppcnhmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg1NDY3NzIsImV4cCI6MjA5NDEyMjc3Mn0.Fw0-LyASFIl3MwvbFyWIiBU7YdF8qsZuDekjpPaKbOo';
+const _SB_HEADERS = { 'apikey':_SB_KEY, 'Authorization':'Bearer '+_SB_KEY, 'Content-Type':'application/json', 'Prefer':'return=representation' };
 
-const _SG_DB_NAME = 'sg_snippet_store';
-const _SG_DB_VER  = 1;
-const _SG_STORE   = 'snip_data';
-const _SG_KEY     = 'snippets_v1';
-let   _sgIdbChecked = false; // Guard: don't overwrite IDB until restore check completes
-
-function _sgOpenDB(){
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(_SG_DB_NAME, _SG_DB_VER);
-    req.onupgradeneeded = e => {
-      try { e.target.result.createObjectStore(_SG_STORE); } catch(ex){}
-    };
-    req.onsuccess = e => resolve(e.target.result);
-    req.onerror   = e => reject(e);
-  });
+function getSnipUserId(){
+  return localStorage.getItem('sg_snip_user_id') || '';
+}
+function setSnipUserId(id){
+  localStorage.setItem('sg_snip_user_id', id.trim());
 }
 
+// Prompt for user ID if not set
+function ensureSnipUserId(){
+  let uid = getSnipUserId();
+  if(!uid){
+    uid = prompt('👤 Enter your name or ID to load your snippets.\nThis links your snippets to you so they persist across sessions.\n\nExample: hadi, john_doe, agent42');
+    if(!uid || !uid.trim()) return null;
+    setSnipUserId(uid.trim());
+  }
+  return getSnipUserId();
+}
+
+// ── Supabase REST helpers ──
+async function sbFetch(path, opts={}){
+  const res = await fetch(_SB_URL + path, { headers:_SB_HEADERS, ...opts });
+  if(!res.ok) throw new Error(`Supabase ${res.status}`);
+  return res.json();
+}
+
+async function sbLoadSnippets(userId){
+  const rows = await sbFetch(`/snippets?user_id=eq.${encodeURIComponent(userId)}&order=created_at.asc`);
+  return rows.map(r=>({ id:r.id, title:r.title||'', shortcut:r.shortcut||'', cat:r.cat||'General', content:r.content||'', created:new Date(r.created_at).getTime(), updated:new Date(r.updated_at).getTime() }));
+}
+
+async function sbUpsertSnippet(userId, snip){
+  const body = { user_id:userId, title:snip.title||'', shortcut:snip.shortcut||'', cat:snip.cat||'General', content:snip.content||'', updated_at:new Date().toISOString() };
+  if(snip._sbId){
+    // Update existing
+    const rows = await sbFetch(`/snippets?id=eq.${snip._sbId}`, { method:'PATCH', body:JSON.stringify(body) });
+    return rows[0];
+  } else {
+    // Insert new
+    body.created_at = new Date().toISOString();
+    const rows = await sbFetch('/snippets', { method:'POST', body:JSON.stringify(body) });
+    return rows[0];
+  }
+}
+
+async function sbDeleteSnippet(sbId){
+  await fetch(_SB_URL+`/snippets?id=eq.${sbId}`, { method:'DELETE', headers:_SB_HEADERS });
+}
+
+async function sbDeleteAllForUser(userId){
+  await fetch(_SB_URL+`/snippets?user_id=eq.${encodeURIComponent(userId)}`, { method:'DELETE', headers:_SB_HEADERS });
+}
+
+async function sbBulkInsert(userId, snips){
+  const rows = snips.map(s=>({ user_id:userId, title:s.title||'', shortcut:s.shortcut||'', cat:s.cat||'General', content:s.content||'', created_at:new Date().toISOString(), updated_at:new Date().toISOString() }));
+  return sbFetch('/snippets', { method:'POST', body:JSON.stringify(rows) });
+}
+
+// ── Local cache (fast render while Supabase loads) ──
+function cacheSnippetsLocal(){
+  try{ localStorage.setItem('sg_snippets', JSON.stringify(snippetsDB)); }catch(e){}
+}
+
+// ── Main load function ──
+let _sbSynced = false;
+async function loadSnippets(){
+  const uid = getSnipUserId();
+  // 1. Load from localStorage cache for instant render
+  try{
+    const cached = JSON.parse(localStorage.getItem('sg_snippets')||'[]');
+    if(Array.isArray(cached) && cached.length > 0) snippetsDB = cached;
+  }catch(e){}
+
+  // 2. If no user ID yet, show defaults and wait for user to set ID
+  if(!uid){
+    if(snippetsDB.length === 0) snippetsDB = _SG_DEFAULT_SNIPPETS.map(s=>({...s}));
+    renderSnippetsPanel();
+    return;
+  }
+
+  // 3. Load from Supabase (source of truth)
+  try{
+    const cloud = await sbLoadSnippets(uid);
+    if(cloud.length > 0){
+      snippetsDB = cloud;
+      cacheSnippetsLocal();
+      _sbSynced = true;
+    } else if(snippetsDB.length > 0 && !_sbSynced){
+      // First time: user has local data but nothing in cloud → push to cloud
+      await sbBulkInsert(uid, snippetsDB);
+      snippetsDB = await sbLoadSnippets(uid); // reload to get server IDs
+      cacheSnippetsLocal();
+      _sbSynced = true;
+    } else if(snippetsDB.length === 0){
+      snippetsDB = _SG_DEFAULT_SNIPPETS.map(s=>({...s}));
+      await sbBulkInsert(uid, snippetsDB);
+      snippetsDB = await sbLoadSnippets(uid);
+      cacheSnippetsLocal();
+      _sbSynced = true;
+    }
+  }catch(e){
+    console.warn('Supabase load failed, using local cache:', e.message);
+    // Offline — use whatever is in localStorage
+  }
+  renderSnippetsPanel();
+}
+
+// ── Save function (replaces old saveSnippetsToStorage) ──
 function saveSnippetsToStorage(){
-  const data = JSON.stringify(snippetsDB);
-  // 1. Save to localStorage (fast, synchronous)
-  try { localStorage.setItem('sg_snippets', data); } catch(e){}
-  // 2. Save to IndexedDB ONLY if the initial restore check has completed
-  //    This prevents the race condition where beforeunload writes empty [] to IDB
-  //    before the async restore from IDB has had a chance to run
-  if(!_sgIdbChecked) return;
-  _sgOpenDB().then(db => {
-    try {
-      const tx = db.transaction(_SG_STORE, 'readwrite');
-      tx.objectStore(_SG_STORE).put(data, _SG_KEY);
-    } catch(e){}
-  }).catch(()=>{});
+  cacheSnippetsLocal(); // always cache locally for fast render
+  // Cloud sync happens in individual CRUD operations, not here
 }
 
 const _SG_DEFAULT_SNIPPETS = [
@@ -3622,83 +3765,49 @@ const _SG_DEFAULT_SNIPPETS = [
   {id:3,title:'Evidence Follow-Up',shortcut:'/ev-followup',cat:'Evidence',content:'Hi {buyer_username}, we are still waiting for the required evidence for order {order_sn} [{product_name}]. Kindly submit the requested documents before the deadline to avoid case closure. Thank you for your cooperation.',created:Date.now(),updated:Date.now()}
 ];
 
-function _sgApplyData(data, source){
-  try {
-    const parsed = data ? JSON.parse(data) : [];
-    if(Array.isArray(parsed) && parsed.length > 0){
-      if(parsed.length >= snippetsDB.length){
-        snippetsDB = parsed;
-        // Mirror to the other storage so they stay in sync
-        // But only mirror ls→IDB AFTER the IDB check has completed (avoids overwriting backup)
-        if(source === 'idb') try{ localStorage.setItem('sg_snippets', data); }catch(e){}
-        if(source === 'ls' && _sgIdbChecked) _sgOpenDB().then(db=>{ try{ db.transaction(_SG_STORE,'readwrite').objectStore(_SG_STORE).put(data,_SG_KEY); }catch(e){} }).catch(()=>{});
-      }
-    }
-  } catch(e){}
-}
-
-function loadSnippets(){
-  // Step 1: load from localStorage immediately for fast first render
-  const lsData = localStorage.getItem('sg_snippets');
-  _sgApplyData(lsData, 'ls');
-
-  // Safety timeout — if IDB doesn't respond within 3s, unlock saves anyway
-  setTimeout(() => { if(!_sgIdbChecked){ _sgIdbChecked = true; } }, 3000);
-
-  // Step 2: load from IndexedDB (async) — may have more data if ls was cleared
-  _sgOpenDB().then(db => {
-    const tx  = db.transaction(_SG_STORE, 'readonly');
-    const req = tx.objectStore(_SG_STORE).get(_SG_KEY);
-    req.onsuccess = e => {
-      _sgIdbChecked = true; // IDB check complete — safe to write now
-      const idbData = e.target.result;
-      if(idbData){
-        const lsParsed  = lsData  ? tryParseSnips(lsData)  : [];
-        const idbParsed = tryParseSnips(idbData);
-        // If IndexedDB has more snippets than what localStorage gave us, use IDB
-        if(idbParsed.length > snippetsDB.length){
-          snippetsDB = idbParsed;
-          // Restore localStorage from IDB
-          try{ localStorage.setItem('sg_snippets', idbData); }catch(ex){}
-          renderSnippetsPanel();
-        }
-      }
-      // If both are empty, seed defaults once
-      if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
-        snippetsDB = _SG_DEFAULT_SNIPPETS;
-        saveSnippetsToStorage();
-        localStorage.setItem('sg_snippets_seeded','1');
-        renderSnippetsPanel();
-      }
-    };
-    req.onerror = () => {
-      _sgIdbChecked = true; // IDB check failed — but safe to proceed
-      // IDB failed — seed from defaults if needed
-      if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
-        snippetsDB = _SG_DEFAULT_SNIPPETS;
-        saveSnippetsToStorage();
-        localStorage.setItem('sg_snippets_seeded','1');
-        renderSnippetsPanel();
-      }
-    };
-  }).catch(() => {
-    _sgIdbChecked = true; // No IndexedDB — safe to proceed
-    if(snippetsDB.length === 0 && !localStorage.getItem('sg_snippets_seeded')){
-      snippetsDB = _SG_DEFAULT_SNIPPETS;
-      saveSnippetsToStorage();
-      localStorage.setItem('sg_snippets_seeded','1');
-      renderSnippetsPanel();
-    }
-  });
-}
-
 function tryParseSnips(data){
   try{ const p = JSON.parse(data); return Array.isArray(p)?p:[]; }catch(e){ return []; }
 }
 
 loadSnippets();
-// Auto-save on page close/refresh — catches any unsaved state
-window.addEventListener('beforeunload', () => { saveSnippetsToStorage(); });
+
+function switchSnipUser(){
+  const current = getSnipUserId();
+  const newId = prompt('👤 Enter your name or ID:\n\nCurrent: ' + (current||'(not set)') + '\n\nThis will load snippets for the new user.', current||'');
+  if(newId === null) return; // cancelled
+  if(!newId.trim()){ alert('User ID cannot be empty.'); return; }
+  setSnipUserId(newId.trim());
+  snippetsDB = [];
+  cacheSnippetsLocal();
+  loadSnippets();
+}
+
+async function forceCloudSync(){
+  const uid = ensureSnipUserId();
+  if(!uid) return;
+  const syncBtn = document.querySelector('#snip-user-bar button:last-child');
+  if(syncBtn){ syncBtn.textContent = '⏳ Syncing...'; syncBtn.disabled = true; }
+  try{
+    const cloud = await sbLoadSnippets(uid);
+    if(cloud.length > 0){
+      snippetsDB = cloud;
+      cacheSnippetsLocal();
+      renderSnippetsPanel();
+      showSnipToast('☁️ Synced ' + cloud.length + ' snippets from cloud');
+    } else if(snippetsDB.length > 0){
+      await sbDeleteAllForUser(uid);
+      await sbBulkInsert(uid, snippetsDB);
+      const reloaded = await sbLoadSnippets(uid);
+      if(reloaded.length > 0){ snippetsDB = reloaded; cacheSnippetsLocal(); renderSnippetsPanel(); }
+      showSnipToast('☁️ Pushed ' + snippetsDB.length + ' snippets to cloud');
+    } else {
+      showSnipToast('No snippets to sync');
+    }
+  }catch(e){
+    alert('⚠️ Cloud sync failed: ' + e.message + '\n\nCheck your internet connection.');
+  }
+  if(syncBtn){ syncBtn.textContent = '🔄 Sync Now'; syncBtn.disabled = false; }
+}
 
 // ── Shortcut Expansion in Edit Textareas ──
 let snipAcIndex = -1; // active autocomplete index
@@ -3939,10 +4048,19 @@ function saveSnippet(){
     const idx = snippetsDB.findIndex(s=>s.id===snipEditId);
     if(idx>=0){
       snippetsDB[idx] = {...snippetsDB[idx], title, shortcut, cat, content, updated: Date.now()};
+      // Sync to cloud
+      const uid = getSnipUserId();
+      if(uid) sbUpsertSnippet(uid, snippetsDB[idx]).catch(e=>console.warn('Cloud save failed:',e.message));
     }
     snipEditId = null;
   } else {
-    snippetsDB.push({ id: Date.now(), title, shortcut, cat, content, created: Date.now(), updated: Date.now() });
+    const newSnip = { id: Date.now(), title, shortcut, cat, content, created: Date.now(), updated: Date.now() };
+    snippetsDB.push(newSnip);
+    // Sync to cloud
+    const uid = getSnipUserId();
+    if(uid) sbUpsertSnippet(uid, newSnip).then(row=>{
+      if(row && row.id){ newSnip.id = row.id; cacheSnippetsLocal(); }
+    }).catch(e=>console.warn('Cloud save failed:',e.message));
   }
   saveSnippetsToStorage();
   document.getElementById('snip-add-form').classList.add('hidden');
@@ -3964,18 +4082,27 @@ function editSnippet(id){
 }
 
 function deleteSnippet(id){
+  const snip = snippetsDB.find(s=>s.id===id);
   snippetsDB = snippetsDB.filter(s=>s.id!==id);
   saveSnippetsToStorage();
   renderSnippetsPanel();
   showSnipToast('Snippet deleted');
+  // Sync to cloud
+  if(snip && snip.id) sbDeleteSnippet(snip.id).catch(e=>console.warn('Cloud delete failed:',e.message));
 }
 
 function duplicateSnippet(id){
   const s = snippetsDB.find(s=>s.id===id);
   if(!s) return;
-  snippetsDB.push({...s, id:Date.now(), title:s.title+' (copy)', shortcut:'', created:Date.now(), updated:Date.now()});
+  const dup = {...s, id:Date.now(), title:s.title+' (copy)', shortcut:'', created:Date.now(), updated:Date.now()};
+  snippetsDB.push(dup);
   saveSnippetsToStorage();
   renderSnippetsPanel();
+  // Sync to cloud
+  const uid = getSnipUserId();
+  if(uid) sbUpsertSnippet(uid, dup).then(row=>{
+    if(row && row.id){ dup.id = row.id; cacheSnippetsLocal(); }
+  }).catch(e=>console.warn('Cloud save failed:',e.message));
 }
 
 function filterSnippets(cat){
@@ -4028,6 +4155,14 @@ function updateSnipCatUI(){
 }
 
 function renderSnippetsPanel(){
+  // Update cloud user bar
+  const uid = getSnipUserId();
+  const userNameEl = document.getElementById('snip-user-name');
+  if(userNameEl) userNameEl.textContent = uid || 'Not set — click Switch User';
+  const userBar = document.getElementById('snip-user-bar');
+  if(userBar) userBar.style.borderColor = uid ? '#bbf7d0' : '#fde68a';
+  if(userBar) userBar.style.background = uid ? '#f0fdf4' : '#fffbeb';
+
   updateSnipCatUI();
   const searchEl = document.getElementById('snip-search-lib');
   const list = getFilteredSnippets(searchEl);
@@ -4101,6 +4236,8 @@ function snipDeleteSelected(){
   snippetsDB = snippetsDB.filter(s=>!ids.includes(s.id));
   saveSnippetsToStorage();
   renderSnippetsPanel();
+  // Sync to cloud
+  _snipDeletedItems.forEach(s=>{ if(s.id) sbDeleteSnippet(s.id).catch(e=>console.warn('Cloud delete failed:',e.message)); });
   const undoBtn = document.getElementById('snip-undo-btn');
   if(undoBtn){ undoBtn.style.display=''; undoBtn.textContent='↩ Undo ('+_snipDeletedItems.length+')'; }
   setTimeout(()=>{ if(undoBtn) undoBtn.style.display='none'; _snipDeletedItems=[]; }, 8000);
@@ -4109,6 +4246,9 @@ function snipUndoDelete(){
   if(!_snipDeletedItems.length) return;
   snippetsDB.push(..._snipDeletedItems);
   snippetsDB.sort((a,b)=>a.created-b.created);
+  // Re-insert to cloud
+  const uid = getSnipUserId();
+  if(uid) _snipDeletedItems.forEach(s=>sbUpsertSnippet(uid,s).catch(e=>console.warn('Cloud undo failed:',e.message)));
   _snipDeletedItems=[];
   saveSnippetsToStorage();
   renderSnippetsPanel();
@@ -4260,6 +4400,13 @@ function applySnippetImport(){
   saveSnippetsToStorage();
   document.getElementById('snip-import-modal').classList.add('hidden');
   renderSnippetsPanel();
+  // Sync to cloud: delete old, insert new
+  const uid = getSnipUserId();
+  if(uid){
+    sbDeleteAllForUser(uid).then(()=>sbBulkInsert(uid, snippetsDB)).then(()=>sbLoadSnippets(uid)).then(cloud=>{
+      if(cloud.length > 0){ snippetsDB = cloud; cacheSnippetsLocal(); renderSnippetsPanel(); }
+    }).catch(e=>console.warn('Cloud import sync failed:',e.message));
+  }
   alert(`✅ Imported ${added} snippet${added!==1?'s':''}. Previous snippets replaced.`);
 }
 
@@ -4300,7 +4447,7 @@ function downloadSelf(){
   const blob=new Blob(['<!DOCTYPE html>\n'+document.documentElement.outerHTML],{type:'text/html'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='All in One Script Generator v16.html';
+  a.download='All in One Script Generator v17.html';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
