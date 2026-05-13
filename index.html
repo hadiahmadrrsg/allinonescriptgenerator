@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v17</title>
+<title>All in One Script Generator - v18</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -268,6 +268,16 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <div>
         <span class="lbl">Decision / Result</span>
         <div class="grid-btns" id="result-btns"></div>
+        <!-- P1 Cases Dropdown -->
+        <div id="p1-cases-wrap" class="hidden" style="margin-top:10px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="font-size:13px">🔴</span>
+            <span class="lbl" style="margin:0;font-weight:700;color:#dc2626">Specifically for P1 Cases Only</span>
+          </div>
+          <select id="p1-cases-select" onchange="setP1Result(this.value)" style="width:100%;font-size:13px;padding:9px 12px;border-radius:10px;border:2px solid #fca5a5;background:#fff5f5;font-family:'Sora',sans-serif;outline:none;cursor:pointer;color:#374151;font-weight:600">
+            <option value="">-- Select P1 decision --</option>
+          </select>
+        </div>
       </div>
 
       <!-- Customer Details -->
@@ -908,12 +918,13 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div id="db-count" style="display:none"></div>
   </div>
   <!-- GitHub info bubble -->
-  <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+  <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap">
     <span style="font-size:16px">🌐</span>
     <div style="font-size:12.5px;color:#374151;line-height:1.6">
       <strong>All in One Script Generator:</strong> <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
       Latest version always available there. Please always refresh the website.
     </div>
+    <button onclick="exportMasterFile()" style="padding:8px 18px;border-radius:10px;border:none;background:linear-gradient(90deg,#059669,#10b981);color:white;font-weight:700;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;box-shadow:0 2px 8px rgba(5,150,105,.3);white-space:nowrap">💾 Export Master File</button>
   </div>
 
   <!-- Admin Sub-Tabs -->
@@ -923,6 +934,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <button id="admin-tab-scripts" onclick="setAdminTab('scripts')" class="admin-sub-btn">📜 Script Flows</button>
     <button id="admin-tab-evidence" onclick="setAdminTab('evidence')" class="admin-sub-btn">📋 Evidence Collection</button>
     <button id="admin-tab-backend" onclick="setAdminTab('backend')" class="admin-sub-btn">🔧 Backend HTML</button>
+    <button id="admin-tab-statistics" onclick="setAdminTab('statistics')" class="admin-sub-btn">📊 Statistics</button>
   </div>
 
   <!-- BOOKMARKLET SECTION -->
@@ -1112,6 +1124,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <option value="Buyer|Request Evidence">Buyer — Request Evidence</option>
       <option value="Buyer|Request Evidence from Seller">Buyer — Request Evidence from Seller</option>
       <option value="Buyer|Close Request">Buyer — Close Request</option>
+      <option value="Buyer|Cancel Reraise - Return Approval">Buyer — Cancel Reraise - Return Approval</option>
       </optgroup>
       <optgroup label="🏪 Seller Dispute › With Buyer">
       <option value="Seller|Accept Request">Seller › With Buyer — Accept Request</option>
@@ -1129,21 +1142,9 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <span style="margin-left:auto;font-size:12px;font-weight:600;color:#92400e;background:#fef3c7;padding:4px 12px;border-radius:8px" id="filter-count"></span>
   </div>
 
-  <!-- Issue Description Reference -->
-  <div style="margin-bottom:8px">
-    <div style="margin-bottom:8px;border:1.5px solid #e5e7eb;border-radius:12px;overflow:hidden;background:white">
-    <div onclick="document.getElementById('issue-desc-panel').classList.toggle('hidden');this.querySelector('.arrow').style.transform=document.getElementById('issue-desc-panel').classList.contains('hidden')?'':'rotate(90deg)'" style="padding:10px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;background:#f9fafb;border-bottom:1px solid #e5e7eb;user-select:none">
-      <span class="arrow" style="font-size:11px;color:#6b7280;transition:transform .2s">▶</span>
-      <span style="font-weight:700;font-size:13px;color:#1a1a1a">📝 {issue_description} Phrases</span>
-      <span style="font-size:11px;color:#6b7280;font-weight:400">— used in Empathy + Issue Statement paragraph</span>
-    </div>
-    <div id="issue-desc-panel" class="hidden">
-      <div id="issue-desc-content" style="padding:14px 16px"></div>
-    </div>
-    </div>
-  </div>
 
-
+    <div id="issue-desc-reference" class="hidden"></div>
+    <div id="next-steps-reference" class="hidden"></div>
     <div id="admin-scripts-grouped"></div>
   </div>
   </div><!-- end admin-section-scripts -->
@@ -1309,6 +1310,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <tr><td><code>Buyer|Reject Request</code></td><td>Empathy → Result Sharing (connector + root cause) → Offering Help Reject</td></tr>
       <tr><td><code>Buyer|Request Evidence</code></td><td>Empathy → Result Sharing → Magic Word</td></tr>
       <tr><td><code>Buyer|Close Request</code></td><td>Empathy → Result Sharing</td></tr>
+      <tr><td><code>Buyer|Cancel Reraise - Return Approval</code></td><td>Empathy → Result Sharing → CSAT → Magic Word</td></tr>
       <tr><td><code>Seller|Accept Request</code></td><td>Empathy → Result Sharing (Reject scripts + Root Cause)</td></tr>
       <tr><td><code>Seller|Reject Request</code></td><td>Empathy → Result Sharing (connector) → Offering Help</td></tr>
       <tr><td><code>Seller|Request Evidence</code></td><td>Empathy → Result Sharing → Magic Word</td></tr>
@@ -1804,7 +1806,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v17')" id="vnav-v17"><span class="ddot" style="background:#ee4d2d"></span>v17 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v18')" id="vnav-v18"><span class="ddot" style="background:#ee4d2d"></span>v18 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v17')" id="vnav-v17"><span class="ddot" style="background:#6b7280"></span>v17</a>
     <a class="docs-nav-item" onclick="scrollToVer('v16')" id="vnav-v16"><span class="ddot" style="background:#6b7280"></span>v16</a>
     <a class="docs-nav-item" onclick="scrollToVer('v15')" id="vnav-v15"><span class="ddot" style="background:#6b7280"></span>v15</a>
     <a class="docs-nav-item" onclick="scrollToVer('v14')" id="vnav-v14"><span class="ddot" style="background:#6b7280"></span>v14</a>
@@ -1824,10 +1827,44 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
-      <div id="vsec-v17" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v18" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v17 — Current</div>
+        <div style="color:white;font-weight:800;font-size:16px">v18 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">13 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>🔴 P1 Cases dropdown</strong> — new "Specifically for P1 Cases Only" dropdown under Decision/Result for Buyer. Contains <strong>Cancel Reraise - Return Approval</strong> (Empathy → Result Sharing → CSAT → Magic Word) with 5 dedicated QC return scripts. Scalable for future P1 decisions</li>
+            <li><strong>📊 Statistics tab under Admin</strong> — track script generation usage (daily/weekly/monthly) with user breakdown, flow breakdown, and recent activity log</li>
+            <li><strong>⬇️ Download Statistics CSV</strong> — export all usage data compiled for every user</li>
+            <li><strong>📌 Next Steps section filter</strong> — editable connector phrases and templates in Admin → Script Flows</li>
+            <li><strong>📝 {issue_description} Phrases filter</strong> — moved into All Sections dropdown with full Buyer/Seller phrase reference</li>
+            <li><strong>💾 Export Master File</strong> — bakes all scripts + Next Steps edits into downloadable <code>index.html</code> for GitHub</li>
+            <li><strong>🔧 CSV Import fix</strong> — proper RFC 4180 parser for multi-line quoted fields, BOM, commas in values</li>
+            <li><strong>📋 Scripts updated from latest CSV</strong> — 205 scripts total</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><code>P1_CASES</code> array — extensible list of P1 decisions rendered as a dropdown below regular result buttons</li>
+            <li><code>setP1Result()</code> — handles P1 selection, deselects regular buttons, triggers generation</li>
+            <li>Usage tracking in <code>localStorage</code> as <code>sg_stats</code> — JSON array of generation events</li>
+            <li>CSV import rewritten with <code>parseCSVLine()</code> — RFC 4180 compliant parser</li>
+            <li><code>exportMasterFile()</code> — serializes current <code>db</code> and Next Steps into self-contained HTML</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
+      <div id="vsec-v17" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v17</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">12 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -2293,14 +2330,62 @@ setTimeout(function(){
   </script>
 </div>
 
+  <!-- STATISTICS SECTION -->
+  <div id="admin-section-statistics" class="hidden" style="max-width:960px;margin:0 auto">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-weight:800;font-size:20px;color:#1a1a1a">📊 Usage Statistics</div>
+        <div style="font-size:12px;color:#9ca3af;margin-top:2px">Track script generation usage across the team</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="downloadStatsCSV()" style="padding:7px 16px;border-radius:10px;border:none;background:#2563eb;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Download CSV</button>
+        <button onclick="if(confirm('Clear all statistics data?')){clearStatsData();renderStatsPanel()}" style="padding:7px 16px;border-radius:10px;border:1.5px solid #fecaca;background:#fff5f5;color:#ef4444;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">🗑️ Clear Data</button>
+      </div>
+    </div>
+
+    <!-- Period Toggle -->
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="stats-period-btn active" data-period="daily" onclick="setStatsPeriod('daily')">📅 Daily</button>
+      <button class="stats-period-btn" data-period="weekly" onclick="setStatsPeriod('weekly')">📆 Weekly</button>
+      <button class="stats-period-btn" data-period="monthly" onclick="setStatsPeriod('monthly')">🗓️ Monthly</button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div id="stats-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px"></div>
+
+    <!-- User Breakdown Table -->
+    <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px">
+      <div style="padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:700;font-size:13px;color:#1a1a1a">👤 User Breakdown</div>
+      <div id="stats-user-table" style="padding:0;overflow-x:auto"></div>
+    </div>
+
+    <!-- Flow Breakdown Table -->
+    <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px">
+      <div style="padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:700;font-size:13px;color:#1a1a1a">📜 Flow Breakdown</div>
+      <div id="stats-flow-table" style="padding:0;overflow-x:auto"></div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden">
+      <div style="padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:700;font-size:13px;color:#1a1a1a">🕐 Recent Activity (last 50)</div>
+      <div id="stats-recent" style="padding:0;overflow-x:auto;max-height:400px;overflow-y:auto"></div>
+    </div>
+  </div>
+
 </div>
 </div>
 </div>
+<style>
+.stats-period-btn{padding:7px 18px;border-radius:9px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
+.stats-period-btn.active{border-color:#2563eb;background:#2563eb;color:white;font-weight:700}
+</style>
 <script>
 // ═══════════════════════════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════════════════════════
-const RAW_DB = [["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe're really sorry for the inconvenience with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe're sorry to hear about your experience with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe're sorry for the trouble caused with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand your concern about order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe're sorry you experienced this with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe understand you have concerns about order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe take note of your issue with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe've received your concern about order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe're aware of the situation with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe're reviewing your concern with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","To better assist you, could you please provide more details about the issue? This will help us review your case more accurately."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","We need a bit more information to proceed with your request. Could you clarify the details of the issue?"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","Could you please share more evidence or details about your concern? This will help us assess your case better."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","To assist you further, we'll need some additional details. Could you provide more information?"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","We're looking into your case and may need some more details from you. Could you help us with more information?"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","To ensure we resolve this correctly, we need a bit more clarification. Can you share further details?"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","We want to make sure we understand your case fully. Could you provide additional details for our review?"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","To process your request efficiently, we need more information from you. Could you assist us with the details?"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","We're reviewing your case and need a few more details. Could you provide them for us?"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Result Sharing + Root Cause","To get a better understanding of your situation, we'd appreciate more details. Could you share them with us?"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Empathy + Issue Statement","Hi {username}, \n\nWe're sorry to hear about your concern with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand your concern about order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Empathy + Issue Statement","Thanks for letting us know, {username}.\n\nWe understand the situation with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Empathy + Issue Statement","Hi {username},\n\nWe're sorry for any inconvenience caused by order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Empathy + Issue Statement","Hi {username}, \n\nWe've reviewed your case with order {order_sn} [{product_name}], which {issue_description}."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","No worries. If you have any questions about the outcome, feel free to contact Shopee Live Chat. Thank you for shopping with Shopee."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","No need to worry. Reach out to Shopee Live Chat if you need further clarification. We appreciate you choosing Shopee."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","Please don't worry. Contact Shopee Live Chat for any questions. Thank you for being a valued Shopee buyer."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","No need to be concerned. Reach Shopee Live Chat anytime for assistance. Thanks for shopping with us."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","Rest assured. Contact Shopee Live Chat for any queries. We're glad you chose Shopee for your purchase."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","No worries. For any questions about the decision, contact Shopee Live Chat. Thank you for using Shopee."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","Please rest assured. Reach Shopee Live Chat for help. We appreciate your continued trust in Shopee."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","Nothing to worry about. Contact Shopee Live Chat for clarification. Thanks for being a Shopee buyer."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","Kindly rest assured. Reach Shopee Live Chat for queries. We're happy you chose to shop with Shopee."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Offering Help Reject","No worries at all. Contact Shopee Live Chat for help. Thank you for trusting Shopee for your shopping needs."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","We've reviewed your return/refund request and the case has been closed. Please note that a refund will be issued based on the review outcome."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","After reviewing the case, we've processed the closure of your request. Thank you for your patience."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","The return/refund request has been successfully closed. We appreciate your cooperation throughout the process."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","We're pleased to inform you that your case has been resolved and closed. Thank you for reaching out to us."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","Your return/refund case has been reviewed and closed. We appreciate your patience during this process."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","We've completed the review of your case and it has been closed. Thank you for your understanding."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","After careful review, your case has been closed. We appreciate your cooperation and patience."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","The request has been reviewed and closed. Thank you for bringing this matter to our attention."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","Your case has been successfully closed after review. We truly appreciate your patience and cooperation."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Close Request","Result Sharing + Root Cause","We've concluded our review and your request has been closed. Thank you for your understanding and patience."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Great news! Your request of {result} is approved 🎉  We've checked the order and it qualifies for a refund."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Happy to share, your request of {result} has been approved 🎉 Refund confirmed after review."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Wonderful! Your request of {result} is approved 🎉 Everything looks good and qualifies for a refund."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Your request of {result} has been successfully approved 🎉 The refund will be processed shortly."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Good news! Your {result} request is approved 🎉 We've verified the issue and you're eligible for a refund."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Your {result} request has been approved 🎉 The refund has been processed."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Approved! Your request of {result} is confirmed 🎉 Your refund is on its way."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Your {result} request was reviewed and approved 🎉 Refund processing in progress."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","We've approved your request of {result} 🎉 Your refund will be processed as soon as possible."],["Return & Refund","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Your request for {result} is approved 🎉 We're processing your refund now."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Great news! Your refund request has been approved 🎉 The amount will be credited back to your account shortly."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Happy to share that your refund has been processed 🎉 The amount will be credited to your account."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Your refund request is approved 🎉 The refund amount will be credited back soon."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Good news! Your refund has been confirmed 🎉 The amount will be credited to your account."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Your refund request was reviewed and approved 🎉 The credit will be processed shortly."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Approved! Your refund is confirmed 🎉 The amount is on its way to your account."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","We've approved your refund request 🎉 The amount will reflect in your account soon."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Your refund has been approved 🎉 We're processing it now."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","Your refund request is confirmed 🎉 The refund will be processed as quickly as possible."],["Refund Only","Type A (With Emoji)","Buyer","Accept Request","Result Sharing + Root Cause","We're happy to inform you that your refund has been approved 🎉 The amount will be credited shortly."],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand your concern regarding {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand the situation with {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand the issue with {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand your concern regarding {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand the concern regarding {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand your concern regarding {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand the issue with {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Empathy + Issue Statement","Hi {username}, \n\nWe understand your situation with {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Empathy + Issue Statement","Hi {username}, \n\nWe've received your concern about {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Empathy + Issue Statement","Hi {username}, \n\nWe've noted the concern regarding {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe understand you have a concern regarding {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe've received your concern about {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe understand your situation with {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe understand the issue with {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Empathy + Issue Statement","Hi {username}, \n\nWe've received your concern about {order_sn} [{product_name}], which {issue_description}."],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","To better assist you, could you please share more details about this dispute? This will help us review the case more accurately."],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","We need additional information to proceed with this case. Could you provide more details?"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","Could you share more evidence or information about this dispute? This will help us assess the case."],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","To assist you better, we'll need some additional details. Could you provide more information?"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","We're looking into your case and need more details from you. Could you assist us with further information?"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","To ensure we handle this correctly, we need more clarification. Can you share additional details?"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","We want to understand your case fully. Could you provide additional details for our review?"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","To process this dispute efficiently, we need more information from you. Could you assist us?"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","We're reviewing your dispute and need a few more details. Could you provide them?"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Result Sharing + Root Cause","To get a better understanding of your situation, we'd appreciate more details. Could you share them?"],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","We've reviewed your case and it has been closed. Thank you for your patience and cooperation."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","After careful review, your dispute case has been closed. We appreciate your cooperation."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","Your dispute has been reviewed and the case is now closed. Thank you for bringing this to our attention."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","We've completed the review of your dispute and the case has been closed. Thank you for your understanding."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","The dispute case has been reviewed and closed. We appreciate your patience throughout this process."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","Your case has been reviewed and closed after our investigation. Thank you for your cooperation."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","After reviewing all available information, your dispute case has been closed. We appreciate your assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","Your dispute has been resolved and the case is now closed. Thank you for your patience."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","We've concluded our review and the case has been closed. We appreciate your understanding."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request","Result Sharing + Root Cause","Your case has been successfully closed after review. We truly appreciate your cooperation."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","After carefully reviewing the details, we regret to inform you that we're unable to proceed with your return/refund request due to"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","Unfortunately, upon checking the information provided, we're unable to continue with your request because"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","After a thorough review, your request cannot be processed due to"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","After reviewing your case, we're unable to move forward with the request as"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","We understand this may be disappointing. However, based on our review, we're unable to proceed because"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","Thank you for your patience. After checking the details, we're unable to fulfil your request due to"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","We regret to share that your request cannot be approved at this time due to"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","After carefully verifying the case, we're unable to process your request as"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","We sincerely apologize, but after reviewing the information, we're unable to proceed with your request because"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Reject Request","Result Sharing + Root Cause","Upon review, we're unable to support the request further due to"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","After carefully reviewing the details, we regret to inform you that we're unable to proceed with your dispute request due to"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","Unfortunately, upon checking the information provided, we're unable to continue with your request because"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","After a thorough review, your compensation request cannot be processed due to"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","After reviewing your case, we're unable to move forward with the request as"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","We understand this may be disappointing. However, based on our review, we're unable to proceed because"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","Thank you for your patience. After checking the details, we're unable to fulfil your request due to"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","We regret to share that your request cannot be approved at this time due to"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","After carefully verifying the case, we're unable to process your request as"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","We sincerely apologize, but after reviewing the information, we're unable to proceed with your request because"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Result Sharing + Root Cause","Upon review, we're unable to support the request further due to"],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","No worries. Contact Shopee Live Chat for questions. Thanks for choosing Shopee as your selling platform."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","No need to worry. Reach Shopee Live Chat for help. Thanks for trusting Shopee to host your store."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","Please don't worry. Contact Shopee Live Chat for queries. We appreciate you selling with Shopee."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","No need to be concerned. Reach Shopee Live Chat anytime. Thanks for partnering with Shopee."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","Rest assured. Contact Shopee Live Chat for questions. Glad you chose Shopee to sell your products."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","No worries. For outcome questions, contact Shopee Live Chat. Thanks for selling on Shopee."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","Please rest assured. Reach Shopee Live Chat for help. We appreciate you joining as a Shopee seller."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","Nothing to worry. Contact Shopee Live Chat for clarification. Thanks for growing your store with Shopee."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","Kindly rest assured. Reach Shopee Live Chat for queries. Happy you chose Shopee to sell your items."],["Seller Dispute","Type A (With Emoji)","Seller","Reject Request","Offering Help Reject","No worries at all. Contact Shopee Live Chat for help. Thanks for trusting Shopee for online selling."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","The buyer has been informed that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","We have updated the buyer that the item will be sent back to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","We've advised the buyer that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","The buyer has been updated that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","We have informed the buyer that the item will be sent back. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","The buyer has been advised that the item will be returned. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","We've notified the buyer that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","The buyer has been informed that the item will be sent back to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","We have updated the buyer that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Seller Dispute","Type A (With Emoji)","Seller","Close Request + RTB","Result Sharing + Root Cause","The buyer has been informed that the return is already in progress. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","After this chat, you'll receive a short survey. Please rate 4–5 if your concern was resolved, 3 if it could be better, and 1–2 if it wasn't resolved ⭐"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","Your experience matters to us 🙏 Please share your feedback in the short survey so we can continue improving."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","Thank you for your patience during this return/refund process. Your feedback and rating will help us serve you better 🌟"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","Your feedback helps us improve continuously. Please take a moment to share your experience in our short survey 📝"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","We're glad we could assist you today. Please rate your experience to help us improve further ⭐"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","We hope your issue was resolved smoothly 👍 Your feedback will help us serve you better."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","We aim to provide the best support for our buyers. Please take a moment to leave your feedback and rating ✍️"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","How was your experience with our support today? Your rating helps us improve our service 🙂"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","Your opinion is important to us 🧡 Kindly rate your experience to help our team improve."],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","CSAT Pitching","You'll receive a short survey after this chat. We'd love to hear your thoughts to make your experience even better ⭐"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","After this chat, you'll receive a short survey. Please rate 4–5 if your concern was resolved, 3 if it could be better, and 1–2 if it wasn't resolved ⭐"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","Thank you for working with us on this case. We'd love to hear your feedback and rating ⭐"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","Thank you for your patience during this process. Your feedback and rating will help us support you better 🌟"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","Your feedback helps us improve continuously. Please share your experience and rating in our short survey 📝"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","We're glad we could assist you today ✨ Please rate your experience to help us provide better support."],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","We hope your issue was resolved smoothly 👍 Your feedback will help us serve you better."],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","We aim to provide the best support for our sellers. Please take a moment to leave your feedback and rating ✍️"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","How was your experience with our support today? Your rating helps us improve our service 🙂"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","Your opinion is important to us 🧡 Kindly rate your experience to help our team improve."],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Accept Request, Close Request","CSAT Pitching","You'll receive a short survey after this chat. We'd love to hear your feedback to make your experience even better ⭐"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Magic Word / Closing","Thank you for choosing Shopee. We appreciate the opportunity to assist you today ✨"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Magic Word / Closing","Thank you for shopping with Shopee. We're always happy to support you 🧡"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Magic Word / Closing","We appreciate you choosing Shopee and are glad we could assist you today ⭐"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Magic Word / Closing","Thank you for your continued trust in Shopee. Have a wonderful day ahead ✨"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Accept Request, Close Request","Magic Word / Closing","Thank you for contacting Shopee. We appreciate your time and wish you a pleasant day 🌸"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Magic Word / Closing","Thank you for your continued trust in Shopee. Wishing you strong sales and seamless operations ahead 🚀"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Magic Word / Closing","We appreciate you choosing Shopee. Wishing you smooth transactions and happy buyers 🌟"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Magic Word / Closing","Thank you for choosing Shopee. Wishing you high sales and satisfied buyers ⭐"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Magic Word / Closing","Thank you for being part of Shopee. May your store thrive with happy buyers and hassle-free processes 💪"],["Seller Dispute","Type A (With Emoji)","Seller","Accept Request, Close Request","Magic Word / Closing","Thank you for selling on Shopee. We hope your store continues to grow smoothly and profitably 🚀"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","We'll be in touch once we have more information 😊 Thank you for your patience!"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","Thank you for your cooperation. We'll get back to you as soon as possible 🙏"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","We appreciate your assistance. We'll follow up shortly ✨"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","Thank you for your patience. We'll keep you updated on the progress 📩"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","We're working on resolving this for you. Thank you for your understanding 🌟"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","Your concern is our priority. We'll update you as soon as we have more information 💪"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","We'll do our best to resolve this for you. Thank you for reaching out 😊"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","Thank you for providing the information. We'll review and get back to you soon 🔍"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","We appreciate your response. Our team will look into this and update you ✅"],["Return & Refund, Refund Only","Type A (With Emoji)","Buyer","Request Evidence","Magic Word / Closing","Thank you. We're on it! We'll get back to you with an update soon 💬"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","We'll be in touch once we have more details 😊 Thank you for your cooperation!"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","Thank you for your cooperation. We'll follow up shortly ✨"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","We appreciate your assistance. We'll get back to you as soon as possible 🙏"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","Thank you for your patience. We'll update you on the progress 📩"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","We're reviewing this for you. Thank you for your understanding 🌟"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","Your case is our priority. We'll update you once we have more information 💪"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","We'll do our best to resolve this. Thank you for reaching out 😊"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","Thank you for providing the details. We'll review and respond soon 🔍"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","We appreciate your response. Our team will look into this and update you ✅"],["Seller Dispute","Type A (With Emoji)","Seller","Request Evidence","Magic Word / Closing","Thank you. We're on this! We'll get back to you with an update soon 💬"],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're pleased to inform you that the dispute for this order has been successfully resolved, and your payment will be released shortly."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're glad to let you know that the issue has been resolved, and the payment for this order will be processed for release."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "This is to inform you that the dispute has been concluded, and your payment will be issued accordingly."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "The dispute for this order has been finalized, and the payment will soon be released to your account."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're happy to share that the dispute has been resolved, and the payment will be made available to you."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "The matter has been successfully resolved, and the corresponding payment will now be released."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're pleased to notify you that the dispute is now cancelled, and your payment will be processed shortly."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're glad to inform you that the dispute outcome has been finalized, and the payment will be released accordingly."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're pleased to inform you that the dispute has been resolved in your favor, and the payment will be released to you soon."],["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "The dispute regarding this order has been successfully resolved, and your payment will be processed for release shortly."]];
+/*__RAW_DB_START__*/const RAW_DB = [["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe're really sorry for the inconvenience with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe're sorry to hear about your experience with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe're sorry for the trouble caused with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand your concern about order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe're sorry you experienced this with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand you have concerns about order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe take note of your issue with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe've received your concern about order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe're aware of the situation with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe're reviewing your concern with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "To better assist you, could you please provide more details about the issue? This will help us review your case more accurately."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "We need a bit more information to proceed with your request. Could you clarify the details of the issue?"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "Could you please share more evidence or details about your concern? This will help us assess your case better."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "To assist you further, we'll need some additional details. Could you provide more information?"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "We're looking into your case and may need some more details from you. Could you help us with more information?"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "To ensure we resolve this correctly, we need a bit more clarification. Can you share further details?"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "We want to make sure we understand your case fully. Could you provide additional details for our review?"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "To process your request efficiently, we need more information from you. Could you assist us with the details?"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "We're reviewing your case and need a few more details. Could you provide them for us?"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Result Sharing + Root Cause", "To get a better understanding of your situation, we'd appreciate more details. Could you share them with us?"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe're sorry to hear about your concern with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand your concern about order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Empathy + Issue Statement", "Thanks for letting us know, {username}.\n\nWe understand the situation with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Empathy + Issue Statement", "Hi {username},\n\nWe're sorry for any inconvenience caused by order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe've reviewed your case with order {order_sn} [{product_name}], which {issue_description}."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "No worries. If you have any questions about the outcome, feel free to contact Shopee Live Chat. Thank you for shopping with Shopee."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "No need to worry. Reach out to Shopee Live Chat if you need further clarification. We appreciate you choosing Shopee."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "Please don't worry. Contact Shopee Live Chat for any questions. Thank you for being a valued Shopee buyer."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "No need to be concerned. Reach Shopee Live Chat anytime for assistance. Thanks for shopping with us."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "Rest assured. Contact Shopee Live Chat for any queries. We're glad you chose Shopee for your purchase."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "No worries. For any questions about the decision, contact Shopee Live Chat. Thank you for using Shopee."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "Please rest assured. Reach Shopee Live Chat for help. We appreciate your continued trust in Shopee."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "Nothing to worry about. Contact Shopee Live Chat for clarification. Thanks for being a Shopee buyer."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "Kindly rest assured. Reach Shopee Live Chat for queries. We're happy you chose to shop with Shopee."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Offering Help Reject", "No worries at all. Contact Shopee Live Chat for help. Thank you for trusting Shopee for your shopping needs."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "We've reviewed your return/refund request and the case has been closed. Please note that a refund will be issued based on the review outcome."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "After reviewing the case, we've processed the closure of your request. Thank you for your patience."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "The return/refund request has been successfully closed. We appreciate your cooperation throughout the process."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "We're pleased to inform you that your case has been resolved and closed. Thank you for reaching out to us."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "Your return/refund case has been reviewed and closed. We appreciate your patience during this process."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "We've completed the review of your case and it has been closed. Thank you for your understanding."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "After careful review, your case has been closed. We appreciate your cooperation and patience."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "The request has been reviewed and closed. Thank you for bringing this matter to our attention."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "Your case has been successfully closed after review. We truly appreciate your patience and cooperation."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Close Request", "Result Sharing + Root Cause", "We've concluded our review and your request has been closed. Thank you for your understanding and patience."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Great news! Your request of {result} is approved \ud83c\udf89 We\u2019re here to assist with the product return for quality checking purposes."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Happy to share, your request of {result} has been approved \ud83c\udf89 Our team will assist you with returning the item for quality checking (QC)."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Wonderful! Your request of {result} is approved \ud83c\udf89 We\u2019re ready to assist you with returning the product for quality checking (QC) purposes."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Your request of {result} has been successfully approved \ud83c\udf89 We\u2019re here to assist with the product return for quality checking purposes."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Good news! Your {result} request is approved \ud83c\udf89 We\u2019re here to assist with the product return for quality checking purposes."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Your {result} request has been approved \ud83c\udf89 Our team will assist you with returning the item for quality checking (QC)."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Approved! Your request of {result} is confirmed \ud83c\udf89 We\u2019re ready to assist you with returning the product for quality checking (QC) purposes."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Your {result} request was reviewed and approved \ud83c\udf89 We\u2019re here to assist with the product return for quality checking purposes."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "We\u2019ve approved your request of {result} \ud83c\udf89 Our team will assist you with returning the item for quality checking (QC)."], ["Return & Refund", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Your request for {result} is approved \ud83c\udf89 We\u2019re ready to assist you with returning the product for quality checking (QC) purposes."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Great news! Your refund request has been approved \ud83c\udf89 The amount will be credited back to your account shortly."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Happy to share that your refund has been processed \ud83c\udf89 The amount will be credited to your account."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Your refund request is approved \ud83c\udf89 The refund amount will be credited back soon."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Good news! Your refund has been confirmed \ud83c\udf89 The amount will be credited to your account."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Your refund request was reviewed and approved \ud83c\udf89 The credit will be processed shortly."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Approved! Your refund is confirmed \ud83c\udf89 The amount is on its way to your account."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "We've approved your refund request \ud83c\udf89 The amount will reflect in your account soon."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Your refund has been approved \ud83c\udf89 We're processing it now."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "Your refund request is confirmed \ud83c\udf89 The refund will be processed as quickly as possible."], ["Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request", "Result Sharing + Root Cause", "We're happy to inform you that your refund has been approved \ud83c\udf89 The amount will be credited shortly."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand your concern regarding {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand the situation with {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand the issue with {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand your concern regarding {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand the concern regarding {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand your concern regarding {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand the issue with {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand your situation with {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe've received your concern about {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Empathy + Issue Statement", "Hi {username}, \n\nWe've noted the concern regarding {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand you have a concern regarding {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe've received your concern about {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand your situation with {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe understand the issue with {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Empathy + Issue Statement", "Hi {username}, \n\nWe've received your concern about {order_sn} [{product_name}], which {issue_description}."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "To better assist you, could you please share more details about this dispute? This will help us review the case more accurately."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "We need additional information to proceed with this case. Could you provide more details?"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "Could you share more evidence or information about this dispute? This will help us assess the case."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "To assist you better, we'll need some additional details. Could you provide more information?"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "We're looking into your case and need more details from you. Could you assist us with further information?"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "To ensure we handle this correctly, we need more clarification. Can you share additional details?"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "We want to understand your case fully. Could you provide additional details for our review?"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "To process this dispute efficiently, we need more information from you. Could you assist us?"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "We're reviewing your dispute and need a few more details. Could you provide them?"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Result Sharing + Root Cause", "To get a better understanding of your situation, we'd appreciate more details. Could you share them?"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "We've reviewed your case and it has been closed. Thank you for your patience and cooperation."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "After careful review, your dispute case has been closed. We appreciate your cooperation."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "Your dispute has been reviewed and the case is now closed. Thank you for bringing this to our attention."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "We've completed the review of your dispute and the case has been closed. Thank you for your understanding."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "The dispute case has been reviewed and closed. We appreciate your patience throughout this process."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "Your case has been reviewed and closed after our investigation. Thank you for your cooperation."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "After reviewing all available information, your dispute case has been closed. We appreciate your assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "Your dispute has been resolved and the case is now closed. Thank you for your patience."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "We've concluded our review and the case has been closed. We appreciate your understanding."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request", "Result Sharing + Root Cause", "Your case has been successfully closed after review. We truly appreciate your cooperation."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "After carefully reviewing the details, we regret to inform you that we're unable to proceed with your return/refund request due to"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "Unfortunately, upon checking the information provided, we're unable to continue with your request because"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "After a thorough review, your request cannot be processed due to"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "After reviewing your case, we're unable to move forward with the request as"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "We understand this may be disappointing. However, based on our review, we're unable to proceed because"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "Thank you for your patience. After checking the details, we're unable to fulfil your request due to"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "We regret to share that your request cannot be approved at this time due to"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "After carefully verifying the case, we're unable to process your request as"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "We sincerely apologize, but after reviewing the information, we're unable to proceed with your request because"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Reject Request", "Result Sharing + Root Cause", "Upon review, we're unable to support the request further due to"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "After carefully reviewing the details, we regret to inform you that we're unable to proceed with your dispute request due to"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "Unfortunately, upon checking the information provided, we're unable to continue with your request because"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "After a thorough review, your compensation request cannot be processed due to"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "After reviewing your case, we're unable to move forward with the request as"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "We understand this may be disappointing. However, based on our review, we're unable to proceed because"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "Thank you for your patience. After checking the details, we're unable to fulfil your request due to"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "We regret to share that your request cannot be approved at this time due to"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "After carefully verifying the case, we're unable to process your request as"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "We sincerely apologize, but after reviewing the information, we're unable to proceed with your request because"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Result Sharing + Root Cause", "Upon review, we're unable to support the request further due to"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "No worries. Contact Shopee Live Chat for questions. Thanks for choosing Shopee as your selling platform."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "No need to worry. Reach Shopee Live Chat for help. Thanks for trusting Shopee to host your store."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "Please don't worry. Contact Shopee Live Chat for queries. We appreciate you selling with Shopee."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "No need to be concerned. Reach Shopee Live Chat anytime. Thanks for partnering with Shopee."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "Rest assured. Contact Shopee Live Chat for questions. Glad you chose Shopee to sell your products."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "No worries. For outcome questions, contact Shopee Live Chat. Thanks for selling on Shopee."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "Please rest assured. Reach Shopee Live Chat for help. We appreciate you joining as a Shopee seller."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "Nothing to worry. Contact Shopee Live Chat for clarification. Thanks for growing your store with Shopee."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "Kindly rest assured. Reach Shopee Live Chat for queries. Happy you chose Shopee to sell your items."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Reject Request", "Offering Help Reject", "No worries at all. Contact Shopee Live Chat for help. Thanks for trusting Shopee for online selling."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "The buyer has been informed that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "We have updated the buyer that the item will be sent back to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "We've advised the buyer that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "The buyer has been updated that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "We have informed the buyer that the item will be sent back. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "The buyer has been advised that the item will be returned. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "We've notified the buyer that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "The buyer has been informed that the item will be sent back to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "We have updated the buyer that the item will be returned to them. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Close Request + RTB", "Result Sharing + Root Cause", "The buyer has been informed that the return is already in progress. The refund will not be processed, and the item will be returned using Ninjavan (Tracking Number: SPRXXXX). If the pickup is unsuccessful, please reach out to our Customer Service team for further assistance."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "After this chat, you'll receive a short survey. Please rate 4\u20135 if your concern was resolved, 3 if it could be better, and 1\u20132 if it wasn't resolved \u2b50"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "Your experience matters to us \ud83d\ude4f Please share your feedback in the short survey so we can continue improving."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "Thank you for your patience during this return/refund process. Your feedback and rating will help us serve you better \ud83c\udf1f"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "Your feedback helps us improve continuously. Please take a moment to share your experience in our short survey \ud83d\udcdd"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "We're glad we could assist you today. Please rate your experience to help us improve further \u2b50"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "We hope your issue was resolved smoothly \ud83d\udc4d Your feedback will help us serve you better."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "We aim to provide the best support for our buyers. Please take a moment to leave your feedback and rating \u270d\ufe0f"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "How was your experience with our support today? Your rating helps us improve our service \ud83d\ude42"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "Your opinion is important to us \ud83e\udde1 Kindly rate your experience to help our team improve."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "CSAT Pitching", "You'll receive a short survey after this chat. We'd love to hear your thoughts to make your experience even better \u2b50"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "After this chat, you'll receive a short survey. Please rate 4\u20135 if your concern was resolved, 3 if it could be better, and 1\u20132 if it wasn't resolved \u2b50"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "Thank you for working with us on this case. We'd love to hear your feedback and rating \u2b50"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "Thank you for your patience during this process. Your feedback and rating will help us support you better \ud83c\udf1f"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "Your feedback helps us improve continuously. Please share your experience and rating in our short survey \ud83d\udcdd"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "We're glad we could assist you today \u2728 Please rate your experience to help us provide better support."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "We hope your issue was resolved smoothly \ud83d\udc4d Your feedback will help us serve you better."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "We aim to provide the best support for our sellers. Please take a moment to leave your feedback and rating \u270d\ufe0f"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "How was your experience with our support today? Your rating helps us improve our service \ud83d\ude42"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "Your opinion is important to us \ud83e\udde1 Kindly rate your experience to help our team improve."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Accept Request, Close Request", "CSAT Pitching", "You'll receive a short survey after this chat. We'd love to hear your feedback to make your experience even better \u2b50"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Magic Word / Closing", "Thank you for choosing Shopee. We appreciate the opportunity to assist you today \u2728"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Magic Word / Closing", "Thank you for shopping with Shopee. We're always happy to support you \ud83e\udde1"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Magic Word / Closing", "We appreciate you choosing Shopee and are glad we could assist you today \u2b50"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Magic Word / Closing", "Thank you for your continued trust in Shopee. Have a wonderful day ahead \u2728"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Accept Request, Close Request", "Magic Word / Closing", "Thank you for contacting Shopee. We appreciate your time and wish you a pleasant day \ud83c\udf38"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Magic Word / Closing", "Thank you for your continued trust in Shopee. Wishing you strong sales and seamless operations ahead \ud83d\ude80"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Magic Word / Closing", "We appreciate you choosing Shopee. Wishing you smooth transactions and happy buyers \ud83c\udf1f"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Magic Word / Closing", "Thank you for choosing Shopee. Wishing you high sales and satisfied buyers \u2b50"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Magic Word / Closing", "Thank you for being part of Shopee. May your store thrive with happy buyers and hassle-free processes \ud83d\udcaa"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Accept Request, Close Request", "Magic Word / Closing", "Thank you for selling on Shopee. We hope your store continues to grow smoothly and profitably \ud83d\ude80"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "We'll be in touch once we have more information \ud83d\ude0a Thank you for your patience!"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "Thank you for your cooperation. We'll get back to you as soon as possible \ud83d\ude4f"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "We appreciate your assistance. We'll follow up shortly \u2728"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "Thank you for your patience. We'll keep you updated on the progress \ud83d\udce9"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "We're working on resolving this for you. Thank you for your understanding \ud83c\udf1f"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "Your concern is our priority. We'll update you as soon as we have more information \ud83d\udcaa"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "We'll do our best to resolve this for you. Thank you for reaching out \ud83d\ude0a"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "Thank you for providing the information. We'll review and get back to you soon \ud83d\udd0d"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "We appreciate your response. Our team will look into this and update you \u2705"], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Request Evidence", "Magic Word / Closing", "Thank you. We're on it! We'll get back to you with an update soon \ud83d\udcac"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "We'll be in touch once we have more details \ud83d\ude0a Thank you for your cooperation!"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "Thank you for your cooperation. We'll follow up shortly \u2728"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "We appreciate your assistance. We'll get back to you as soon as possible \ud83d\ude4f"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "Thank you for your patience. We'll update you on the progress \ud83d\udce9"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "We're reviewing this for you. Thank you for your understanding \ud83c\udf1f"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "Your case is our priority. We'll update you once we have more information \ud83d\udcaa"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "We'll do our best to resolve this. Thank you for reaching out \ud83d\ude0a"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "Thank you for providing the details. We'll review and respond soon \ud83d\udd0d"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "We appreciate your response. Our team will look into this and update you \u2705"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Request Evidence", "Magic Word / Closing", "Thank you. We're on this! We'll get back to you with an update soon \ud83d\udcac"], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're pleased to inform you that the dispute for this order has been successfully resolved, and your payment will be released shortly."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're glad to let you know that the issue has been resolved, and the payment for this order will be processed for release."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "This is to inform you that the dispute has been concluded, and your payment will be issued accordingly."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "The dispute for this order has been finalized, and the payment will soon be released to your account."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're happy to share that the dispute has been resolved, and the payment will be made available to you."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "The matter has been successfully resolved, and the corresponding payment will now be released."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're pleased to notify you that the dispute is now cancelled, and your payment will be processed shortly."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're glad to inform you that the dispute outcome has been finalized, and the payment will be released accordingly."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "We're pleased to inform you that the dispute has been resolved in your favor, and the payment will be released to you soon."], ["Seller Dispute", "Type A (With Emoji)", "Seller", "Cancel Request", "Result Sharing + Root Cause", "The dispute regarding this order has been successfully resolved, and your payment will be processed for release shortly."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Cancel Reraise - Return Approval", "Result Sharing + Root Cause", "We will create a new return & refund request to help you return the product for quality checking (QC)."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Cancel Reraise - Return Approval", "Result Sharing + Root Cause", "A new return & refund request will be submitted to assist with returning the product for QC purposes."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Cancel Reraise - Return Approval", "Result Sharing + Root Cause", "We'll proceed with raising a new return & refund request so the product can be returned for quality checking (QC)."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Cancel Reraise - Return Approval", "Result Sharing + Root Cause", "We will be raising a new return & refund request to assist you in returning the product for quality checking (QC)."], ["Return & Refund, Refund Only", "Type A (With Emoji)", "Buyer", "Cancel Reraise - Return Approval", "Result Sharing + Root Cause", "We're arranging a new return & refund request to support the return of the product for quality checking (QC)."]];/*__RAW_DB_END__*/
 
 const BUYER_REASONS = {"Missing part of the order": ["item(s) missing from the order", "incomplete order received", "some items were not included", "order arrived with missing components", "part of the order is not received"], "Product is significantly different from description": ["item does not match the description", "product differs from listing details", "received item is not as described", "product mismatch with description", "item is different from what was advertised"], "I want to return item in original/ sealed condition": ["request to return item in original condition", "item is unused and sealed for return", "returning item in original packaging", "item remains sealed and eligible for return", "request return for unopened item"], "Received a counterfeit product": ["item appears to be not authentic", "suspected fake product received", "product authenticity is in question", "item may not be genuine", "received non-original product"], "Seller sent wrong item (e.g wrong size, model)": ["incorrect item received", "item does not match order", "wrong variant delivered", "received different product than ordered", "order mismatch with received item"], "Parcel not delivered": ["order not received", "parcel has not arrived", "delivery not completed", "item not delivered yet", "shipment not received"], "Empty/Suspicious Parcel": ["parcel received empty", "package appears tampered", "suspicious package condition", "no item found inside parcel", "parcel contents missing or unclear"], "Product is defective or does not work": ["item is not functioning properly", "product is faulty", "item does not work as expected", "product has functional issues", "defective item received"], "Expired products": ["product is past expiry date", "item received is expired", "product validity has lapsed", "expired item delivered", "product is no longer usable due to expiry"], "Damaged Item": ["item arrived damaged", "product is physically damaged", "item condition is not intact", "damaged product received", "product has visible damage"]};
 
@@ -2312,6 +2397,7 @@ const SCRIPT_ASSEMBLY = {
   "Buyer|Request Evidence":[{qR:"Request Evidence",item:"Empathy + Issue Statement "},{qR:"Request Evidence",item:"Result Sharing + Root Cause"},{qR:"Request Evidence",item:"Magic Word / Closing"}],
   "Buyer|Request Evidence from Seller":[{qR:"Request Evidence",item:"Empathy + Issue Statement "},{qR:"Request Evidence",item:"Result Sharing + Root Cause"},{qR:"Request Evidence",item:"Magic Word / Closing"}],
   "Buyer|Close Request":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Close Request",item:"Result Sharing + Root Cause"}],
+  "Buyer|Cancel Reraise - Return Approval":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Cancel Reraise - Return Approval",item:"Result Sharing + Root Cause"},{qR:"Accept Request, Close Request",item:"CSAT Pitching"},{qR:"Accept Request, Close Request",item:"Magic Word / Closing"}],
   "Seller|Approve Compensation Request":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Cancel Request",item:"Result Sharing + Root Cause"},{qR:"Accept Request, Accept Request, Close Request",item:"CSAT Pitching"},{qR:"Accept Request, Close Request",item:"Magic Word / Closing"}],
   "Seller|Accept Request":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Reject Request",item:"Result Sharing + Root Cause"},{qR:"Reject Request",item:"Offering Help Reject"}],
   "Seller|Cancel Request":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Cancel Request",item:"Result Sharing + Root Cause"},{qR:"Accept Request, Accept Request, Close Request",item:"CSAT Pitching"},{qR:"Accept Request, Close Request",item:"Magic Word / Closing"}],
@@ -2449,9 +2535,21 @@ function renderForm(){
     ? ['Approve Compensation Request','Reject Compensation Request','Request Evidence']
     : ['Accept Request','Cancel Request','Request Evidence','Close Request','Close Request + RTB'];
   const results = state.user==='Buyer'?['Accept Request','Reject Request','Request Evidence','Close Request','Request Evidence from Seller']:sellerResults;
-  if(state.result !== '' && !results.includes(state.result)) state.result=results[0];
+  const isP1Result = P1_CASES.some(p=>p.value===state.result);
+  if(state.result !== '' && !results.includes(state.result) && !isP1Result) state.result=results[0];
   const resultLabel = r => r==='Accept Request' ? (state.user==='Seller' && state.seller_sub_type==='With Buyer' ? 'Accept Buyer Request' : 'Accept Request') : r==='Reject Request' ? 'Reject Request' : r;
   document.getElementById('result-btns').innerHTML = results.map(r=>`<button class="grid-btn${r===state.result?' active':''}" data-value="${esc(r)}" onclick="setResult('${esc(r)}')" style="${(r==='Close Request + RTB'||r==='Request Evidence from Seller'||r==='Approve Compensation Request'||r==='Reject Compensation Request'||(state.seller_sub_type==='Without Buyer'&&r==='Request Evidence'))?'grid-column:1/-1;':''}">${esc(resultLabel(r))}</button>`).join('');
+
+  // P1 Cases dropdown — Buyer only
+  const p1Wrap = document.getElementById('p1-cases-wrap');
+  const p1Sel = document.getElementById('p1-cases-select');
+  if(state.user==='Buyer'){
+    p1Wrap.classList.remove('hidden');
+    p1Sel.innerHTML = '<option value="">-- Select P1 decision --</option>' + P1_CASES.map(p=>`<option value="${esc(p.value)}"${p.value===state.result?' selected':''}>${esc(p.label)}</option>`).join('');
+  } else {
+    p1Wrap.classList.add('hidden');
+    p1Sel.innerHTML = '<option value="">-- Select P1 decision --</option>';
+  }
 
   // Reason dropdown
   document.getElementById('lbl-reason').textContent = state.user==='Buyer'?'Real Return Reason':'Seller Dispute Reason';
@@ -2488,6 +2586,9 @@ function setResult(r){
   document.querySelectorAll('#result-btns .grid-btn').forEach(b=>{
     b.className='grid-btn'+(b.dataset.value===r?' active':'');
   });
+  // Clear P1 dropdown when regular button clicked
+  const p1Sel = document.getElementById('p1-cases-select');
+  if(p1Sel) p1Sel.value = '';
   // Re-render conditional fields
   const isBuyer = state.user==='Buyer';
   const isReject = r==='Reject Request' || r==='Reject Compensation Request' || (!isBuyer && r==='Accept Request');
@@ -2503,6 +2604,32 @@ function setResult(r){
   document.getElementById('section-detail').classList.toggle('hidden', !anyDetail);
   renderOutput();
   // Reset Next Steps prompt when field becomes visible
+}
+
+// P1 Cases — specific decisions for priority cases
+const P1_CASES = [
+  {value:'Cancel Reraise - Return Approval', label:'Cancel Reraise - Return Approval'}
+];
+
+function setP1Result(val){
+  if(!val){ return; }
+  state.result = val;
+  state.generatedSections = null;
+  // Deselect all regular buttons
+  document.querySelectorAll('#result-btns .grid-btn').forEach(b=>{
+    b.className = 'grid-btn';
+  });
+  // Re-render conditional fields for P1 result
+  const isBuyer = state.user==='Buyer';
+  const isReject = false;
+  const isProbing = false;
+  const isAccept = false;
+  document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
+  document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
+  document.getElementById('field-amount-refund').classList.toggle('hidden', !(isBuyer && isAccept));
+  document.getElementById('field-sla-wallet').classList.add('hidden');
+  document.getElementById('section-detail').classList.toggle('hidden', true);
+  renderOutput();
 }
 // ═══════════════════════════════════════════════════════════════
 
@@ -2563,22 +2690,47 @@ function handleImportFile(input){
     document.getElementById('import-paste').value = e.target.result;
     input.value = '';
     switchImportTab('paste');
-    parseImportData();
   };
   reader.readAsText(file);
 }
+function parseCSVLine(line){
+  const fields=[];let field='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(inQ){
+      if(c==='"'&&line[i+1]==='"'){field+='"';i++;}
+      else if(c==='"'){inQ=false;}
+      else{field+=c;}
+    }else{
+      if(c==='"'){inQ=true;}
+      else if(c===','||c==='\t'){fields.push(field.trim());field='';}
+      else{field+=c;}
+    }
+  }
+  fields.push(field.trim());
+  return fields;
+}
 function parseImportData(raw){
-  const rows = [];
-  const lines = raw.trim().split('\n');
+  const rows=[];
+  const clean=raw.replace(/\r\n/g,'\n').replace(/\r/g,'\n').replace(/^\uFEFF/,'');
+  const lines=clean.split('\n');
+  let buf='',inQ=false;
+  const fullLines=[];
   for(const line of lines){
-    if(!line.trim()) continue;
-    // Support both tab (Google Sheets copy) and comma (CSV)
-    const cols = line.includes('\t') ? line.split('\t') : line.split(',');
-    if(cols.length < 5) continue;
-    const [type_return, user, result, item, ...scriptParts] = cols.map(c=>c.trim().replace(/^"|"$/g,''));
-    const script = scriptParts.join(',').replace(/^"|"$/g,'').trim();
-    if(!script) continue;
-    rows.push(["Return & Refund, Refund Only" === type_return || type_return ? type_return : "Return & Refund, Refund Only", "Type A (With Emoji)", user, result, item, script]);
+    buf+=(buf?'\n':'')+line;
+    for(let i=0;i<line.length;i++){if(line[i]==='"')inQ=!inQ;}
+    if(!inQ){fullLines.push(buf);buf='';} 
+  }
+  if(buf)fullLines.push(buf);
+  for(const line of fullLines){
+    if(!line.trim())continue;
+    const cols=line.includes('\t')?line.split('\t').map(c=>c.trim().replace(/^"|"$/g,'')):parseCSVLine(line);
+    if(cols.length<5)continue;
+    if(cols[0]==='Type Return'&&cols[1]==='User')continue;
+    const [type_return,user,result,item,...scriptParts]=cols;
+    const script=scriptParts.join(',').trim();
+    if(!script)continue;
+    rows.push([type_return||"Return & Refund, Refund Only","Type A (With Emoji)",user,result,item,script]);
   }
   return rows;
 }
@@ -2618,16 +2770,14 @@ function applyImport(){
   alert(`✅ Import complete! ${importParsedRows.length} scripts ${mode==='replace'?'replaced':'added'}.`);
   importParsedRows=[];
 }
-const NEXT_STEPS_CONNECTORS = [
+/*__NS_DEFAULTS_START__*/const _DEFAULT_NS_CONNECTORS = [
   "What's next:",
   "So, what comes next:",
   "Here's what happens next:",
   "Please take note of the following:",
 ];
-
-const NEXT_STEPS_REFUND_ONLY = '• ${RefundChannel} : You will receive your refund ${RefundSLA_BaseOnPaymentMethod}.\n• Shopee Coins: If Shopee Coins were used for this order, they will be returned to your account within 48 hours.\n\nFor more details, you can check out the full return and refund timeline in our Help Center. If you need any assistance, our Customer Service team is ready to help!';
-
-const NEXT_STEPS_RETURN = `• Please select your preferred return method (Pick-up / Drop-off / Self-Arrange) in the Shopee app within next 2 days. Go to: My Purchases > Return/Refund Important Things to Note
+const _DEFAULT_NS_REFUND_ONLY = '• ${RefundChannel} : You will receive your refund ${RefundSLA_BaseOnPaymentMethod}.\n• Shopee Coins: If Shopee Coins were used for this order, they will be returned to your account within 48 hours.\n\nFor more details, you can check out the full return and refund timeline in our Help Center. If you need any assistance, our Customer Service team is ready to help!';
+const _DEFAULT_NS_RETURN = `• Please select your preferred return method (Pick-up / Drop-off / Self-Arrange) in the Shopee app within next 2 days. Go to: My Purchases > Return/Refund Important Things to Note
 • Required to write the tracking number on each parcel and box.
 • Upload a photo of the return item in the Chat Wall on the Shopee app and keep photo/video evidence before packing, in case of a seller dispute.
 • Once selected, you will have 5 days to return the item using your chosen shipping option.
@@ -2635,6 +2785,34 @@ const NEXT_STEPS_RETURN = `• Please select your preferred return method (Pick-
 • Please make sure that the item(s) is properly packed.
 • If you are returning multiple items, please pack them together in one parcel, as only one parcel is allowed per tracking number.
 • Incomplete returns will result in the refund request being rejected.`;
+
+// Mutable — loaded from localStorage if edited, else defaults
+let NEXT_STEPS_CONNECTORS = [..._DEFAULT_NS_CONNECTORS];
+let NEXT_STEPS_REFUND_ONLY = _DEFAULT_NS_REFUND_ONLY;
+let NEXT_STEPS_RETURN = _DEFAULT_NS_RETURN;
+
+// Undo stacks
+let _nsUndoRefundOnly = null;
+let _nsUndoReturn = null;
+let _nsUndoConnectors = null;
+
+function loadNextStepsEdits(){
+  try{
+    const saved = JSON.parse(localStorage.getItem('sg_next_steps_edits'));
+    if(!saved) return;
+    if(saved.connectors && Array.isArray(saved.connectors)) NEXT_STEPS_CONNECTORS = saved.connectors;
+    if(typeof saved.refundOnly === 'string') NEXT_STEPS_REFUND_ONLY = saved.refundOnly;
+    if(typeof saved.returnRefund === 'string') NEXT_STEPS_RETURN = saved.returnRefund;
+  }catch(e){}
+}
+function saveNextStepsEdits(){
+  localStorage.setItem('sg_next_steps_edits', JSON.stringify({
+    connectors: NEXT_STEPS_CONNECTORS,
+    refundOnly: NEXT_STEPS_REFUND_ONLY,
+    returnRefund: NEXT_STEPS_RETURN
+  }));
+}
+loadNextStepsEdits();/*__NS_DEFAULTS_END__*/
 
 
 
@@ -2952,6 +3130,7 @@ function generateScript(){
 
   state.generatedSections = sections;
   state.editingSection = null;
+  trackGeneration();
   renderOutput();
 }
 
@@ -3299,7 +3478,7 @@ function checkUrlParams(){
 // ADMIN
 // ═══════════════════════════════════════════════════════════════
 
-const ALL_ITEMS=['Empathy + Issue Statement ','Result Sharing + Root Cause','CSAT Pitching','Magic Word / Closing','Offering Help Reject'];
+const ALL_ITEMS=['Empathy + Issue Statement ','Result Sharing + Root Cause','📌 Next Steps','CSAT Pitching','Magic Word / Closing','Offering Help Reject','📝 {issue_description} Phrases'];
 
 // Maps each display flow to all qR values used in generation
 const FLOW_QR_MAP = {
@@ -3307,6 +3486,7 @@ const FLOW_QR_MAP = {
   'Buyer|Reject Request':         ['Reject Request'],
   'Buyer|Request Evidence':           ['Request Evidence'],
   'Buyer|Close Request':          ['Close Request','Accept Request, Close Request'],
+  'Buyer|Cancel Reraise - Return Approval': ['Cancel Reraise - Return Approval','Accept Request, Close Request'],
   'Seller|Accept Request':   ['Accept Request','Reject Request','Accept Request, Close Request'],
   'Seller|Approve Compensation Request': ['Cancel Request','Accept Request, Close Request','Accept Request, Accept Request, Close Request'],
   'Seller|Cancel Request':   ['Cancel Request','Accept Request, Close Request','Accept Request, Accept Request, Close Request'],
@@ -3322,6 +3502,7 @@ const FLOW_TR_MAP = {
   'Buyer|Reject Request':         {user:'Buyer',   trs:['Return & Refund','Refund Only']},
   'Buyer|Request Evidence':           {user:'Buyer',   trs:['Return & Refund','Refund Only']},
   'Buyer|Close Request':          {user:'Buyer',   trs:['Return & Refund','Refund Only']},
+  'Buyer|Cancel Reraise - Return Approval': {user:'Buyer', trs:['Return & Refund','Refund Only']},
   'Seller|Accept Request':   {user:'Seller',  trs:['Seller Dispute']},
   'Seller|Approve Compensation Request': {user:'Seller', trs:['Seller Dispute']},
   'Seller|Cancel Request':   {user:'Seller',  trs:['Seller Dispute']},
@@ -3331,8 +3512,8 @@ const FLOW_TR_MAP = {
   'Seller|Close Request + RTB':   {user:'Seller',  trs:['Seller Dispute']},
 };
 
-function renderIssueDescPanel(){
-  const container = document.getElementById('issue-desc-content');
+function renderIssueDescRefPanel(){
+  const container = document.getElementById('issue-desc-reference');
   if(!container) return;
   let html = '';
   const sections = [
@@ -3363,7 +3544,6 @@ function renderAdminPanel(){
   if(secFilter.options.length<=1){
     ALL_ITEMS.forEach(i=>{const o=document.createElement('option');o.value=i;o.textContent=i.trim();secFilter.appendChild(o);});
   }
-  renderIssueDescPanel();
   // Get filter values
   const fSection = document.getElementById('filter-section').value;
   const fUser    = document.getElementById('filter-user').value;
@@ -3395,10 +3575,34 @@ function renderAdminPanel(){
 
   document.getElementById('filter-count').textContent=`Showing ${scripts.length} of ${db.length} scripts`;
 
+  // Special: show Next Steps reference when that section is selected
+  const nextStepsRef = document.getElementById('next-steps-reference');
+  if(nextStepsRef){
+    if(fSection === '📌 Next Steps'){
+      nextStepsRef.classList.remove('hidden');
+      renderNextStepsPanel();
+    } else {
+      nextStepsRef.classList.add('hidden');
+      nextStepsRef.innerHTML = '';
+    }
+  }
+
+  const issueDescRef = document.getElementById('issue-desc-reference');
+  if(issueDescRef){
+    if(fSection === '📝 {issue_description} Phrases'){
+      issueDescRef.classList.remove('hidden');
+      renderIssueDescRefPanel();
+    } else {
+      issueDescRef.classList.add('hidden');
+      issueDescRef.innerHTML = '';
+    }
+  }
+
   // Group scripts by flow (User|Result)
   const flowOrder = [
     'Buyer|Accept Request','Buyer|Reject Request','Buyer|Request Evidence',
     'Buyer|Request Evidence from Seller','Buyer|Close Request',
+    'Buyer|Cancel Reraise - Return Approval',
     'Seller|Accept Request','Seller|Cancel Request','Seller|Reject Request',
     'Seller|Request Evidence','Seller|Close Request','Seller|Close Request + RTB',
     'Seller|Approve Compensation Request'
@@ -3409,6 +3613,7 @@ function renderAdminPanel(){
     'Buyer|Request Evidence':'🛒 Buyer — Request Evidence',
     'Buyer|Request Evidence from Seller':'🛒 Buyer — Request Evidence from Seller',
     'Buyer|Close Request':'🛒 Buyer — Close Request',
+    'Buyer|Cancel Reraise - Return Approval':'🛒 Buyer — Cancel Reraise - Return Approval',
     'Seller|Accept Request':'🏪 Seller — Accept Request',
     'Seller|Cancel Request':'🏪 Seller — Cancel Request',
     'Seller|Reject Request':'🏪 Seller — Reject Compensation Request',
@@ -3596,7 +3801,7 @@ function renderAdminPanel(){
 }
 
 function setAdminTab(item){state.adminTab=item;renderAdminPanel();
-  const tabs=['bookmarklet','scripts','evidence','backend','versions'];
+  const tabs=['bookmarklet','scripts','evidence','backend','versions','statistics'];
   tabs.forEach(t=>{
     const btn=document.getElementById('admin-tab-'+t);
     const sec=document.getElementById('admin-section-'+t);
@@ -3605,6 +3810,7 @@ function setAdminTab(item){state.adminTab=item;renderAdminPanel();
   });
   if(item==='evidence') renderAdminEvidenceFlows();
   if(item==='scripts') renderAdminPanel();
+  if(item==='statistics') renderStatsPanel();
 }
 
 function startEdit(id){
@@ -3620,6 +3826,379 @@ function saveEdit(id){
 }
 function delScript(id){
   db=db.filter(r=>r.id!==id);renderAdminPanel();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// STATISTICS TRACKING
+// ═══════════════════════════════════════════════════════════════
+let statsPeriod = 'daily';
+
+function getStatsData(){
+  try{ return JSON.parse(localStorage.getItem('sg_stats')||'[]'); }catch(e){ return []; }
+}
+function saveStatsData(data){ localStorage.setItem('sg_stats',JSON.stringify(data)); }
+function clearStatsData(){ localStorage.removeItem('sg_stats'); }
+
+function trackGeneration(){
+  const data = getStatsData();
+  const userId = localStorage.getItem('sg_snip_user_id')||'Unknown';
+  data.push({
+    ts: new Date().toISOString(),
+    user: userId,
+    disputeType: state.user,
+    requestType: state.type_return,
+    result: state.result,
+    flow: state.user+'|'+state.result,
+    returnReason: state.user==='Buyer'?state.return_reason:state.seller_reason
+  });
+  saveStatsData(data);
+}
+
+function setStatsPeriod(p){
+  statsPeriod=p;
+  document.querySelectorAll('.stats-period-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
+  renderStatsPanel();
+}
+
+function getDateKey(dateStr,period){
+  const d=new Date(dateStr);
+  if(period==='daily') return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  if(period==='weekly'){
+    const day=d.getDay()||7;
+    const mon=new Date(d);mon.setDate(d.getDate()-day+1);
+    return 'Week of '+mon.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  }
+  return d.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
+}
+
+function renderStatsPanel(){
+  const allData = getStatsData();
+  const now = new Date();
+  
+  // Filter by period
+  let periodData = allData;
+  if(statsPeriod==='daily'){
+    const today = now.toISOString().slice(0,10);
+    periodData = allData.filter(d=>d.ts.slice(0,10)===today);
+  } else if(statsPeriod==='weekly'){
+    const weekAgo = new Date(now); weekAgo.setDate(now.getDate()-7);
+    periodData = allData.filter(d=>new Date(d.ts)>=weekAgo);
+  } else {
+    const monthAgo = new Date(now); monthAgo.setMonth(now.getMonth()-1);
+    periodData = allData.filter(d=>new Date(d.ts)>=monthAgo);
+  }
+  
+  // Summary cards
+  const uniqueUsers = new Set(periodData.map(d=>d.user));
+  const buyerCount = periodData.filter(d=>d.disputeType==='Buyer').length;
+  const sellerCount = periodData.filter(d=>d.disputeType==='Seller').length;
+  
+  const summaryEl = document.getElementById('stats-summary');
+  if(summaryEl){
+    summaryEl.innerHTML = `
+      <div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:#ee4d2d">${periodData.length}</div>
+        <div style="font-size:12px;font-weight:600;color:#6b7280;margin-top:2px">Scripts Generated</div>
+      </div>
+      <div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:#2563eb">${uniqueUsers.size}</div>
+        <div style="font-size:12px;font-weight:600;color:#6b7280;margin-top:2px">Active Users</div>
+      </div>
+      <div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:#d97706">${buyerCount}</div>
+        <div style="font-size:12px;font-weight:600;color:#6b7280;margin-top:2px">Buyer Scripts</div>
+      </div>
+      <div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px;text-align:center">
+        <div style="font-size:28px;font-weight:800;color:#059669">${sellerCount}</div>
+        <div style="font-size:12px;font-weight:600;color:#6b7280;margin-top:2px">Seller Scripts</div>
+      </div>
+    `;
+  }
+  
+  // User breakdown
+  const userMap = {};
+  periodData.forEach(d=>{
+    if(!userMap[d.user]) userMap[d.user]={total:0,buyer:0,seller:0,flows:{}};
+    userMap[d.user].total++;
+    if(d.disputeType==='Buyer') userMap[d.user].buyer++;
+    else userMap[d.user].seller++;
+    const f = d.flow||'Unknown'; userMap[d.user].flows[f] = (userMap[d.user].flows[f]||0)+1;
+  });
+  
+  const userTableEl = document.getElementById('stats-user-table');
+  if(userTableEl){
+    if(Object.keys(userMap).length===0){
+      userTableEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No data for this period</div>';
+    } else {
+      let thtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+      thtml += '<tr style="background:#f9fafb"><th class="tbl-th">User</th><th class="tbl-th">Total</th><th class="tbl-th">Buyer</th><th class="tbl-th">Seller</th><th class="tbl-th">Top Flow</th></tr>';
+      const sortedUsers = Object.entries(userMap).sort((a,b)=>b[1].total-a[1].total);
+      sortedUsers.forEach(([user,stats])=>{
+        const topFlow = Object.entries(stats.flows).sort((a,b)=>b[1]-a[1])[0];
+        thtml += `<tr class="tbl-tr"><td class="tbl-td" style="font-weight:600">${esc(user)}</td><td class="tbl-td" style="font-weight:700;color:#ee4d2d">${stats.total}</td><td class="tbl-td">${stats.buyer}</td><td class="tbl-td">${stats.seller}</td><td class="tbl-td"><span style="font-size:11px;background:#f3f4f6;padding:2px 8px;border-radius:6px">${topFlow?esc(topFlow[0])+' ('+topFlow[1]+')':'—'}</span></td></tr>`;
+      });
+      thtml += '</table>';
+      userTableEl.innerHTML = thtml;
+    }
+  }
+  
+  // Flow breakdown
+  const flowMap = {};
+  periodData.forEach(d=>{
+    const f = d.flow||'Unknown'; flowMap[f] = (flowMap[f]||0)+1;
+  });
+  
+  const flowTableEl = document.getElementById('stats-flow-table');
+  if(flowTableEl){
+    if(Object.keys(flowMap).length===0){
+      flowTableEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No data for this period</div>';
+    } else {
+      let fhtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+      fhtml += '<tr style="background:#f9fafb"><th class="tbl-th">Flow</th><th class="tbl-th">Count</th><th class="tbl-th">%</th><th class="tbl-th">Bar</th></tr>';
+      const sortedFlows = Object.entries(flowMap).sort((a,b)=>b[1]-a[1]);
+      const maxCount = sortedFlows[0]?sortedFlows[0][1]:1;
+      sortedFlows.forEach(([flow,count])=>{
+        const pct = periodData.length?Math.round(count/periodData.length*100):0;
+        const barW = Math.round(count/maxCount*100);
+        const color = flow.startsWith('Buyer')?'#d97706':'#2563eb';
+        fhtml += `<tr class="tbl-tr"><td class="tbl-td" style="font-weight:600">${esc(flow)}</td><td class="tbl-td" style="font-weight:700">${count}</td><td class="tbl-td">${pct}%</td><td class="tbl-td" style="min-width:120px"><div style="height:8px;border-radius:4px;background:#f3f4f6"><div style="height:8px;border-radius:4px;background:${color};width:${barW}%"></div></div></td></tr>`;
+      });
+      fhtml += '</table>';
+      flowTableEl.innerHTML = fhtml;
+    }
+  }
+  
+  // Recent activity
+  const recentEl = document.getElementById('stats-recent');
+  if(recentEl){
+    const recent = allData.slice(-50).reverse();
+    if(recent.length===0){
+      recentEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No activity recorded yet</div>';
+    } else {
+      let rhtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+      rhtml += '<tr style="background:#f9fafb"><th class="tbl-th">Time</th><th class="tbl-th">User</th><th class="tbl-th">Type</th><th class="tbl-th">Flow</th><th class="tbl-th">Reason</th></tr>';
+      recent.forEach(d=>{
+        const t = new Date(d.ts);
+        const timeStr = t.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' '+t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+        const typeBg = d.disputeType==='Buyer'?'#fef3c7':'#dbeafe';
+        const typeColor = d.disputeType==='Buyer'?'#92400e':'#1e40af';
+        rhtml += `<tr class="tbl-tr"><td class="tbl-td" style="white-space:nowrap;color:#6b7280">${timeStr}</td><td class="tbl-td" style="font-weight:600">${esc(d.user)}</td><td class="tbl-td"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;background:${typeBg};color:${typeColor}">${esc(d.disputeType)}</span></td><td class="tbl-td">${esc(d.result||'—')}</td><td class="tbl-td" style="color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.returnReason||'—')}</td></tr>`;
+      });
+      rhtml += '</table>';
+      recentEl.innerHTML = rhtml;
+    }
+  }
+}
+
+function downloadStatsCSV(){
+  const data = getStatsData();
+  if(!data.length){ alert('No statistics data to download.'); return; }
+  const header = ['Timestamp','User','Dispute Type','Request Type','Result','Flow','Return Reason'];
+  const rows = data.map(d=>[
+    d.ts, d.user, d.disputeType, d.requestType, d.result, d.flow, d.returnReason
+  ]);
+  const csvContent = [header,...rows].map(row=>
+    row.map(cell=>{
+      const val=String(cell??'');
+      return (val.includes(',')||val.includes('\n')||val.includes('"'))?'"'+val.replace(/"/g,'""')+'"':val;
+    }).join(',')
+  ).join('\n');
+  const blob=new Blob(['\uFEFF'+csvContent],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='sg_statistics_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// Export Master File
+function exportMasterFile(){
+  let h = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const rawDbStr = 'const RAW_DB = ' + JSON.stringify(db.map(r=>r.data)) + ';';
+  h = h.replace(/\/\*__RAW_DB_START__\*\/.*?\/\*__RAW_DB_END__\*\//s, '/*__RAW_DB_START__*/' + rawDbStr + '/*__RAW_DB_END__*/');
+  const nsBlock = '/*__NS_DEFAULTS_START__*/const _DEFAULT_NS_CONNECTORS = '+JSON.stringify(NEXT_STEPS_CONNECTORS)+';\nconst _DEFAULT_NS_REFUND_ONLY = '+JSON.stringify(NEXT_STEPS_REFUND_ONLY)+';\nconst _DEFAULT_NS_RETURN = '+JSON.stringify(NEXT_STEPS_RETURN)+';\nlet NEXT_STEPS_CONNECTORS = [..._DEFAULT_NS_CONNECTORS];\nlet NEXT_STEPS_REFUND_ONLY = _DEFAULT_NS_REFUND_ONLY;\nlet NEXT_STEPS_RETURN = _DEFAULT_NS_RETURN;\nlet _nsUndoRefundOnly = null;\nlet _nsUndoReturn = null;\nlet _nsUndoConnectors = null;\nfunction loadNextStepsEdits(){try{const saved = JSON.parse(localStorage.getItem(\'sg_next_steps_edits\'));if(!saved) return;if(saved.connectors && Array.isArray(saved.connectors)) NEXT_STEPS_CONNECTORS = saved.connectors;if(typeof saved.refundOnly === \'string\') NEXT_STEPS_REFUND_ONLY = saved.refundOnly;if(typeof saved.returnRefund === \'string\') NEXT_STEPS_RETURN = saved.returnRefund;}catch(e){}}\nfunction saveNextStepsEdits(){localStorage.setItem(\'sg_next_steps_edits\', JSON.stringify({connectors: NEXT_STEPS_CONNECTORS,refundOnly: NEXT_STEPS_REFUND_ONLY,returnRefund: NEXT_STEPS_RETURN}));}\nloadNextStepsEdits();/*__NS_DEFAULTS_END__*/';
+  h = h.replace(/\/\*__NS_DEFAULTS_START__\*\/.*?\/\*__NS_DEFAULTS_END__\*\//s, nsBlock);
+  const blob = new Blob([h], {type:'text/html;charset=utf-8'});
+  const u = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=u; a.download='index.html';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(u);
+  alert('\u2705 Master file exported as index.html\n\nAll ' + db.length + ' scripts + Next Steps edits baked in.\nUpload to GitHub to update for everyone.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// NEXT STEPS — EDITABLE PANEL
+// ═══════════════════════════════════════════════════════════════
+let _nsEditingConnector = -1; // index being edited, -1 = none
+let _nsEditingTemplate = ''; // 'return' or 'refund' or ''
+
+function renderNextStepsPanel(){
+  const container = document.getElementById('next-steps-reference');
+  if(!container) return;
+
+  // Connector pills with edit/delete
+  let connHtml = '';
+  NEXT_STEPS_CONNECTORS.forEach((c,i)=>{
+    if(_nsEditingConnector === i){
+      connHtml += `<div style="display:flex;gap:6px;align-items:center;width:100%;margin-bottom:6px">
+        <input type="text" id="ns-conn-edit-${i}" value="${esc(c)}" style="flex:1;font-size:12px;padding:6px 10px;border-radius:8px;border:1.5px solid #ee4d2d;font-family:'Sora',sans-serif;outline:none">
+        <button class="btn-orange" style="padding:4px 12px;font-size:11px" onclick="nsConnSave(${i})">✓ Save</button>
+        <button class="btn-outline" style="padding:4px 10px;font-size:11px" onclick="nsConnCancelEdit()">Cancel</button>
+      </div>`;
+    } else {
+      connHtml += `<div style="display:inline-flex;align-items:center;gap:4px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:4px 6px 4px 12px;margin-bottom:4px">
+        <span style="font-size:12px;color:#374151;font-weight:500">${esc(c)}</span>
+        <button class="btn-edit" style="font-size:10px;padding:2px 6px;margin-left:4px" onclick="nsConnStartEdit(${i})">✏️</button>
+        <button class="btn-del" style="font-size:10px;padding:2px 6px" onclick="nsConnDelete(${i})">🗑️</button>
+      </div> `;
+    }
+  });
+
+  // Template sections
+  const returnEditing = _nsEditingTemplate === 'return';
+  const refundEditing = _nsEditingTemplate === 'refund';
+
+  let returnHtml = '';
+  if(returnEditing){
+    returnHtml = `<textarea id="ns-tpl-return" rows="10" style="width:100%;font-size:12px;line-height:1.7;border-radius:10px;border:1.5px solid #2563eb;padding:12px 14px;font-family:'Sora',sans-serif;outline:none;resize:vertical">${esc(NEXT_STEPS_RETURN)}</textarea>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn-orange" style="padding:5px 14px;font-size:12px" onclick="nsTplSave('return')">✓ Save</button>
+      <button class="btn-outline" style="padding:5px 12px;font-size:12px" onclick="nsTplCancelEdit()">Cancel</button>
+    </div>`;
+  } else {
+    returnHtml = `<div style="font-size:12px;color:#374151;line-height:1.7;background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:10px;padding:12px 14px;white-space:pre-wrap">${esc(NEXT_STEPS_RETURN)}</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn-edit" style="font-size:11px" onclick="nsTplStartEdit('return')">✏️ Edit</button>
+      ${_nsUndoReturn!==null?'<button class="btn-edit" style="font-size:11px;border-color:#d1fae5;background:#f0fdf4;color:#059669" onclick="nsTplUndo(\'return\')">↩ Undo</button>':''}
+      <button class="btn-edit" style="font-size:11px;color:#6b7280" onclick="nsTplReset('return')">↻ Reset</button>
+    </div>`;
+  }
+
+  let refundHtml = '';
+  if(refundEditing){
+    refundHtml = `<textarea id="ns-tpl-refund" rows="6" style="width:100%;font-size:12px;line-height:1.7;border-radius:10px;border:1.5px solid #059669;padding:12px 14px;font-family:'Sora',sans-serif;outline:none;resize:vertical">${esc(NEXT_STEPS_REFUND_ONLY)}</textarea>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn-orange" style="padding:5px 14px;font-size:12px" onclick="nsTplSave('refund')">✓ Save</button>
+      <button class="btn-outline" style="padding:5px 12px;font-size:12px" onclick="nsTplCancelEdit()">Cancel</button>
+    </div>`;
+  } else {
+    refundHtml = `<div style="font-size:12px;color:#374151;line-height:1.7;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px 14px;white-space:pre-wrap">${esc(NEXT_STEPS_REFUND_ONLY)}</div>
+    <div style="display:flex;gap:6px;margin-top:8px">
+      <button class="btn-edit" style="font-size:11px" onclick="nsTplStartEdit('refund')">✏️ Edit</button>
+      ${_nsUndoRefundOnly!==null?'<button class="btn-edit" style="font-size:11px;border-color:#d1fae5;background:#f0fdf4;color:#059669" onclick="nsTplUndo(\'refund\')">↩ Undo</button>':''}
+      <button class="btn-edit" style="font-size:11px;color:#6b7280" onclick="nsTplReset('refund')">↻ Reset</button>
+    </div>`;
+  }
+
+  container.innerHTML = `
+    <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden;margin-bottom:16px">
+      <div style="padding:12px 16px;background:linear-gradient(90deg,#ee4d2d,#ff7337);border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <span style="font-weight:700;font-size:14px;color:white">📌 Next Steps — Auto-Injected Scripts</span>
+        <span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.8)">${NEXT_STEPS_CONNECTORS.length} connectors · 2 templates</span>
+      </div>
+      <div style="padding:16px">
+        <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:#92400e;line-height:1.6">
+          <strong>ℹ️ How it works:</strong> Next Steps is auto-injected after Result Sharing when <strong>Buyer → Accept Request</strong> is generated. A random connector phrase introduces the content, which differs based on Return & Refund vs Refund Only.
+        </div>
+
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#ee4d2d">🔗 Connector Phrases (${NEXT_STEPS_CONNECTORS.length}, randomized)</div>
+          <div style="display:flex;gap:6px">
+            ${_nsUndoConnectors!==null?'<button class="btn-edit" style="font-size:10px;padding:3px 8px;border-color:#d1fae5;background:#f0fdf4;color:#059669" onclick="nsConnUndo()">↩ Undo</button>':''}
+            <button class="btn-edit" style="font-size:10px;padding:3px 8px" onclick="nsConnAdd()">+ Add</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px">${connHtml}</div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#2563eb;margin-bottom:8px">🔄 Return & Refund</div>
+            ${returnHtml}
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#059669;margin-bottom:8px">💰 Refund Only</div>
+            ${refundHtml}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Connector editing ──
+function nsConnStartEdit(i){ _nsEditingConnector=i; renderNextStepsPanel(); setTimeout(()=>{const el=document.getElementById('ns-conn-edit-'+i);if(el){el.focus();el.select();}},50); }
+function nsConnCancelEdit(){ _nsEditingConnector=-1; renderNextStepsPanel(); }
+function nsConnSave(i){
+  const el=document.getElementById('ns-conn-edit-'+i);
+  if(!el||!el.value.trim()) return;
+  _nsUndoConnectors=[...NEXT_STEPS_CONNECTORS];
+  NEXT_STEPS_CONNECTORS[i]=el.value.trim();
+  _nsEditingConnector=-1;
+  saveNextStepsEdits();
+  renderNextStepsPanel();
+}
+function nsConnDelete(i){
+  if(NEXT_STEPS_CONNECTORS.length<=1){ alert('Must keep at least 1 connector phrase.'); return; }
+  _nsUndoConnectors=[...NEXT_STEPS_CONNECTORS];
+  NEXT_STEPS_CONNECTORS.splice(i,1);
+  saveNextStepsEdits();
+  renderNextStepsPanel();
+}
+function nsConnAdd(){
+  const phrase=prompt('Enter new connector phrase:');
+  if(!phrase||!phrase.trim()) return;
+  _nsUndoConnectors=[...NEXT_STEPS_CONNECTORS];
+  NEXT_STEPS_CONNECTORS.push(phrase.trim());
+  saveNextStepsEdits();
+  renderNextStepsPanel();
+}
+function nsConnUndo(){
+  if(_nsUndoConnectors===null) return;
+  NEXT_STEPS_CONNECTORS = [..._nsUndoConnectors];
+  _nsUndoConnectors=null;
+  saveNextStepsEdits();
+  renderNextStepsPanel();
+}
+
+// ── Template editing ──
+function nsTplStartEdit(which){ _nsEditingTemplate=which; renderNextStepsPanel(); setTimeout(()=>{const el=document.getElementById('ns-tpl-'+which);if(el)el.focus();},50); }
+function nsTplCancelEdit(){ _nsEditingTemplate=''; renderNextStepsPanel(); }
+function nsTplSave(which){
+  const el=document.getElementById('ns-tpl-'+which);
+  if(!el) return;
+  if(which==='return'){
+    _nsUndoReturn=NEXT_STEPS_RETURN;
+    NEXT_STEPS_RETURN=el.value;
+  } else {
+    _nsUndoRefundOnly=NEXT_STEPS_REFUND_ONLY;
+    NEXT_STEPS_REFUND_ONLY=el.value;
+  }
+  _nsEditingTemplate='';
+  saveNextStepsEdits();
+  renderNextStepsPanel();
+}
+function nsTplUndo(which){
+  if(which==='return'&&_nsUndoReturn!==null){
+    NEXT_STEPS_RETURN=_nsUndoReturn;
+    _nsUndoReturn=null;
+  } else if(which==='refund'&&_nsUndoRefundOnly!==null){
+    NEXT_STEPS_REFUND_ONLY=_nsUndoRefundOnly;
+    _nsUndoRefundOnly=null;
+  }
+  saveNextStepsEdits();
+  renderNextStepsPanel();
+}
+function nsTplReset(which){
+  if(!confirm('Reset to default? This cannot be undone.')) return;
+  if(which==='return'){
+    _nsUndoReturn=NEXT_STEPS_RETURN;
+    NEXT_STEPS_RETURN=_DEFAULT_NS_RETURN;
+  } else {
+    _nsUndoRefundOnly=NEXT_STEPS_REFUND_ONLY;
+    NEXT_STEPS_REFUND_ONLY=_DEFAULT_NS_REFUND_ONLY;
+  }
+  saveNextStepsEdits();
+  renderNextStepsPanel();
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -4439,7 +5018,6 @@ function handleAdminDrop(e){
     document.getElementById('import-paste').value=ev.target.result;
     fb.textContent='✅ '+file.name+' loaded!';
     switchImportTab('paste');
-    parseImportData();
   };
   r.readAsText(file);
 }
