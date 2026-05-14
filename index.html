@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v18</title>
+<title>All in One Script Generator - v19</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -1099,6 +1099,31 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 
   <!-- SCRIPTS SECTION -->
   <div id="admin-section-scripts" class="hidden">
+
+  <!-- Google Sheets Connection -->
+  <div id="gsheet-config" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px 18px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">📗</span>
+        <span style="font-weight:700;font-size:13px;color:#1e40af">Google Sheets — Live Script Source</span>
+        <span id="gsheet-status" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#f3f4f6;color:#6b7280">Not connected</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button onclick="testGSheetConnection()" style="padding:5px 12px;border-radius:8px;border:1.5px solid #bfdbfe;background:white;color:#2563eb;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">🔄 Test</button>
+        <button onclick="fetchFromGSheet(true)" style="padding:5px 12px;border-radius:8px;border:none;background:#2563eb;color:white;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Sync Now</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input type="text" id="gsheet-id-input" placeholder="Paste Google Sheet ID here" value="" style="flex:1;min-width:200px;font-size:12px;padding:7px 12px;border-radius:8px;border:1.5px solid #bfdbfe;font-family:'Sora',sans-serif;outline:none">
+      <button onclick="saveGSheetId()" style="padding:7px 14px;border-radius:8px;border:none;background:#059669;color:white;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">💾 Save</button>
+    </div>
+    <div style="font-size:11px;color:#6b7280;margin-top:6px;line-height:1.5">
+      Publish your Sheet: <strong>File → Share → Publish to web → CSV</strong>. Columns: Type Return | User | Result | Section | Script Text.
+      <br>The Sheet ID is the long string in the URL: docs.google.com/spreadsheets/d/<strong style="color:#2563eb">{THIS_PART}</strong>/edit
+      <br>Special rows: <code>[FLOW]</code> decision flows, <code>[EVIDENCE]</code> evidence scripts, <code>[P1]</code> P1 scripts, <code>[NEXT_STEPS]</code> connectors, <code>[ISSUE_DESC]</code> phrases — all editable.
+    </div>
+  </div>
+
   <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
     <button onclick="openImportModal()" style="padding:7px 16px;border-radius:10px;border:none;background:#059669;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">📤 Import Sheet</button>
     <button onclick="exportScripts()" style="padding:7px 16px;border-radius:10px;border:none;background:#2563eb;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Export CSV</button>
@@ -1118,29 +1143,6 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     </select>
     <select id="filter-result" onchange="renderAdminPanel()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
       <option value="">All Flows</option>
-      <optgroup label="🛒 Buyer Request">
-      <option value="Buyer|Accept Request">Buyer — Accept Request</option>
-      <option value="Buyer|Reject Request">Buyer — Reject Request</option>
-      <option value="Buyer|Request Evidence">Buyer — Request Evidence</option>
-      <option value="Buyer|Request Evidence from Seller">Buyer — Request Evidence from Seller</option>
-      <option value="Buyer|Close Request">Buyer — Close Request</option>
-      </optgroup>
-      <optgroup label="🔴 P1 Cases Only">
-      <option value="Buyer|Cancel Reraise - Return Approval">P1 — Cancel Reraise - Return Approval</option>
-      <option value="Buyer|Education > Cancel Pre Order">P1 — Education > Cancel Pre Order</option>
-      </optgroup>
-      <optgroup label="🏪 Seller Dispute › With Buyer">
-      <option value="Seller|Accept Request">Seller › With Buyer — Accept Request</option>
-      <option value="Seller|Cancel Request">Seller › With Buyer — Cancel Request</option>
-      <option value="Seller|Request Evidence">Seller › With Buyer — Request Evidence</option>
-      <option value="Seller|Close Request">Seller › With Buyer — Close Request</option>
-      <option value="Seller|Close Request + RTB">Seller › With Buyer — Close Request + RTB</option>
-      </optgroup>
-      <optgroup label="🏪 Seller Dispute › Without Buyer">
-      <option value="Seller|Approve Compensation Request">Seller › Without Buyer — Approve Compensation Request</option>
-      <option value="Seller|Reject Request">Seller › Without Buyer — Reject Compensation Request</option>
-      <option value="Seller|Request Evidence">Seller › Without Buyer — Request Evidence</option>
-      </optgroup>
     </select>
     <span style="margin-left:auto;font-size:12px;font-weight:600;color:#92400e;background:#fef3c7;padding:4px 12px;border-radius:8px" id="filter-count"></span>
   </div>
@@ -1183,7 +1185,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="docs-sidebar-logo">
       <span class="ds-badge">Shopee Return & Refund</span>
       <h2>All in One Script Generator</h2>
-      <p>Technical Documentation — v18</p>
+      <p>Technical Documentation — v19</p>
     </div>
 
     <div class="docs-nav-group">
@@ -1822,7 +1824,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v18')" id="vnav-v18"><span class="ddot" style="background:#ee4d2d"></span>v18 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v19')" id="vnav-v19"><span class="ddot" style="background:#ee4d2d"></span>v19 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v18')" id="vnav-v18"><span class="ddot" style="background:#6b7280"></span>v18</a>
     <a class="docs-nav-item" onclick="scrollToVer('v17')" id="vnav-v17"><span class="ddot" style="background:#6b7280"></span>v17</a>
     <a class="docs-nav-item" onclick="scrollToVer('v16')" id="vnav-v16"><span class="ddot" style="background:#6b7280"></span>v16</a>
     <a class="docs-nav-item" onclick="scrollToVer('v15')" id="vnav-v15"><span class="ddot" style="background:#6b7280"></span>v15</a>
@@ -1843,10 +1846,49 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
-      <div id="vsec-v18" class="dcard" style="margin-bottom:28px">
+      <div id="vsec-v19" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v18 — Current</div>
+        <div style="color:white;font-weight:800;font-size:16px">v19 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">14 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>📗 Google Sheets — Live Script Source</strong> — connect a published Google Sheet as the master script database. Scripts auto-fetch on page load; falls back to baked-in RAW_DB if offline. Configure via Admin → Script Flows → Sheet ID input. Supports Test, Sync Now, and auto-sync on load</li>
+            <li><strong>📤 Comprehensive CSV Export</strong> — Export CSV now includes all data: regular scripts, <code>[P1]</code>-tagged P1 scripts, <code>[NEXT_STEPS]</code> connector phrases &amp; templates, and <code>[ISSUE_DESC]</code> {issue_description} phrases. All editable in the Sheet and re-importable</li>
+            <li><strong>🔴 Education &gt; Cancel Pre Order</strong> — new P1 decision. Flow: Empathy → Result Sharing → Offering Help Reject. 1 fixed Result Sharing script about seller approval for custom/pre-order/non-SLS cancellations with policy link</li>
+            <li><strong>🔧 Supabase JS client migration</strong> — replaced raw <code>fetch()</code> with official <code>supabase-js</code> library for snippet cloud sync, resolving the 401 auth issue</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">📊 Statistics Improvements</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>📅 Daily</strong> — Recent Activity shows all individual records for today</li>
+            <li><strong>📆 Weekly</strong> — Recent Activity shows daily totals (total, buyer, seller, active users)</li>
+            <li><strong>🗓️ Monthly</strong> — Recent Activity shows weekly totals (total, buyer, seller, active users)</li>
+            <li>🗑️ Clear Data button removed</li>
+            <li>🔄 Refresh button added beside Download CSV</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>📌 Next Steps Return template fixed — "Important Things to Note:" now on its own line</li>
+            <li>Backend HTML rebuilt with Version Updates layout (sidebar + scrollable content)</li>
+            <li>💾 Export Master File moved to Backend HTML tab with explanation</li>
+            <li>📝 {issue_description} Phrases moved into All Sections dropdown filter</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
+      <div id="vsec-v18" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v18</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">13 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -2357,7 +2399,7 @@ setTimeout(function(){
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button onclick="downloadStatsCSV()" style="padding:7px 16px;border-radius:10px;border:none;background:#2563eb;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Download CSV</button>
-        <button onclick="if(confirm('Clear all statistics data?')){clearStatsData();renderStatsPanel()}" style="padding:7px 16px;border-radius:10px;border:1.5px solid #fecaca;background:#fff5f5;color:#ef4444;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">🗑️ Clear Data</button>
+        <button onclick="renderStatsPanel()" style="padding:7px 16px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#374151;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">🔄 Refresh</button>
       </div>
     </div>
 
@@ -2385,7 +2427,7 @@ setTimeout(function(){
 
     <!-- Recent Activity -->
     <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden">
-      <div style="padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:700;font-size:13px;color:#1a1a1a">🕐 Recent Activity (last 50)</div>
+      <div id="stats-recent-label" style="padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:700;font-size:13px;color:#1a1a1a">🕐 Recent Activity</div>
       <div id="stats-recent" style="padding:0;overflow-x:auto;max-height:400px;overflow-y:auto"></div>
     </div>
   </div>
@@ -2407,7 +2449,7 @@ const BUYER_REASONS = {"Missing part of the order": ["item(s) missing from the o
 
 const SELLER_REASONS = {"Buyer's claim is incorrect": ["the buyer's claim cannot be accepted", "the claim submitted by the buyer is invalid", "buyer's reported issue is not accurate", "seller sent correct item", "buyer's claim invalid"], "Buyer has been refunded wrong amount": ["the buyer received an incorrect refund", "refund issued to the buyer was inaccurate", "buyer's refund amount was not correct", "incorrect refund processed for the buyer", "buyer has been reimbursed with the wrong amount"], "Buyer claim is correct, but I have other concerns": ["the buyer's claim is valid; however, other issues need attention", "claim by buyer is accurate, though additional concerns exist", "buyer's claim is correct, yet i have further observations", "the issue raised by buyer is valid; still, i have other notes", "buyer's claim checks out, but there are other matters to address"], "Did not receive the return product": ["the returned product was not received", "return item has not been delivered", "the product meant for return is missing", "did not obtain the item returned by buyer", "return shipment has not been received"], "Received return products with physical damage": ["returned item(s) arrived damaged", "products returned have physical defects", "received returns are in damaged condition", "return items show signs of damage", "products returned were physically compromised"], "Received incomplete return products (missing quantity/accessories)": ["returned items are incomplete", "products returned are missing parts or accessories", "the return shipment lacks certain items", "some items/accessories are missing from the returned products", "return package is not complete"], "Received wrong return product": ["the returned product is incorrect", "wrong item was returned", "returned goods do not match the original product", "buyer sent back an incorrect item", "product returned is not the one originally sent"], "Received return products, but buyer's claim is incorrect": ["returned items received, but the claim is invalid", "items returned, yet the buyer's issue is unfounded", "received return, but claim does not hold", "products returned, though claim is inaccurate", "return items received, but the claim cannot be accepted"], "Received return item(s), but item is used": ["returned item(s) received, but appear used", "the returned products show signs of use", "items returned are not in new condition", "returned goods have been previously used", "received items are used, not in original condition"]};
 
-const SCRIPT_ASSEMBLY = {
+let SCRIPT_ASSEMBLY = {
   "Buyer|Accept Request":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Accept Request",item:"Result Sharing + Root Cause"},{qR:"Accept Request, Close Request",item:"CSAT Pitching"},{qR:"Accept Request, Close Request",item:"Magic Word / Closing"}],
   "Buyer|Reject Request":[{qR:"Reject Request",item:"Empathy + Issue Statement "},{qR:"Reject Request",item:"Result Sharing + Root Cause"},{qR:"Reject Request",item:"Offering Help Reject"}],
   "Buyer|Request Evidence":[{qR:"Request Evidence",item:"Empathy + Issue Statement "},{qR:"Request Evidence",item:"Result Sharing + Root Cause"},{qR:"Request Evidence",item:"Magic Word / Closing"}],
@@ -2454,6 +2496,233 @@ let state = {
   editText: ''
 };
 let db = RAW_DB.map((r,i)=>({id:i,data:[...r]}));
+
+// ═══════════════════════════════════════════════════════════════
+// GOOGLE SHEETS INTEGRATION
+// ═══════════════════════════════════════════════════════════════
+const _GSHEET_STORAGE_KEY = 'sg_gsheet_id';
+let _gsheetLastSync = null;
+
+function getGSheetId(){ return (localStorage.getItem(_GSHEET_STORAGE_KEY)||'').trim(); }
+function saveGSheetId(){
+  const input = document.getElementById('gsheet-id-input');
+  if(!input) return;
+  const val = input.value.trim();
+  // Extract ID from full URL if pasted
+  const match = val.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  const id = match ? match[1] : val;
+  localStorage.setItem(_GSHEET_STORAGE_KEY, id);
+  input.value = id;
+  updateGSheetStatus('saved','Saved — click Sync Now to load');
+  alert('\u2705 Sheet ID saved: ' + id + '\n\nClick "Sync Now" to fetch scripts from Google Sheets.');
+}
+
+function getGSheetCSVUrl(sheetId){
+  return 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?tqx=out:csv';
+}
+
+function updateGSheetStatus(type, text){
+  const el = document.getElementById('gsheet-status');
+  if(!el) return;
+  const styles = {
+    connected: 'background:#d1fae5;color:#065f46',
+    error:     'background:#fee2e2;color:#991b1b',
+    loading:   'background:#fef3c7;color:#92400e',
+    saved:     'background:#dbeafe;color:#1e40af',
+    offline:   'background:#f3f4f6;color:#6b7280'
+  };
+  el.style.cssText = 'font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;' + (styles[type]?styles[type].split(';').map(s=>{const [k,v]=s.split(':');return k+':'+v;}).join(';'):'');
+  el.textContent = text;
+}
+
+async function fetchFromGSheet(manual){
+  const sheetId = getGSheetId();
+  if(!sheetId){
+    if(manual) alert('No Sheet ID configured. Paste your Google Sheet ID first.');
+    return false;
+  }
+  updateGSheetStatus('loading','Fetching...');
+  try {
+    const url = getGSheetCSVUrl(sheetId);
+    const res = await fetch(url);
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const csv = await res.text();
+    const rows = parseGSheetCSV(csv);
+    if(rows.length < 5){
+      throw new Error('Only ' + rows.length + ' scripts found — expected 50+. Check your Sheet format.');
+    }
+    // Rebuild db from fetched data
+    db = rows.map((r,i)=>({id:i,data:[...r]}));
+    _gsheetLastSync = new Date();
+    updateGSheetStatus('connected','\u2705 Connected — ' + rows.length + ' scripts loaded');
+    if(manual){
+      alert('\u2705 Synced from Google Sheets:\n\n• ' + rows.length + ' scripts loaded\n• Next Steps: ' + (NEXT_STEPS_CONNECTORS.length) + ' connectors\n• Issue descriptions: updated if found\n\nLast sync: ' + _gsheetLastSync.toLocaleTimeString());
+      renderAdminPanel();
+    }
+    return true;
+  } catch(err) {
+    console.error('GSheet fetch error:', err);
+    updateGSheetStatus('error','\u274c ' + err.message);
+    if(manual) alert('\u274c Failed to fetch from Google Sheets:\n\n' + err.message + '\n\nMake sure:\n1. The Sheet is published (File > Share > Publish to web)\n2. The Sheet ID is correct\n3. Columns match: Type Return | User | Result | Section | Script Text');
+    return false;
+  }
+}
+
+function parseGSheetCSV(csv){
+  const clean = csv.replace(/\r\n/g,'\n').replace(/\r/g,'\n').replace(/^\uFEFF/,'');
+  const lines = clean.split('\n');
+  let buf='',inQ=false;
+  const fullLines=[];
+  for(const line of lines){
+    buf+=(buf?'\n':'')+line;
+    for(let i=0;i<line.length;i++){if(line[i]==='"')inQ=!inQ;}
+    if(!inQ){fullLines.push(buf);buf='';}
+  }
+  if(buf)fullLines.push(buf);
+  const scriptRows=[];
+  const flowRows=[];
+  const evidenceRows=[];
+  const bulletRows=[];
+  const nsConnectors=[];
+  let nsReturn=null, nsRefund=null;
+  const buyerReasons={};
+  const sellerReasons={};
+  
+  for(const line of fullLines){
+    if(!line.trim())continue;
+    const cols = parseCSVLine(line);
+    if(cols.length<5)continue;
+    if(cols[0]==='Type Return'&&cols[1]==='User') continue;
+    const [type_return,user,result,section,...scriptParts] = cols;
+    const script = scriptParts.join(',').trim();
+    if(!script) continue;
+    
+    if(type_return==='[NEXT_STEPS]'){
+      if(result==='Connector') nsConnectors.push(script);
+      else if(result==='Return & Refund') nsReturn = script;
+      else if(result==='Refund Only') nsRefund = script;
+    } else if(type_return==='[ISSUE_DESC]'){
+      const bucket = user==='Buyer'?buyerReasons:sellerReasons;
+      if(!bucket[result]) bucket[result]=[];
+      bucket[result].push(script);
+    } else if(type_return==='[FLOW]'){
+      // user=User, result=Decision, section=Type:Step, script=Section=Pool
+      flowRows.push({user,decision:result,typeStep:section,sectionPool:script});
+    } else if(type_return==='[EVIDENCE]'){
+      // user=catKey, result=reason, section=risk, script=selCat>evType=scriptText
+      evidenceRows.push({catKey:user,reason:result,risk:section,data:script});
+    } else if(type_return==='[EVIDENCE_BULLET]'){
+      bulletRows.push({catKey:user,reason:result,risk:section,data:script});
+    } else {
+      const cleanType = type_return.replace(/^\[P1\]\s*/,'');
+      scriptRows.push([cleanType||"Return & Refund, Refund Only","Type A (With Emoji)",user,result,section,script]);
+    }
+  }
+  
+  // Apply special data if found
+  if(nsConnectors.length>0){ NEXT_STEPS_CONNECTORS=nsConnectors; saveNextStepsEdits(); }
+  if(nsReturn!==null){ NEXT_STEPS_RETURN=nsReturn; saveNextStepsEdits(); }
+  if(nsRefund!==null){ NEXT_STEPS_REFUND_ONLY=nsRefund; saveNextStepsEdits(); }
+  if(Object.keys(buyerReasons).length>0){
+    Object.keys(BUYER_REASONS).forEach(k=>delete BUYER_REASONS[k]);
+    Object.assign(BUYER_REASONS, buyerReasons);
+  }
+  if(Object.keys(sellerReasons).length>0){
+    Object.keys(SELLER_REASONS).forEach(k=>delete SELLER_REASONS[k]);
+    Object.assign(SELLER_REASONS, sellerReasons);
+  }
+  
+  // Rebuild SCRIPT_ASSEMBLY from [FLOW] rows
+  if(flowRows.length>0){
+    Object.keys(SCRIPT_ASSEMBLY).forEach(k=>delete SCRIPT_ASSEMBLY[k]);
+    const newP1 = [];
+    flowRows.forEach(r=>{
+      const key = r.user+'|'+r.decision;
+      if(!SCRIPT_ASSEMBLY[key]) SCRIPT_ASSEMBLY[key]=[];
+      const eqIdx = r.sectionPool.indexOf('=');
+      const sec = r.sectionPool.slice(0,eqIdx).trim();
+      const pool = r.sectionPool.slice(eqIdx+1).trim();
+      SCRIPT_ASSEMBLY[key].push({qR:pool, item:sec});
+      // Detect P1
+      if(r.typeStep.startsWith('P1') && !newP1.some(p=>p.value===r.decision)){
+        newP1.push({value:r.decision, label:r.decision});
+      }
+    });
+    if(newP1.length>0){
+      P1_CASES.length=0;
+      newP1.forEach(p=>P1_CASES.push(p));
+    }
+  }
+  
+  // Rebuild EVIDENCE_DB from [EVIDENCE] rows
+  function _parseEvRow(row, target){
+    const cat = target[row.catKey] = target[row.catKey]||{};
+    const reason = cat[row.reason] = cat[row.reason]||{};
+    const risk = reason[row.risk] = reason[row.risk]||{};
+    const eqIdx = row.data.indexOf('=');
+    const keyPart = row.data.slice(0,eqIdx).trim();
+    const val = row.data.slice(eqIdx+1);
+    if(keyPart.includes(' > ')){
+      const [selCat,evType] = keyPart.split(' > ').map(s=>s.trim());
+      if(!risk[selCat]) risk[selCat]={};
+      risk[selCat][evType]=val;
+    } else {
+      risk[keyPart]=val;
+    }
+  }
+  if(evidenceRows.length>0){
+    ['seller','buyer','returnLeg'].forEach(k=>{ if(EVIDENCE_DB[k]) delete EVIDENCE_DB[k]; });
+    evidenceRows.forEach(r=>_parseEvRow(r, EVIDENCE_DB));
+  }
+  if(bulletRows.length>0){
+    if(!EVIDENCE_DB.bullets) EVIDENCE_DB.bullets={};
+    ['seller','buyer','returnLeg'].forEach(k=>{ if(EVIDENCE_DB.bullets[k]) delete EVIDENCE_DB.bullets[k]; });
+    bulletRows.forEach(r=>_parseEvRow(r, EVIDENCE_DB.bullets));
+  }
+  
+  return scriptRows;
+}
+
+async function testGSheetConnection(){
+  const sheetId = getGSheetId();
+  if(!sheetId){ alert('No Sheet ID configured.'); return; }
+  updateGSheetStatus('loading','Testing...');
+  try {
+    const res = await fetch(getGSheetCSVUrl(sheetId));
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const csv = await res.text();
+    const rows = parseGSheetCSV(csv);
+    updateGSheetStatus('connected','\u2705 OK — ' + rows.length + ' scripts found');
+    alert('\u2705 Connection successful!\n\n' + rows.length + ' scripts found in the Sheet.\nClick "Sync Now" to load them.');
+  } catch(err) {
+    updateGSheetStatus('error','\u274c ' + err.message);
+    alert('\u274c Connection failed: ' + err.message);
+  }
+}
+
+// Auto-load Sheet ID into input on admin panel render
+function initGSheetUI(){
+  const input = document.getElementById('gsheet-id-input');
+  const id = getGSheetId();
+  if(input && id) input.value = id;
+  if(id && _gsheetLastSync){
+    updateGSheetStatus('connected','\u2705 Connected — synced at ' + _gsheetLastSync.toLocaleTimeString());
+  } else if(id){
+    updateGSheetStatus('saved','Sheet ID saved — sync on page load');
+  }
+}
+
+// Auto-fetch on page load if Sheet ID is configured
+async function initGSheetOnLoad(){
+  const id = getGSheetId();
+  if(!id) return;
+  const ok = await fetchFromGSheet(false);
+  if(!ok){
+    console.log('GSheet fetch failed, using baked-in RAW_DB (' + db.length + ' scripts)');
+  }
+}
+// Run on load
+initGSheetOnLoad();
 
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
@@ -2548,10 +2817,12 @@ function renderForm(){
   ).join('');
 
   // Result buttons
-  const sellerResults = state.seller_sub_type==='Without Buyer'
-    ? ['Approve Compensation Request','Reject Compensation Request','Request Evidence']
-    : ['Accept Request','Cancel Request','Request Evidence','Close Request','Close Request + RTB'];
-  const results = state.user==='Buyer'?['Accept Request','Reject Request','Request Evidence','Close Request','Request Evidence from Seller']:sellerResults;
+  const allSellerFlows = Object.keys(SCRIPT_ASSEMBLY).filter(k=>k.startsWith('Seller|')).map(k=>k.split('|')[1]);
+  const sellerWithoutBuyer = allSellerFlows.filter(r=>['Approve Compensation Request','Reject Request','Request Evidence'].includes(r));
+  const sellerWithBuyer = allSellerFlows.filter(r=>!['Approve Compensation Request'].includes(r));
+  const sellerResults = state.seller_sub_type==='Without Buyer' ? sellerWithoutBuyer : sellerWithBuyer;
+  const buyerRegularResults = Object.keys(SCRIPT_ASSEMBLY).filter(k=>k.startsWith('Buyer|')&&!P1_CASES.some(p=>p.value===k.split('|')[1])).map(k=>k.split('|')[1]);
+  const results = state.user==='Buyer'?buyerRegularResults:sellerResults;
   const isP1Result = P1_CASES.some(p=>p.value===state.result);
   if(state.result !== '' && !results.includes(state.result) && !isP1Result) state.result=results[0];
   const resultLabel = r => r==='Accept Request' ? (state.user==='Seller' && state.seller_sub_type==='With Buyer' ? 'Accept Buyer Request' : 'Accept Request') : r==='Reject Request' ? 'Reject Request' : r;
@@ -2624,7 +2895,7 @@ function setResult(r){
 }
 
 // P1 Cases — specific decisions for priority cases
-const P1_CASES = [
+let P1_CASES = [
   {value:'Cancel Reraise - Return Approval', label:'Cancel Reraise - Return Approval'},
   {value:'Education > Cancel Pre Order', label:'Education > Cancel Pre Order'}
 ];
@@ -2653,13 +2924,89 @@ function setP1Result(val){
 
 function exportScripts(){
   const header = ['Type Return','User','Result','Section','Script Text'];
-  const rows = db.map(r=>[
-    r.data[0], r.data[2], r.data[3], r.data[4].trim(), r.data[5]
-  ]);
+  
+  // 1. Regular scripts + P1 tagged
+  const p1Values = new Set(P1_CASES.map(p=>p.value));
+  const rows = db.map(r=>{
+    const isP1 = p1Values.has(r.data[3]);
+    return [
+      isP1 ? '[P1] ' + r.data[0] : r.data[0],
+      r.data[2], r.data[3], r.data[4].trim(), r.data[5]
+    ];
+  });
+  
+  // 2. Flow definitions — [FLOW] rows
+  Object.entries(SCRIPT_ASSEMBLY).forEach(([key,steps])=>{
+    const [user,decision] = key.split('|');
+    const isP1 = P1_CASES.some(p=>p.value===decision);
+    const type = isP1?'P1':'Regular';
+    steps.forEach((s,i)=>{
+      rows.push(['[FLOW]',user,decision,type+':'+(i+1),s.item.trim()+'='+s.qR]);
+    });
+  });
+  
+  // 3. Evidence Collection — [EVIDENCE] rows
+  ['seller','buyer','returnLeg'].forEach(catKey=>{
+    const catData = EVIDENCE_DB[catKey];
+    if(!catData) return;
+    Object.entries(catData).forEach(([reason,risks])=>{
+      Object.entries(risks).forEach(([risk,cats])=>{
+        Object.entries(cats).forEach(([selCat,types])=>{
+          if(typeof types === 'string'){
+            rows.push(['[EVIDENCE]',catKey,reason,risk,selCat+'='+types]);
+          } else {
+            Object.entries(types).forEach(([evType,script])=>{
+              rows.push(['[EVIDENCE]',catKey,reason,risk,selCat+' > '+evType+'='+script]);
+            });
+          }
+        });
+      });
+    });
+  });
+  // Evidence bullets
+  ['seller','buyer','returnLeg'].forEach(catKey=>{
+    const catData = (EVIDENCE_DB.bullets||{})[catKey];
+    if(!catData) return;
+    Object.entries(catData).forEach(([reason,risks])=>{
+      Object.entries(risks).forEach(([risk,cats])=>{
+        Object.entries(cats).forEach(([selCat,types])=>{
+          if(typeof types === 'string'){
+            rows.push(['[EVIDENCE_BULLET]',catKey,reason,risk,selCat+'='+types]);
+          } else {
+            Object.entries(types).forEach(([evType,script])=>{
+              rows.push(['[EVIDENCE_BULLET]',catKey,reason,risk,selCat+' > '+evType+'='+script]);
+            });
+          }
+        });
+      });
+    });
+  });
+
+  // 4. Next Steps — connector phrases
+  NEXT_STEPS_CONNECTORS.forEach(c=>{
+    rows.push(['[NEXT_STEPS]','System','Connector','Next Steps',c]);
+  });
+  // Next Steps — Return & Refund template
+  rows.push(['[NEXT_STEPS]','System','Return & Refund','Next Steps',NEXT_STEPS_RETURN]);
+  // Next Steps — Refund Only template
+  rows.push(['[NEXT_STEPS]','System','Refund Only','Next Steps',NEXT_STEPS_REFUND_ONLY]);
+  
+  // 3. Issue description phrases — Buyer
+  Object.entries(BUYER_REASONS).forEach(([reason,phrases])=>{
+    phrases.forEach(p=>{
+      rows.push(['[ISSUE_DESC]','Buyer',reason,'{issue_description}',p]);
+    });
+  });
+  // Issue description phrases — Seller
+  Object.entries(SELLER_REASONS).forEach(([reason,phrases])=>{
+    phrases.forEach(p=>{
+      rows.push(['[ISSUE_DESC]','Seller',reason,'{issue_description}',p]);
+    });
+  });
+  
   const csvContent = [header, ...rows].map(row=>
     row.map(cell => {
       const val = String(cell ?? '');
-      // Wrap in quotes if contains comma, newline or quote
       return (val.includes(',') || val.includes('\n') || val.includes('"'))
         ? '"' + val.replace(/"/g, '""') + '"'
         : val;
@@ -2675,6 +3022,12 @@ function exportScripts(){
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  
+  const totalScripts = db.length;
+  const totalP1 = db.filter(r=>p1Values.has(r.data[3])).length;
+  const totalNS = NEXT_STEPS_CONNECTORS.length + 2;
+  const totalID = Object.values(BUYER_REASONS).flat().length + Object.values(SELLER_REASONS).flat().length;
+  alert('✅ Exported ' + rows.length + ' total rows:\n\n• ' + totalScripts + ' scripts (' + totalP1 + ' tagged [P1])\n• [FLOW] decision flow definitions\n• [EVIDENCE] evidence collection scripts\n• ' + totalNS + ' [NEXT_STEPS] entries\n• ' + totalID + ' [ISSUE_DESC] phrases\n\nAll editable in Google Sheets.');
 }
 let importParsedRows = [];
 
@@ -3563,6 +3916,30 @@ function renderAdminPanel(){
   
   // Populate section filter
   const secFilter = document.getElementById('filter-section');
+
+  // Populate flow filter dropdown dynamically
+  const flowFilter = document.getElementById('filter-result');
+  if(flowFilter && flowFilter.options.length <= 1){
+    const buyerFlows = Object.keys(SCRIPT_ASSEMBLY).filter(k=>k.startsWith('Buyer|')&&!P1_CASES.some(p=>p.value===k.split('|')[1]));
+    const p1Flows = P1_CASES.map(p=>'Buyer|'+p.value);
+    const sellerFlows = Object.keys(SCRIPT_ASSEMBLY).filter(k=>k.startsWith('Seller|'));
+    
+    const addGroup = (label, flows, prefix)=>{
+      const grp = document.createElement('optgroup');
+      grp.label = label;
+      flows.forEach(f=>{
+        const o = document.createElement('option');
+        o.value = f;
+        o.textContent = (prefix||'') + f.split('|')[1];
+        grp.appendChild(o);
+      });
+      flowFilter.appendChild(grp);
+    };
+    if(buyerFlows.length) addGroup('🛒 Buyer Request', buyerFlows, 'Buyer — ');
+    if(p1Flows.length) addGroup('🔴 P1 Cases Only', p1Flows, 'P1 — ');
+    if(sellerFlows.length) addGroup('🏪 Seller Dispute', sellerFlows, 'Seller — ');
+  }
+
   if(secFilter.options.length<=1){
     ALL_ITEMS.forEach(i=>{const o=document.createElement('option');o.value=i;o.textContent=i.trim();secFilter.appendChild(o);});
   }
@@ -3869,7 +4246,7 @@ function setAdminTab(item){state.adminTab=item;renderAdminPanel();
     if(sec){sec.classList.toggle('hidden',t!==item);}
   });
   if(item==='evidence') renderAdminEvidenceFlows();
-  if(item==='scripts') renderAdminPanel();
+  if(item==='scripts'){ renderAdminPanel(); initGSheetUI(); }
   if(item==='statistics') renderStatsPanel();
 }
 
@@ -4028,24 +4405,73 @@ function renderStatsPanel(){
     }
   }
   
-  // Recent activity
+  // Recent activity — varies by period
   const recentEl = document.getElementById('stats-recent');
+  const recentLabel = document.getElementById('stats-recent-label');
   if(recentEl){
-    const recent = allData.slice(-50).reverse();
-    if(recent.length===0){
-      recentEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No activity recorded yet</div>';
-    } else {
-      let rhtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
-      rhtml += '<tr style="background:#f9fafb"><th class="tbl-th">Time</th><th class="tbl-th">User</th><th class="tbl-th">Type</th><th class="tbl-th">Flow</th><th class="tbl-th">Reason</th></tr>';
-      recent.forEach(d=>{
-        const t = new Date(d.ts);
-        const timeStr = t.toLocaleDateString('en-GB',{day:'2-digit',month:'short'})+' '+t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-        const typeBg = d.disputeType==='Buyer'?'#fef3c7':'#dbeafe';
-        const typeColor = d.disputeType==='Buyer'?'#92400e':'#1e40af';
-        rhtml += `<tr class="tbl-tr"><td class="tbl-td" style="white-space:nowrap;color:#6b7280">${timeStr}</td><td class="tbl-td" style="font-weight:600">${esc(d.user)}</td><td class="tbl-td"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;background:${typeBg};color:${typeColor}">${esc(d.disputeType)}</span></td><td class="tbl-td">${esc(d.result||'—')}</td><td class="tbl-td" style="color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.returnReason||'—')}</td></tr>`;
+    if(statsPeriod === 'daily'){
+      if(recentLabel) recentLabel.textContent = '🕐 Recent Activity (all records today)';
+      const recent = periodData.slice().reverse();
+      if(recent.length===0){
+        recentEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No activity recorded today</div>';
+      } else {
+        let rhtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+        rhtml += '<tr style="background:#f9fafb"><th class="tbl-th">Time</th><th class="tbl-th">User</th><th class="tbl-th">Type</th><th class="tbl-th">Flow</th><th class="tbl-th">Reason</th></tr>';
+        recent.forEach(d=>{
+          const t = new Date(d.ts);
+          const timeStr = t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+          const typeBg = d.disputeType==='Buyer'?'#fef3c7':'#dbeafe';
+          const typeColor = d.disputeType==='Buyer'?'#92400e':'#1e40af';
+          rhtml += `<tr class="tbl-tr"><td class="tbl-td" style="white-space:nowrap;color:#6b7280">${timeStr}</td><td class="tbl-td" style="font-weight:600">${esc(d.user)}</td><td class="tbl-td"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;background:${typeBg};color:${typeColor}">${esc(d.disputeType)}</span></td><td class="tbl-td">${esc(d.result||'—')}</td><td class="tbl-td" style="color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.returnReason||'—')}</td></tr>`;
+        });
+        rhtml += '</table>';
+        recentEl.innerHTML = rhtml;
+      }
+    } else if(statsPeriod === 'weekly'){
+      if(recentLabel) recentLabel.textContent = '🕐 Daily Totals (last 7 days)';
+      const dayMap = {};
+      periodData.forEach(d=>{
+        const key = new Date(d.ts).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'});
+        if(!dayMap[key]) dayMap[key] = {total:0,buyer:0,seller:0,users:new Set()};
+        dayMap[key].total++;
+        if(d.disputeType==='Buyer') dayMap[key].buyer++; else dayMap[key].seller++;
+        dayMap[key].users.add(d.user);
       });
-      rhtml += '</table>';
-      recentEl.innerHTML = rhtml;
+      if(Object.keys(dayMap).length===0){
+        recentEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No data this week</div>';
+      } else {
+        let rhtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+        rhtml += '<tr style="background:#f9fafb"><th class="tbl-th">Day</th><th class="tbl-th">Total</th><th class="tbl-th">Buyer</th><th class="tbl-th">Seller</th><th class="tbl-th">Users</th></tr>';
+        Object.entries(dayMap).reverse().forEach(([day,s])=>{
+          rhtml += `<tr class="tbl-tr"><td class="tbl-td" style="font-weight:600">${day}</td><td class="tbl-td" style="font-weight:700;color:#ee4d2d">${s.total}</td><td class="tbl-td">${s.buyer}</td><td class="tbl-td">${s.seller}</td><td class="tbl-td" style="color:#6b7280">${s.users.size}</td></tr>`;
+        });
+        rhtml += '</table>';
+        recentEl.innerHTML = rhtml;
+      }
+    } else {
+      if(recentLabel) recentLabel.textContent = '🕐 Weekly Totals (last 30 days)';
+      const weekMap = {};
+      periodData.forEach(d=>{
+        const dt = new Date(d.ts);
+        const day = dt.getDay()||7;
+        const mon = new Date(dt); mon.setDate(dt.getDate()-day+1);
+        const key = 'Week of '+mon.toLocaleDateString('en-GB',{day:'2-digit',month:'short'});
+        if(!weekMap[key]) weekMap[key] = {total:0,buyer:0,seller:0,users:new Set()};
+        weekMap[key].total++;
+        if(d.disputeType==='Buyer') weekMap[key].buyer++; else weekMap[key].seller++;
+        weekMap[key].users.add(d.user);
+      });
+      if(Object.keys(weekMap).length===0){
+        recentEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No data this month</div>';
+      } else {
+        let rhtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+        rhtml += '<tr style="background:#f9fafb"><th class="tbl-th">Week</th><th class="tbl-th">Total</th><th class="tbl-th">Buyer</th><th class="tbl-th">Seller</th><th class="tbl-th">Users</th></tr>';
+        Object.entries(weekMap).reverse().forEach(([wk,s])=>{
+          rhtml += `<tr class="tbl-tr"><td class="tbl-td" style="font-weight:600">${wk}</td><td class="tbl-td" style="font-weight:700;color:#ee4d2d">${s.total}</td><td class="tbl-td">${s.buyer}</td><td class="tbl-td">${s.seller}</td><td class="tbl-td" style="color:#6b7280">${s.users.size}</td></tr>`;
+        });
+        rhtml += '</table>';
+        recentEl.innerHTML = rhtml;
+      }
     }
   }
 }
