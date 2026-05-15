@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v19</title>
+<title>All in One Script Generator - v20</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -31,9 +31,10 @@ body{font-family:'Sora',sans-serif;min-height:100vh;background:linear-gradient(1
 .toggle-btn.active{border-color:#ee4d2d;background:#fff5f3;color:#ee4d2d}
 .toggle-btn.sm{font-size:11px;padding:7px 4px}
 /* Grid buttons */
-.grid-btns{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.grid-btn{padding:7px 6px;border-radius:10px;border:2px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s;text-align:center}
-.grid-btn.active{border-color:#ee4d2d;background:#fff5f3;color:#ee4d2d}
+.grid-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid-btn{padding:9px 8px;border-radius:10px;border:2px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:11.5px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s;text-align:center;line-height:1.3;min-height:38px;display:flex;align-items:center;justify-content:center}
+.grid-btn:hover{border-color:#fca38a;color:#ee4d2d;background:#fffaf8}
+.grid-btn.active{border-color:#ee4d2d;background:#fff5f3;color:#ee4d2d;box-shadow:0 0 0 1px #ee4d2d inset}
 /* Inputs */
 select,input,textarea{width:100%;border-radius:10px;border:1.5px solid #e5e7eb;background:white;padding:8px 10px;font-size:13px;color:#1a1a1a;font-family:'Sora',sans-serif;outline:none;transition:border-color .2s}
 select:focus,input:focus,textarea:focus{border-color:#ee4d2d}
@@ -204,7 +205,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v19</div>
+        <div class="logo-title">All in One Script Generator - v20</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
       </div>
@@ -272,8 +273,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         <!-- P1 Cases Dropdown -->
         <div id="p1-cases-wrap" class="hidden" style="margin-top:10px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-            <span style="font-size:13px">🔴</span>
-            <span class="lbl" style="margin:0;font-weight:700;color:#dc2626">Specifically for P1 Cases Only</span>
+            <span class="p1-icon" style="font-size:13px">🔴</span>
+            <span class="lbl p1-label" style="margin:0;font-weight:700;color:#dc2626">Specifically for P1 Cases Only</span>
           </div>
           <select id="p1-cases-select" onchange="setP1Result(this.value)" style="width:100%;font-size:13px;padding:9px 12px;border-radius:10px;border:2px solid #fca5a5;background:#fff5f5;font-family:'Sora',sans-serif;outline:none;cursor:pointer;color:#374151;font-weight:600">
             <option value="">-- Select P1 decision --</option>
@@ -1061,6 +1062,26 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 
   <!-- EVIDENCE SECTION -->
   <div id="admin-section-evidence" class="hidden">
+
+  <!-- Supabase Cloud Sync — Evidence data synced by same Apps Script push -->
+  <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:14px 18px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:16px">☁️</span>
+        <span style="font-weight:700;font-size:13px;color:#065f46">Cloud Sync — Evidence from Google Sheets via Supabase</span>
+        <span id="ev-sync-status" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#f3f4f6;color:#6b7280">Idle</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span id="ev-sync-last" style="font-size:11px;color:#6b7280">Last sync: never</span>
+        <button onclick="pullScriptsFromSupabase(true)" style="padding:6px 14px;border-radius:8px;border:none;background:#059669;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Pull from Cloud</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#065f46;line-height:1.5">
+      Evidence data is included in the same Supabase push as scripts. After clicking <strong>Pull from Cloud</strong>, both scripts and evidence update together.
+      Use <strong>Admin → Script Flows → 📘 Apps Script Setup</strong> to get the push script.
+    </div>
+  </div>
+
   <!-- Evidence Flows Panel -->
   <div id="admin-evidence-panel">
     <!-- Evidence Upload/Download Controls -->
@@ -1100,27 +1121,69 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   <!-- SCRIPTS SECTION -->
   <div id="admin-section-scripts" class="hidden">
 
-  <!-- Google Sheets Connection -->
-  <div id="gsheet-config" style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px 18px;margin-bottom:16px">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:8px">
+  <!-- Supabase Sync — pulls scripts pushed by Google Apps Script -->
+  <div id="sb-sync-config" style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:12px;padding:14px 18px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
       <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:16px">📗</span>
-        <span style="font-weight:700;font-size:13px;color:#1e40af">Google Sheets — Live Script Source</span>
-        <span id="gsheet-status" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#f3f4f6;color:#6b7280">Not connected</span>
+        <span style="font-size:16px">☁️</span>
+        <span style="font-weight:700;font-size:13px;color:#065f46">Cloud Sync — Scripts from Google Sheets via Supabase</span>
+        <span id="sb-sync-status" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#f3f4f6;color:#6b7280">Idle</span>
       </div>
-      <div style="display:flex;gap:6px">
-        <button onclick="testGSheetConnection()" style="padding:5px 12px;border-radius:8px;border:1.5px solid #bfdbfe;background:white;color:#2563eb;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">🔄 Test</button>
-        <button onclick="fetchFromGSheet(true)" style="padding:5px 12px;border-radius:8px;border:none;background:#2563eb;color:white;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Sync Now</button>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span id="sb-sync-last" style="font-size:11px;color:#6b7280">Last sync: never</span>
+        <button onclick="pullScriptsFromSupabase(true)" style="padding:6px 14px;border-radius:8px;border:none;background:#059669;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Pull from Cloud</button>
+        <button onclick="toggleAppsScriptHelp()" style="padding:6px 12px;border-radius:8px;border:1.5px solid #86efac;background:white;color:#065f46;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">📘 Apps Script Setup</button>
       </div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <input type="text" id="gsheet-id-input" placeholder="Paste Google Sheet ID here" value="" style="flex:1;min-width:200px;font-size:12px;padding:7px 12px;border-radius:8px;border:1.5px solid #bfdbfe;font-family:'Sora',sans-serif;outline:none">
-      <button onclick="saveGSheetId()" style="padding:7px 14px;border-radius:8px;border:none;background:#059669;color:white;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">💾 Save</button>
+    <div style="font-size:11px;color:#065f46;line-height:1.5">
+      Updates flow: <strong>Google Sheet → Apps Script (push) → Supabase → click "Pull from Cloud" here</strong>.
+      The Sheet is the source of truth; this generator pulls the latest snapshot on demand.
     </div>
-    <div style="font-size:11px;color:#6b7280;margin-top:6px;line-height:1.5">
-      Publish your Sheet: <strong>File → Share → Publish to web → CSV</strong>. Columns: Type Return | User | Result | Section | Script Text.
-      <br>The Sheet ID is the long string in the URL: docs.google.com/spreadsheets/d/<strong style="color:#2563eb">{THIS_PART}</strong>/edit
-      <br>Special rows: <code>[FLOW]</code> decision flows, <code>[EVIDENCE]</code> evidence scripts, <code>[P1]</code> P1 scripts, <code>[NEXT_STEPS]</code> connectors, <code>[ISSUE_DESC]</code> phrases — all editable.
+  </div>
+
+  <!-- Apps Script Setup Instructions (collapsed by default) -->
+  <div id="apps-script-help" class="hidden" style="background:white;border:2px solid #86efac;border-radius:12px;padding:18px 20px;margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+      <div style="font-weight:800;font-size:14px;color:#065f46">📘 Google Apps Script — One-Time Setup</div>
+      <button onclick="toggleAppsScriptHelp()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;padding:0;line-height:1">×</button>
+    </div>
+
+    <div style="font-size:12.5px;color:#374151;line-height:1.7">
+      <div style="font-weight:700;color:#065f46;margin-top:4px">1️⃣ Prepare your Google Sheet</div>
+      <ul style="margin:4px 0 10px;padding-left:18px">
+        <li>Columns required (in this exact order, first row = headers): <code style="background:#f0fdf4;padding:1px 6px;border-radius:4px">Type Return | User | Result | Section | Script Text</code></li>
+        <li>Special rows are supported: <code>[FLOW]</code>, <code>[EVIDENCE]</code>, <code>[EVIDENCE_BULLET]</code>, <code>[P1]</code>, <code>[NEXT_STEPS]</code>, <code>[ISSUE_DESC]</code></li>
+      </ul>
+
+      <div style="font-weight:700;color:#065f46">2️⃣ Open Apps Script</div>
+      <ul style="margin:4px 0 10px;padding-left:18px">
+        <li>In your Google Sheet: <strong>Extensions → Apps Script</strong></li>
+        <li>Delete any default code, paste the script from the box below</li>
+        <li>Click <strong>💾 Save</strong> (give the project any name)</li>
+      </ul>
+
+      <div style="font-weight:700;color:#065f46">3️⃣ Run once to authorise</div>
+      <ul style="margin:4px 0 10px;padding-left:18px">
+        <li>Pick the function <code>pushToSupabase</code> in the toolbar dropdown</li>
+        <li>Click <strong>▶ Run</strong> → grant the permissions Google asks for</li>
+        <li>Open the Sheet menu — you'll see a new <strong>☁️ Sync to Cloud</strong> menu</li>
+      </ul>
+
+      <div style="font-weight:700;color:#065f46">4️⃣ Daily use</div>
+      <ul style="margin:4px 0 10px;padding-left:18px">
+        <li>After editing the Sheet, click <strong>☁️ Sync to Cloud → Push all rows</strong></li>
+        <li>Then come back here and click <strong>⬇️ Pull from Cloud</strong></li>
+      </ul>
+
+      <div style="font-weight:700;color:#065f46;margin-top:14px">📋 The Apps Script code:</div>
+      <div style="position:relative;margin-top:6px">
+        <button onclick="copyAppsScript()" style="position:absolute;top:8px;right:8px;padding:4px 12px;border-radius:6px;border:none;background:#059669;color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;z-index:2">📋 Copy</button>
+        <pre id="apps-script-code" style="background:#1e293b;color:#e2e8f0;padding:14px 16px;border-radius:10px;font-size:11.5px;line-height:1.55;overflow-x:auto;max-height:380px;overflow-y:auto;font-family:'JetBrains Mono','Fira Code',monospace;margin:0;white-space:pre"></pre>
+      </div>
+
+      <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:8px 12px;margin-top:12px;font-size:11.5px;color:#92400e;line-height:1.5">
+        <strong>🔒 Security:</strong> the Apps Script uses the Supabase <em>anon</em> public key (same one the generator already uses) — it's safe to embed in your Apps Script. Row Level Security on the <code>scripts_sync</code> Supabase table protects writes.
+      </div>
     </div>
   </div>
 
@@ -1185,7 +1248,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="docs-sidebar-logo">
       <span class="ds-badge">Shopee Return & Refund</span>
       <h2>All in One Script Generator</h2>
-      <p>Technical Documentation — v19</p>
+      <p>Technical Documentation — v20</p>
     </div>
 
     <div class="docs-nav-group">
@@ -1208,6 +1271,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <a class="docs-nav-item" onclick="scrollToDoc('evidence')" id="dnav-evidence"><span class="ddot" style="background:#059669"></span>Evidence Collection</a>
       <a class="docs-nav-item" onclick="scrollToDoc('snippets')" id="dnav-snippets"><span class="ddot" style="background:#f59e0b"></span>Snippet Library</a>
       <a class="docs-nav-item" onclick="scrollToDoc('admin')" id="dnav-admin"><span class="ddot" style="background:#22d3a0"></span>Admin Panel</a>
+      <a class="docs-nav-item" onclick="scrollToDoc('sheetsync')" id="dnav-sheetsync"><span class="ddot" style="background:#059669"></span>Sheets → Supabase Setup</a>
     </div>
 
     <div class="docs-nav-group">
@@ -1690,6 +1754,135 @@ EVIDENCE_DB = {
 
   <hr class="ddiv">
 
+  <!-- SHEETS → SUPABASE SETUP GUIDE -->
+  <div class="dsection" id="sheetsync">
+    <h2><span class="icon">☁️</span> Google Sheets → Supabase Sync — Full Setup Guide</h2>
+    <p class="dsubtitle">How to connect your Google Sheet so that pushing data from the Sheet updates the generator.</p>
+
+    <!-- Architecture overview -->
+    <div class="dcard" style="margin-bottom:20px;background:#f0fdf4;border:1.5px solid #86efac">
+      <div style="font-weight:700;font-size:13.5px;color:#065f46;margin-bottom:10px">🏗️ How it works</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;font-weight:600;color:#374151">
+        <div style="background:white;border:1.5px solid #86efac;border-radius:8px;padding:8px 14px;text-align:center">📊<br><span style="font-size:11px;font-weight:700">Google Sheet</span><br><span style="font-size:10px;color:#6b7280;font-weight:400">Master data source</span></div>
+        <div style="font-size:18px;color:#059669">→</div>
+        <div style="background:white;border:1.5px solid #86efac;border-radius:8px;padding:8px 14px;text-align:center">⚙️<br><span style="font-size:11px;font-weight:700">Apps Script</span><br><span style="font-size:10px;color:#6b7280;font-weight:400">Pushes rows</span></div>
+        <div style="font-size:18px;color:#059669">→</div>
+        <div style="background:white;border:1.5px solid #86efac;border-radius:8px;padding:8px 14px;text-align:center">🗃️<br><span style="font-size:11px;font-weight:700">Supabase</span><br><span style="font-size:10px;color:#6b7280;font-weight:400">scripts_sync table</span></div>
+        <div style="font-size:18px;color:#059669">→</div>
+        <div style="background:white;border:1.5px solid #86efac;border-radius:8px;padding:8px 14px;text-align:center">⚡<br><span style="font-size:11px;font-weight:700">Generator</span><br><span style="font-size:10px;color:#6b7280;font-weight:400">Pull from Cloud</span></div>
+      </div>
+      <ul style="padding-left:18px;margin:12px 0 0;font-size:12.5px;color:#065f46;line-height:1.8">
+        <li>The Sheet is the <strong>single source of truth</strong> — all scripts, flows, evidence, connectors, and issue descriptions live there.</li>
+        <li>Apps Script <strong>pushes</strong> rows to Supabase (no public Sheet needed). You control when to push.</li>
+        <li>The generator <strong>pulls on demand</strong> — click ⬇️ Pull from Cloud in Admin → Script Flows or Evidence Collection.</li>
+        <li>On page load, the generator silently re-pulls if a previous sync exists, so teammates always get the latest after you push.</li>
+      </ul>
+    </div>
+
+    <!-- Step 1 — Sheet structure -->
+    <div class="dcard" style="margin-bottom:16px">
+      <div class="dcard-title" style="margin-bottom:10px">Step 1 — Prepare the Google Sheet</div>
+      <p style="font-size:13px;color:#374151;margin:0 0 10px">Row 1 must be a header. Columns must be in this exact order:</p>
+      <div style="background:#1e293b;color:#e2e8f0;border-radius:8px;padding:12px 16px;font-size:12px;font-family:monospace;line-height:1.7;overflow-x:auto;margin-bottom:10px">
+        Type Return &nbsp;| &nbsp;User &nbsp;| &nbsp;Result &nbsp;| &nbsp;Section &nbsp;| &nbsp;Script Text &nbsp;| &nbsp;qR &nbsp;| &nbsp;RequestTypes &nbsp;| &nbsp;SellerSubType &nbsp;| &nbsp;FullWidth
+      </div>
+      <div style="font-size:12.5px;color:#374151;line-height:1.8">
+        <strong>Regular script rows</strong> — cols 1–5 filled, rest empty.<br>
+        <strong>[FLOW] rows</strong> — col 1 = <code>[FLOW]</code>, fill cols 2–9 for dynamic flow configuration.<br>
+        <strong>[EVIDENCE] / [EVIDENCE_BULLET] rows</strong> — col 1 = tag, cols 2–5 = path, col 6 = script text.<br>
+        <strong>[NEXT_STEPS] rows</strong> — col 1 = <code>[NEXT_STEPS]</code>, col 3 = type (Connector/Return &amp; Refund/Refund Only), col 6 = phrase.<br>
+        <strong>[ISSUE_DESC] rows</strong> — col 1 = <code>[ISSUE_DESC]</code>, col 2 = Buyer or Seller, col 3 = reason label, col 6 = phrase.<br>
+        <strong>[P1] rows</strong> — prefix col 1 with <code>[P1]</code> (e.g. <code>[P1] Return &amp; Refund</code>) to tag a row as P1-case only.
+      </div>
+    </div>
+
+    <!-- Step 2 — Supabase table -->
+    <div class="dcard" style="margin-bottom:16px">
+      <div class="dcard-title" style="margin-bottom:10px">Step 2 — Create the Supabase table</div>
+      <p style="font-size:13px;color:#374151;margin:0 0 10px">Open your Supabase project → <strong>SQL Editor</strong> → paste and run:</p>
+      <div style="background:#1e293b;color:#e2e8f0;border-radius:8px;padding:12px 16px;font-size:12px;font-family:monospace;line-height:1.8;overflow-x:auto;white-space:pre">create table public.scripts_sync (
+  row_index integer primary key,
+  col0  text, col1  text, col2 text,
+  col3  text, col4  text, col5 text,
+  col6  text, col7  text, col8 text,
+  col9  text,
+  inserted_at timestamptz default now()
+);
+
+alter table public.scripts_sync enable row level security;
+
+-- Allow the anon key (Apps Script + generator) to read
+create policy "anon select"
+  on public.scripts_sync for select using (true);
+
+-- Allow the anon key to insert new rows
+create policy "anon insert"
+  on public.scripts_sync for insert with check (true);
+
+-- Allow the anon key to delete (needed for the delete-before-insert strategy)
+create policy "anon delete"
+  on public.scripts_sync for delete using (true);</div>
+      <div style="margin-top:10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:6px;padding:8px 12px;font-size:11.5px;color:#92400e">
+        <strong>🔒 Security note:</strong> The anon key policies above are fine for an internal tool where the URL isn't public. If the generator is on a public URL, switch the Apps Script to use a <strong>service role key</strong> stored in <code>PropertiesService.getScriptProperties()</code> and remove the anon insert/delete policies — the generator only needs select.
+      </div>
+    </div>
+
+    <!-- Step 3 — Apps Script -->
+    <div class="dcard" style="margin-bottom:16px">
+      <div class="dcard-title" style="margin-bottom:10px">Step 3 — Install the Apps Script</div>
+      <div style="font-size:13px;color:#374151;line-height:1.8">
+        <strong>a)</strong> In your Google Sheet: <strong>Extensions → Apps Script</strong><br>
+        <strong>b)</strong> Delete any existing code. Go to <strong>Admin → Script Flows → 📘 Apps Script Setup → 📋 Copy</strong> and paste into the editor.<br>
+        <strong>c)</strong> Click <strong>💾 Save</strong> (name the project anything, e.g. "Generator Sync").<br>
+        <strong>d)</strong> In the toolbar, make sure the selected function is <code>pushToSupabase</code>.<br>
+        <strong>e)</strong> Click <strong>▶ Run</strong>. Google will ask for permission — click <strong>Review permissions</strong> → choose your Google account → <strong>Allow</strong>.<br>
+        <strong>f)</strong> The first run pushes all rows. Close the Script editor.
+      </div>
+      <div style="margin-top:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:8px 12px;font-size:12px;color:#065f46">
+        After step f, a new <strong>☁️ Sync to Cloud</strong> menu appears in your Sheet's toolbar. Use it for all future pushes.
+      </div>
+    </div>
+
+    <!-- Step 4 — Verify -->
+    <div class="dcard" style="margin-bottom:16px">
+      <div class="dcard-title" style="margin-bottom:10px">Step 4 — Verify the connection</div>
+      <div style="font-size:13px;color:#374151;line-height:1.8">
+        <strong>From the Sheet:</strong> ☁️ Sync to Cloud → 🧪 Test connection — you should see "✅ Connection OK. Table is reachable."<br>
+        <strong>From the generator:</strong> Admin → Script Flows → ⬇️ Pull from Cloud — status pill should change to ✅ Synced with a script count.
+      </div>
+    </div>
+
+    <!-- Step 5 — Daily use -->
+    <div class="dcard" style="margin-bottom:16px">
+      <div class="dcard-title" style="margin-bottom:10px">Step 5 — Daily use workflow</div>
+      <ol style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+        <li>Edit scripts, flows, evidence, or next-steps in the Google Sheet.</li>
+        <li>In the Sheet: <strong>☁️ Sync to Cloud → ⬆️ Push all rows</strong> — wait for the "✅ Pushed X rows" alert.</li>
+        <li>In the generator (any browser): Admin → Script Flows → <strong>⬇️ Pull from Cloud</strong>.</li>
+        <li>Done — all teammates who click Pull from Cloud (or just refresh) get the new data automatically.</li>
+      </ol>
+      <div style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px;font-size:11.5px;color:#1e40af">
+        <strong>💡 Tip:</strong> The generator auto-pulls silently on every page load if a previous sync timestamp exists in the browser. Teammates don't need to manually click Pull each visit — only after a new push.
+      </div>
+    </div>
+
+    <!-- Troubleshooting -->
+    <div class="dcard" style="margin-bottom:16px">
+      <div class="dcard-title" style="margin-bottom:6px">Troubleshooting</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px">
+        <tr style="background:#f9fafb"><th style="border:1px solid #e5e7eb;padding:8px 12px;text-align:left">Problem</th><th style="border:1px solid #e5e7eb;padding:8px 12px;text-align:left">Fix</th></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Push returns 400 / 403</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Table doesn't exist yet — run the SQL from Step 2. Or RLS is blocking — double-check the policy names.</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Pull returns "No rows found"</td><td style="border:1px solid #e5e7eb;padding:8px 12px">You haven't pushed yet, or the push failed. Check the Apps Script execution log (View → Executions in the Script editor).</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Pull returns "Only N script rows"</td><td style="border:1px solid #e5e7eb;padding:8px 12px">The Sheet header row is included as a data row. Row 1 must be the header (Type Return | User | …). The parser skips it automatically only if col 1 = "Type Return".</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Apps Script says "Permission denied" for UrlFetchApp</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Re-run <code>pushToSupabase</code> manually and go through the OAuth consent screen again.</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Generator loads fine but evidence didn't update</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Evidence is rebuilt from the same pull. Confirm the Sheet has valid <code>[EVIDENCE]</code> rows (col 1 = <code>[EVIDENCE]</code> exactly, no spaces).</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Old data still showing after push + pull</td><td style="border:1px solid #e5e7eb;padding:8px 12px">The delete-before-insert in the Apps Script uses <code>row_index=gte.0</code>. Make sure the anon delete policy is enabled on the table.</td></tr>
+      </table>
+    </div>
+
+  </div>
+  <hr class="ddiv">
+
   <!-- ERRORS -->
   <div class="dsection" id="errors">
     <h2><span class="icon">🐛</span> Common Errors & Where to Fix</h2>
@@ -1806,8 +1999,6 @@ setTimeout(function(){
 }, 500);
 </script>
 
-  </div><!-- end admin-section-backend -->
-
   <!-- VERSION UPDATES SECTION -->
   <div id="admin-section-versions" class="hidden">
 
@@ -1824,7 +2015,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v19')" id="vnav-v19"><span class="ddot" style="background:#ee4d2d"></span>v19 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v20')" id="vnav-v20"><span class="ddot" style="background:#ee4d2d"></span>v20 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v19')" id="vnav-v19"><span class="ddot" style="background:#6b7280"></span>v19</a>
     <a class="docs-nav-item" onclick="scrollToVer('v18')" id="vnav-v18"><span class="ddot" style="background:#6b7280"></span>v18</a>
     <a class="docs-nav-item" onclick="scrollToVer('v17')" id="vnav-v17"><span class="ddot" style="background:#6b7280"></span>v17</a>
     <a class="docs-nav-item" onclick="scrollToVer('v16')" id="vnav-v16"><span class="ddot" style="background:#6b7280"></span>v16</a>
@@ -1846,10 +2038,48 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
-      <div id="vsec-v19" class="dcard" style="margin-bottom:28px">
+      <!-- v20 -->
+      <div id="vsec-v20" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v19 — Current</div>
+        <div style="color:white;font-weight:800;font-size:16px">v20 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">15 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>☁️ Google Sheets → Supabase Sync (Scripts)</strong> — replaced direct GSheet CSV fetch with a new push-based flow: Google Apps Script reads the Sheet and pushes rows to a Supabase <code>scripts_sync</code> table; the generator pulls on demand via <strong>Admin → Script Flows → ⬇️ Pull from Cloud</strong>. No Sheet publishing required. Apps Script code auto-generated with your Supabase credentials inside the 📘 Apps Script Setup panel</li>
+            <li><strong>☁️ Cloud Sync banner on Evidence Collection</strong> — same Pull from Cloud sync now also reflected in Evidence Collection admin tab, with live status and last-sync time</li>
+            <li><strong>🔴 P1 Cases for Seller → With Buyer</strong> — "Specifically for P1 Cases Only" dropdown now appears under Seller → With Buyer result buttons. Populated via <code>SELLER_P1_CASES</code> array (currently empty — add entries as needed using same pattern as Buyer P1)</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Decision/Result grid layout</strong> — result buttons now sorted so regular 2-column buttons always render first; full-width buttons (Request Evidence from Seller, Cancel Reraise, Close Request + RTB, etc.) stack cleanly at the bottom. Eliminates orphan single-column buttons</li>
+            <li><strong>Statistics stacking bug fixed</strong> — three unbalanced <code>&lt;/div&gt;</code> tags in the Admin panel HTML caused <code>&lt;div id="admin-section-statistics"&gt;</code> to render outside <code>view-admin-panel</code>. Switching main views left Statistics content stacked on screen. HTML structure now perfectly balanced (782 open = 782 close)</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><code>SELLER_P1_CASES</code> array — mirrors <code>P1_CASES</code> for Seller side; rendered as dropdown when <code>state.user==='Seller' &amp;&amp; state.seller_sub_type==='With Buyer'</code></li>
+            <li><code>pullScriptsFromSupabase()</code> — async function that pages through <code>scripts_sync</code> in 1000-row chunks, reassembles CSV, and calls the existing <code>parseGSheetCSV()</code> parser unchanged</li>
+            <li><code>getAppsScriptCode()</code> — generates the Google Apps Script source at runtime, embedding the Supabase project URL and anon key from the constants already in the file</li>
+            <li><code>_refreshEvSyncStatus()</code> — updates Evidence Collection admin banner from <code>_sbScriptsLastSync</code></li>
+            <li>Supabase table required: <code>scripts_sync</code> with columns <code>row_index integer pk, col0–col9 text, inserted_at timestamptz</code> — SQL in setup guide (Admin → Backend HTML → How It Works)</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
+      <!-- v19 -->
+      <div id="vsec-v19" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v19</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">14 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -2389,7 +2619,6 @@ setTimeout(function(){
     if(nav) nav.classList.add('active');
   }
   </script>
-</div>
 
   <!-- STATISTICS SECTION -->
   <div id="admin-section-statistics" class="hidden" style="max-width:960px;margin:0 auto">
@@ -2438,7 +2667,6 @@ setTimeout(function(){
 
 </div>
 </div>
-</div>
 <style>
 .stats-period-btn{padding:7px 18px;border-radius:9px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
 .stats-period-btn.active{border-color:#2563eb;background:#2563eb;color:white;font-weight:700}
@@ -2467,7 +2695,9 @@ let SCRIPT_ASSEMBLY = {
   "Seller|Reject Request":[{qR:"Reject Request",item:"Empathy + Issue Statement "},{qR:"Reject Request",item:"Result Sharing + Root Cause"},{qR:"Reject Request",item:"Offering Help Reject"}],
   "Seller|Request Evidence":[{qR:"Request Evidence",item:"Empathy + Issue Statement "},{qR:"Request Evidence",item:"Result Sharing + Root Cause"},{qR:"Request Evidence",item:"Magic Word / Closing"}],
   "Seller|Close Request":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Close Request",item:"Result Sharing + Root Cause"}],
-  "Seller|Close Request + RTB":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Close Request + RTB",item:"Result Sharing + Root Cause"},{qR:"Accept Request, Accept Request, Close Request",item:"CSAT Pitching"},{qR:"Accept Request, Close Request",item:"Magic Word / Closing"}]
+  "Seller|Close Request + RTB":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Close Request + RTB",item:"Result Sharing + Root Cause"},{qR:"Accept Request, Accept Request, Close Request",item:"CSAT Pitching"},{qR:"Accept Request, Close Request",item:"Magic Word / Closing"}],
+  "Seller|Cancel Reraise - Return Approval":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Cancel Reraise - Return Approval",item:"Result Sharing + Root Cause"},{qR:"Accept Request, Close Request",item:"CSAT Pitching"},{qR:"Accept Request, Close Request",item:"Magic Word / Closing"}],
+  "Seller|Education > Cancel Pre Order":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Education > Cancel Pre Order",item:"Result Sharing + Root Cause"},{qR:"Reject Request",item:"Offering Help Reject"}]
 };
 
 const ITEM_LABELS = {"Empathy + Issue Statement ":"💬 Empathy + Issue Statement","Result Sharing + Root Cause":"📋 Result Sharing + Root Cause","CSAT Pitching":"⭐ CSAT Pitching","Magic Word / Closing":"✨ Magic Word / Closing","Offering Help Reject":"🙏 Offering Help (Reject)"};
@@ -2517,79 +2747,281 @@ const _FLOW_META = {
   'Seller|Close Request': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:false},
   'Seller|Close Request + RTB': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:true},
   'Seller|Approve Compensation Request': {trs:['Seller Dispute'], sellerSubType:'Without Buyer', fullWidth:true},
+  'Seller|Cancel Reraise - Return Approval': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:true},
+  'Seller|Education > Cancel Pre Order': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:true},
 };
 
 
 // ═══════════════════════════════════════════════════════════════
-// GOOGLE SHEETS INTEGRATION
+// SUPABASE SCRIPT SYNC (data flows: Google Sheet -> Apps Script -> Supabase -> here)
 // ═══════════════════════════════════════════════════════════════
-const _GSHEET_STORAGE_KEY = 'sg_gsheet_id';
-let _gsheetLastSync = null;
+const _SB_SCRIPTS_TABLE = 'scripts_sync';
+const _SB_LAST_SYNC_KEY = 'sg_sb_last_sync';
+let _sbScriptsLastSync = localStorage.getItem(_SB_LAST_SYNC_KEY) || null;
 
-function getGSheetId(){ return (localStorage.getItem(_GSHEET_STORAGE_KEY)||'').trim(); }
-function saveGSheetId(){
-  const input = document.getElementById('gsheet-id-input');
-  if(!input) return;
-  const val = input.value.trim();
-  // Extract ID from full URL if pasted
-  const match = val.match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
-  const id = match ? match[1] : val;
-  localStorage.setItem(_GSHEET_STORAGE_KEY, id);
-  input.value = id;
-  updateGSheetStatus('saved','Saved — click Sync Now to load');
-  alert('\u2705 Sheet ID saved: ' + id + '\n\nClick "Sync Now" to fetch scripts from Google Sheets.');
-}
-
-function getGSheetCSVUrl(sheetId){
-  return 'https://docs.google.com/spreadsheets/d/' + sheetId + '/gviz/tq?tqx=out:csv';
-}
-
-function updateGSheetStatus(type, text){
-  const el = document.getElementById('gsheet-status');
+function updateSbSyncStatus(type, text){
+  const el = document.getElementById('sb-sync-status');
   if(!el) return;
   const styles = {
     connected: 'background:#d1fae5;color:#065f46',
     error:     'background:#fee2e2;color:#991b1b',
     loading:   'background:#fef3c7;color:#92400e',
-    saved:     'background:#dbeafe;color:#1e40af',
-    offline:   'background:#f3f4f6;color:#6b7280'
+    idle:      'background:#f3f4f6;color:#6b7280'
   };
-  el.style.cssText = 'font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;' + (styles[type]?styles[type].split(';').map(s=>{const [k,v]=s.split(':');return k+':'+v;}).join(';'):'');
+  const css = styles[type] || styles.idle;
+  el.style.cssText = 'font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;' + css;
   el.textContent = text;
+  const lastEl = document.getElementById('sb-sync-last');
+  if(lastEl){
+    lastEl.textContent = 'Last sync: ' + (_sbScriptsLastSync ? new Date(_sbScriptsLastSync).toLocaleString() : 'never');
+  }
+  // Mirror to evidence tab banner
+  const evEl = document.getElementById('ev-sync-status');
+  const evLastEl = document.getElementById('ev-sync-last');
+  if(evEl){
+    if(_sbScriptsLastSync){
+      evEl.style.cssText = 'font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#d1fae5;color:#065f46';
+      evEl.textContent = '✅ Synced';
+    } else {
+      evEl.style.cssText = 'font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#f3f4f6;color:#6b7280';
+      evEl.textContent = 'Idle';
+    }
+    if(evLastEl) evLastEl.textContent = 'Last sync: ' + (_sbScriptsLastSync ? new Date(_sbScriptsLastSync).toLocaleString() : 'never');
+  }
 }
 
-async function fetchFromGSheet(manual){
-  const sheetId = getGSheetId();
-  if(!sheetId){
-    if(manual) alert('No Sheet ID configured. Paste your Google Sheet ID first.');
-    return false;
-  }
-  updateGSheetStatus('loading','Fetching...');
-  try {
-    const url = getGSheetCSVUrl(sheetId);
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const csv = await res.text();
-    const rows = parseGSheetCSV(csv);
-    if(rows.length < 5){
-      throw new Error('Only ' + rows.length + ' scripts found — expected 50+. Check your Sheet format.');
+function toggleAppsScriptHelp(){
+  const el = document.getElementById('apps-script-help');
+  if(!el) return;
+  const willOpen = el.classList.contains('hidden');
+  el.classList.toggle('hidden');
+  if(willOpen){
+    // populate code on first open
+    const codeEl = document.getElementById('apps-script-code');
+    if(codeEl && !codeEl.dataset.filled){
+      codeEl.textContent = getAppsScriptCode();
+      codeEl.dataset.filled = '1';
     }
-    // Rebuild db from fetched data
-    db = rows.map((r,i)=>({id:i,data:[...r]}));
-    _gsheetLastSync = new Date();
-    updateGSheetStatus('connected','\u2705 Connected — ' + rows.length + ' scripts loaded');
-    if(manual){
-      alert('\u2705 Synced from Google Sheets:\n\n• ' + rows.length + ' scripts loaded\n• Next Steps: ' + (NEXT_STEPS_CONNECTORS.length) + ' connectors\n• Issue descriptions: updated if found\n\nLast sync: ' + _gsheetLastSync.toLocaleTimeString());
+    el.scrollIntoView({behavior:'smooth', block:'start'});
+  }
+}
+
+function copyAppsScript(){
+  const code = getAppsScriptCode();
+  navigator.clipboard.writeText(code).then(()=>{
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(()=>{ btn.textContent = orig; }, 1500);
+  }).catch(()=>{
+    alert('Could not copy — please select the code manually.');
+  });
+}
+
+function getAppsScriptCode(){
+  // Returns the full Apps Script that the user will paste into their Sheet's Apps Script editor.
+  // The script pushes all rows from the active Sheet to Supabase `scripts_sync` table.
+  const SB_URL = _SB_PROJECT_URL;
+  const SB_KEY = _SB_ANON_KEY;
+  const TABLE  = _SB_SCRIPTS_TABLE;
+  return [
+    '// ─────────────────────────────────────────────────────────────',
+    '// All-in-One Script Generator — Sheet → Supabase Sync',
+    '// Paste into Extensions → Apps Script in your Google Sheet.',
+    '// First time: run pushToSupabase once to grant permissions.',
+    '// After that, use the ☁️ Sync to Cloud menu in the Sheet.',
+    '// ─────────────────────────────────────────────────────────────',
+    '',
+    "const SUPABASE_URL = '" + SB_URL + "';",
+    "const SUPABASE_ANON_KEY = '" + SB_KEY + "';",
+    "const TABLE = '" + TABLE + "';",
+    "// If null, the active sheet is used. Set to a specific name to lock it.",
+    "const SHEET_NAME = null;",
+    '',
+    "function onOpen() {",
+    "  SpreadsheetApp.getUi()",
+    "    .createMenu('☁️ Sync to Cloud')",
+    "    .addItem('⬆️ Push all rows', 'pushToSupabase')",
+    "    .addItem('🧪 Test connection', 'testConnection')",
+    "    .addToUi();",
+    "}",
+    '',
+    "function _getSheet() {",
+    "  const ss = SpreadsheetApp.getActiveSpreadsheet();",
+    "  return SHEET_NAME ? ss.getSheetByName(SHEET_NAME) : ss.getActiveSheet();",
+    "}",
+    '',
+    "function _readRows() {",
+    "  const sheet = _getSheet();",
+    "  if (!sheet) throw new Error('Sheet not found');",
+    "  const values = sheet.getDataRange().getValues();",
+    "  if (values.length < 2) throw new Error('Sheet has no data rows');",
+    "  const rows = [];",
+    "  for (let i = 0; i < values.length; i++) {",
+    "    const r = values[i];",
+    "    if (i === 0 && String(r[0]).trim() === 'Type Return') continue;",
+    "    // Allow up to 10 columns (special FLOW rows use cols 6-9 for qR, RequestTypes, SubType, FullWidth)",
+    "    const cols = [r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], r[9]].map(v => v === null || v === undefined ? '' : String(v).trim());",
+    "    if (!cols[0] && !cols[1] && !cols[2] && !cols[3] && !cols[4] && !cols[5]) continue;",
+    "    rows.push({ row_index: i, col0: cols[0], col1: cols[1], col2: cols[2], col3: cols[3], col4: cols[4], col5: cols[5], col6: cols[6], col7: cols[7], col8: cols[8], col9: cols[9] });",
+    "  }",
+    "  return rows;",
+    "}",
+    '',
+    "function pushToSupabase() {",
+    "  const ui = SpreadsheetApp.getUi();",
+    "  let rows;",
+    "  try { rows = _readRows(); }",
+    "  catch (e) { ui.alert('❌ Read failed: ' + e.message); return; }",
+    '',
+    "  // 1. Delete all existing rows for a clean replace (uses key=neq.0 trick).",
+    "  const delResp = UrlFetchApp.fetch(SUPABASE_URL + '/rest/v1/' + TABLE + '?row_index=gte.0', {",
+    "    method: 'delete',",
+    "    headers: {",
+    "      apikey: SUPABASE_ANON_KEY,",
+    "      Authorization: 'Bearer ' + SUPABASE_ANON_KEY,",
+    "      Prefer: 'return=minimal'",
+    "    },",
+    "    muteHttpExceptions: true",
+    "  });",
+    "  if (delResp.getResponseCode() >= 400) {",
+    "    ui.alert('❌ Delete failed (' + delResp.getResponseCode() + '): ' + delResp.getContentText());",
+    "    return;",
+    "  }",
+    '',
+    "  // 2. Insert in chunks of 500 (Supabase limit per request is around 1000).",
+    "  const CHUNK = 500;",
+    "  let pushed = 0;",
+    "  for (let i = 0; i < rows.length; i += CHUNK) {",
+    "    const slice = rows.slice(i, i + CHUNK);",
+    "    const resp = UrlFetchApp.fetch(SUPABASE_URL + '/rest/v1/' + TABLE, {",
+    "      method: 'post',",
+    "      contentType: 'application/json',",
+    "      headers: {",
+    "        apikey: SUPABASE_ANON_KEY,",
+    "        Authorization: 'Bearer ' + SUPABASE_ANON_KEY,",
+    "        Prefer: 'return=minimal'",
+    "      },",
+    "      payload: JSON.stringify(slice),",
+    "      muteHttpExceptions: true",
+    "    });",
+    "    if (resp.getResponseCode() >= 400) {",
+    "      ui.alert('❌ Insert failed (' + resp.getResponseCode() + '): ' + resp.getContentText());",
+    "      return;",
+    "    }",
+    "    pushed += slice.length;",
+    "  }",
+    "  ui.alert('✅ Pushed ' + pushed + ' rows to Supabase.\\\\n\\\\nNow open the generator and click Pull from Cloud.');",
+    "}",
+    '',
+    "function testConnection() {",
+    "  const ui = SpreadsheetApp.getUi();",
+    "  const resp = UrlFetchApp.fetch(SUPABASE_URL + '/rest/v1/' + TABLE + '?select=row_index&limit=1', {",
+    "    method: 'get',",
+    "    headers: {",
+    "      apikey: SUPABASE_ANON_KEY,",
+    "      Authorization: 'Bearer ' + SUPABASE_ANON_KEY",
+    "    },",
+    "    muteHttpExceptions: true",
+    "  });",
+    "  const code = resp.getResponseCode();",
+    "  if (code === 200) ui.alert('✅ Connection OK. Table is reachable.');",
+    "  else ui.alert('❌ Connection failed (' + code + '): ' + resp.getContentText());",
+    "}"
+  ].join('\n');
+}
+
+async function pullScriptsFromSupabase(manual){
+  updateSbSyncStatus('loading','Pulling...');
+  try {
+    // Pull all rows ordered by row_index
+    let allRows = [];
+    let from = 0;
+    const PAGE = 1000;
+    while (true) {
+      const { data, error } = await _sb
+        .from(_SB_SCRIPTS_TABLE)
+        .select('*')
+        .order('row_index', { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (error) throw new Error(error.message);
+      if (!data || data.length === 0) break;
+      allRows = allRows.concat(data);
+      if (data.length < PAGE) break;
+      from += PAGE;
+    }
+    if (allRows.length === 0){
+      throw new Error('No rows found in Supabase. Push from the Sheet first using ☁️ Sync to Cloud → Push all rows.');
+    }
+
+    // Build the same CSV the old parser expects, then reuse parseGSheetCSV
+    const csv = allRows.map(r => {
+      const fields = [r.col0||'', r.col1||'', r.col2||'', r.col3||'', r.col4||'', r.col5||'', r.col6||'', r.col7||'', r.col8||'', r.col9||''];
+      // Strip trailing empty fields to keep CSV clean
+      while (fields.length > 5 && !fields[fields.length-1]) fields.pop();
+      return fields.map(_csvEscape).join(',');
+    }).join('\n');
+
+    const scriptRows = parseGSheetCSV(csv);
+    if (scriptRows.length < 5) {
+      throw new Error('Only ' + scriptRows.length + ' script rows after parsing — check Sheet structure.');
+    }
+
+    db = scriptRows.map((r,i) => ({ id:i, data:[...r] }));
+    _sbScriptsLastSync = new Date().toISOString();
+    localStorage.setItem(_SB_LAST_SYNC_KEY, _sbScriptsLastSync);
+    updateSbSyncStatus('connected', '✅ Synced — ' + db.length + ' scripts loaded');
+    if (manual) {
+      alert('✅ Pulled from Supabase:\n\n• ' + db.length + ' scripts\n• Next Steps: ' + NEXT_STEPS_CONNECTORS.length + ' connectors\n• Issue descriptions: refreshed\n\nLast sync: ' + new Date(_sbScriptsLastSync).toLocaleString());
       renderAdminPanel();
     }
     return true;
-  } catch(err) {
-    console.error('GSheet fetch error:', err);
-    updateGSheetStatus('error','\u274c ' + err.message);
-    if(manual) alert('\u274c Failed to fetch from Google Sheets:\n\n' + err.message + '\n\nMake sure:\n1. The Sheet is published (File > Share > Publish to web)\n2. The Sheet ID is correct\n3. Columns match: Type Return | User | Result | Section | Script Text');
+  } catch (err) {
+    console.error('Supabase pull error:', err);
+    updateSbSyncStatus('error', '❌ ' + err.message);
+    if (manual) alert('❌ Pull failed:\n\n' + err.message);
     return false;
   }
 }
+
+function _csvEscape(v){
+  v = String(v == null ? '' : v);
+  if (/[",\n\r]/.test(v)) return '"' + v.replace(/"/g, '""') + '"';
+  return v;
+}
+
+// Refresh the status pill when the Script Flows tab opens
+function initGSheetUI(){
+  updateSbSyncStatus(
+    _sbScriptsLastSync ? 'connected' : 'idle',
+    _sbScriptsLastSync ? '✅ Last synced ' + new Date(_sbScriptsLastSync).toLocaleString() : 'Idle — click Pull from Cloud'
+  );
+}
+
+// Mirror last-sync info to the Evidence tab banner on tab open
+function _refreshEvSyncStatus(){
+  const el = document.getElementById('ev-sync-status');
+  const lastEl = document.getElementById('ev-sync-last');
+  if(!el) return;
+  if(_sbScriptsLastSync){
+    el.style.cssText = 'font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#d1fae5;color:#065f46';
+    el.textContent = '✅ Synced';
+    if(lastEl) lastEl.textContent = 'Last sync: ' + new Date(_sbScriptsLastSync).toLocaleString();
+  } else {
+    el.style.cssText = 'font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#f3f4f6;color:#6b7280';
+    el.textContent = 'Idle';
+    if(lastEl) lastEl.textContent = 'Last sync: never';
+  }
+}
+
+// Auto-pull on page load if user has synced before (silent — uses cached state)
+async function initSbScriptsOnLoad(){
+  if (!_sbScriptsLastSync) return; // first-time user gets baked-in RAW_DB
+  const ok = await pullScriptsFromSupabase(false);
+  if (!ok) console.log('Supabase pull failed on load, using baked-in RAW_DB (' + db.length + ' scripts)');
+}
+// Run on load (deferred so _sb client is ready)
+setTimeout(initSbScriptsOnLoad, 50);
 
 function parseGSheetCSV(csv){
   const clean = csv.replace(/\r\n/g,'\n').replace(/\r/g,'\n').replace(/^\uFEFF/,'');
@@ -2818,47 +3250,6 @@ function applyEvidenceConfig(rows){
   console.log('Evidence DB rebuilt from', rows.length, 'rows');
 }
 
-async function testGSheetConnection(){
-  const sheetId = getGSheetId();
-  if(!sheetId){ alert('No Sheet ID configured.'); return; }
-  updateGSheetStatus('loading','Testing...');
-  try {
-    const res = await fetch(getGSheetCSVUrl(sheetId));
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    const csv = await res.text();
-    const rows = parseGSheetCSV(csv);
-    updateGSheetStatus('connected','\u2705 OK — ' + rows.length + ' scripts found');
-    alert('\u2705 Connection successful!\n\n' + rows.length + ' scripts found in the Sheet.\nClick "Sync Now" to load them.');
-  } catch(err) {
-    updateGSheetStatus('error','\u274c ' + err.message);
-    alert('\u274c Connection failed: ' + err.message);
-  }
-}
-
-// Auto-load Sheet ID into input on admin panel render
-function initGSheetUI(){
-  const input = document.getElementById('gsheet-id-input');
-  const id = getGSheetId();
-  if(input && id) input.value = id;
-  if(id && _gsheetLastSync){
-    updateGSheetStatus('connected','\u2705 Connected — synced at ' + _gsheetLastSync.toLocaleTimeString());
-  } else if(id){
-    updateGSheetStatus('saved','Sheet ID saved — sync on page load');
-  }
-}
-
-// Auto-fetch on page load if Sheet ID is configured
-async function initGSheetOnLoad(){
-  const id = getGSheetId();
-  if(!id) return;
-  const ok = await fetchFromGSheet(false);
-  if(!ok){
-    console.log('GSheet fetch failed, using baked-in RAW_DB (' + db.length + ' scripts)');
-  }
-}
-// Run on load
-initGSheetOnLoad();
-
 // ═══════════════════════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════════════════════
@@ -2953,22 +3344,46 @@ function renderForm(){
 
   // Result buttons
   const allSellerFlows = Object.keys(SCRIPT_ASSEMBLY).filter(k=>k.startsWith('Seller|')).map(k=>k.split('|')[1]);
+  // Without Buyer: Approve Compensation, Reject (Compensation), Request Evidence only
   const sellerWithoutBuyer = allSellerFlows.filter(r=>['Approve Compensation Request','Reject Request','Request Evidence'].includes(r));
-  const sellerWithBuyer = allSellerFlows.filter(r=>!['Approve Compensation Request'].includes(r));
+  // With Buyer: everything EXCEPT Without-Buyer-only flows (Approve Compensation & Reject Request)
+  const sellerWithBuyer = allSellerFlows.filter(r=>!['Approve Compensation Request','Reject Request'].includes(r));
   const sellerResults = state.seller_sub_type==='Without Buyer' ? sellerWithoutBuyer : sellerWithBuyer;
   const buyerRegularResults = Object.keys(SCRIPT_ASSEMBLY).filter(k=>k.startsWith('Buyer|')&&!P1_CASES.some(p=>p.value===k.split('|')[1])).map(k=>k.split('|')[1]);
   const results = state.user==='Buyer'?buyerRegularResults:sellerResults;
-  const isP1Result = P1_CASES.some(p=>p.value===state.result);
+  const isP1Result = P1_CASES.some(p=>p.value===state.result) || SELLER_P1_CASES.some(p=>p.value===state.result);
   if(state.result !== '' && !results.includes(state.result) && !isP1Result) state.result=results[0];
   const resultLabel = r => r==='Accept Request' ? (state.user==='Seller' && state.seller_sub_type==='With Buyer' ? 'Accept Buyer Request' : 'Accept Request') : r==='Reject Request' ? 'Reject Request' : r;
-  document.getElementById('result-btns').innerHTML = results.map(r=>`<button class="grid-btn${r===state.result?' active':''}" data-value="${esc(r)}" onclick="setResult('${esc(r)}')" style="${((_FLOW_META[state.user+'|'+r]||{}).fullWidth||r==='Reject Compensation Request'||(state.seller_sub_type==='Without Buyer'&&r==='Request Evidence'))?'grid-column:1/-1;':''}">${esc(resultLabel(r))}</button>`).join('');
+  // Determine which buttons should be full-width
+  const isFullWidth = r => (_FLOW_META[state.user+'|'+r]||{}).fullWidth || r==='Reject Compensation Request' || (state.seller_sub_type==='Without Buyer'&&r==='Request Evidence');
+  // Sort: regular 2-col buttons first, full-width buttons at the end (prevents orphan single buttons in 2-col grid)
+  const sortedResults = [...results.filter(r=>!isFullWidth(r)), ...results.filter(r=>isFullWidth(r))];
+  document.getElementById('result-btns').innerHTML = sortedResults.map(r=>`<button class="grid-btn${r===state.result?' active':''}" data-value="${esc(r)}" onclick="setResult('${esc(r)}')" style="${isFullWidth(r)?'grid-column:1/-1;':''}">${esc(resultLabel(r))}</button>`).join('');
 
-  // P1 Cases dropdown — Buyer only
+  // P1 Cases dropdown — Buyer always, Seller With Buyer always (even if SELLER_P1_CASES is empty)
   const p1Wrap = document.getElementById('p1-cases-wrap');
   const p1Sel = document.getElementById('p1-cases-select');
-  if(state.user==='Buyer'){
+  const showP1 = state.user==='Buyer' || (state.user==='Seller' && state.seller_sub_type==='With Buyer');
+  const activeCases = state.user==='Buyer' ? P1_CASES : SELLER_P1_CASES;
+  if(showP1){
     p1Wrap.classList.remove('hidden');
-    p1Sel.innerHTML = '<option value="">-- Select P1 decision --</option>' + P1_CASES.map(p=>`<option value="${esc(p.value)}"${p.value===state.result?' selected':''}>${esc(p.label)}</option>`).join('');
+    // Update label and colours to match Buyer vs Seller context
+    const isBuyerP1 = state.user === 'Buyer';
+    const p1Label = p1Wrap.querySelector('.p1-label');
+    const p1Icon  = p1Wrap.querySelector('.p1-icon');
+    if(p1Label) p1Label.style.color = isBuyerP1 ? '#dc2626' : '#0369a1';
+    if(p1Icon)  p1Icon.textContent  = isBuyerP1 ? '🔴' : '🔵';
+    p1Sel.style.borderColor = isBuyerP1 ? '#fca5a5' : '#93c5fd';
+    p1Sel.style.background  = isBuyerP1 ? '#fff5f5' : '#eff6ff';
+    if(activeCases.length > 0){
+      p1Sel.innerHTML = '<option value="">-- Select P1 decision --</option>' + activeCases.map(p=>`<option value="${esc(p.value)}"${p.value===state.result?' selected':''}>${esc(p.label)}</option>`).join('');
+      p1Sel.disabled = false;
+      p1Sel.style.opacity = '';
+    } else {
+      p1Sel.innerHTML = '<option value="">-- No P1 flows configured yet --</option>';
+      p1Sel.disabled = true;
+      p1Sel.style.opacity = '0.5';
+    }
   } else {
     p1Wrap.classList.add('hidden');
     p1Sel.innerHTML = '<option value="">-- Select P1 decision --</option>';
@@ -3035,6 +3450,12 @@ let P1_CASES = [
   {value:'Education > Cancel Pre Order', label:'Education > Cancel Pre Order'}
 ];
 
+// Seller P1 Cases — shown under Seller > With Buyer decision results
+let SELLER_P1_CASES = [
+  {value:'Cancel Reraise - Return Approval', label:'Cancel Reraise - Return Approval'},
+  {value:'Education > Cancel Pre Order', label:'Education > Cancel Pre Order'}
+];
+
 function setP1Result(val){
   if(!val){ return; }
   state.result = val;
@@ -3045,12 +3466,9 @@ function setP1Result(val){
   });
   // Re-render conditional fields for P1 result
   const isBuyer = state.user==='Buyer';
-  const isReject = false;
-  const isProbing = false;
-  const isAccept = false;
-  document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
-  document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
-  document.getElementById('field-amount-refund').classList.toggle('hidden', !(isBuyer && isAccept));
+  document.getElementById('field-reject-cause').classList.add('hidden');
+  document.getElementById('field-need-probing').classList.add('hidden');
+  document.getElementById('field-amount-refund').classList.toggle('hidden', !isBuyer);
   document.getElementById('field-sla-wallet').classList.add('hidden');
   document.getElementById('section-detail').classList.toggle('hidden', true);
   renderOutput();
@@ -4333,7 +4751,7 @@ function setAdminTab(item){state.adminTab=item;renderAdminPanel();
     if(btn){btn.classList.toggle('active',t===item);}
     if(sec){sec.classList.toggle('hidden',t!==item);}
   });
-  if(item==='evidence') renderAdminEvidenceFlows();
+  if(item==='evidence'){ renderAdminEvidenceFlows(); _refreshEvSyncStatus(); }
   if(item==='scripts'){ renderAdminPanel(); initGSheetUI(); }
   if(item==='statistics'){ renderStatsPanel(); }
 }
