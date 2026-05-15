@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v20</title>
+<title>All in One Script Generator - v21</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -205,7 +205,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v20</div>
+        <div class="logo-title">All in One Script Generator - v21</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
       </div>
@@ -1208,15 +1208,26 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div id="next-steps-reference" class="hidden"></div>
     <div id="admin-scripts-grouped"></div>
 
-    <!-- P1 Cases Collapsible -->
-    <div id="p1-flows-collapsible" style="margin-top:16px;border:2px solid #fca5a5;border-radius:12px;overflow:hidden;background:white">
-      <div onclick="document.getElementById('p1-flows-body').classList.toggle('hidden');this.querySelector('.arrow').style.transform=document.getElementById('p1-flows-body').classList.contains('hidden')?'':'rotate(90deg)'" style="padding:10px 16px;cursor:pointer;display:flex;align-items:center;gap:8px;background:#fff5f5;border-bottom:1px solid #fca5a5;user-select:none">
-        <span class="arrow" style="font-size:11px;color:#dc2626;transition:transform .2s">▶</span>
+    <!-- P1 Cases Collapsibles — Buyer and Seller separate -->
+    <!-- Buyer P1 -->
+    <div id="p1-buyer-collapsible" style="margin-top:16px;border:2px solid #fca5a5;border-radius:12px;overflow:hidden;background:white">
+      <div onclick="document.getElementById('p1-buyer-body').classList.toggle('hidden');this.querySelector('.arrow').style.transform=document.getElementById('p1-buyer-body').classList.contains('hidden')?'':'rotate(90deg)'" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#dc2626,#ef4444);user-select:none">
+        <span class="arrow" style="font-size:11px;color:white;transition:transform .2s">▶</span>
         <span style="font-size:13px">🔴</span>
-        <span style="font-weight:700;font-size:13px;color:#dc2626">Specifically for P1 Cases Only</span>
-        <span style="font-size:11px;color:#9ca3af;font-weight:400" id="p1-flows-count"></span>
+        <span style="font-weight:800;font-size:13px;color:white">Buyer Request › P1 Cases Only</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.75);font-weight:600;margin-left:auto" id="p1-buyer-count"></span>
       </div>
-      <div id="p1-flows-body" class="hidden" style="padding:14px 16px"></div>
+      <div id="p1-buyer-body" class="hidden" style="padding:14px 16px"></div>
+    </div>
+    <!-- Seller P1 -->
+    <div id="p1-seller-collapsible" style="margin-top:10px;border:2px solid #93c5fd;border-radius:12px;overflow:hidden;background:white">
+      <div onclick="document.getElementById('p1-seller-body').classList.toggle('hidden');this.querySelector('.arrow').style.transform=document.getElementById('p1-seller-body').classList.contains('hidden')?'':'rotate(90deg)'" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#1d4ed8,#2563eb);user-select:none">
+        <span class="arrow" style="font-size:11px;color:white;transition:transform .2s">▶</span>
+        <span style="font-size:13px">🔵</span>
+        <span style="font-weight:800;font-size:13px;color:white">Seller Dispute › With Buyer › P1 Cases Only</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.75);font-weight:600;margin-left:auto" id="p1-seller-count"></span>
+      </div>
+      <div id="p1-seller-body" class="hidden" style="padding:14px 16px"></div>
     </div>
   </div>
   </div><!-- end admin-section-scripts -->
@@ -1241,7 +1252,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="docs-sidebar-logo">
       <span class="ds-badge">Shopee Return & Refund</span>
       <h2>All in One Script Generator</h2>
-      <p>Technical Documentation — v20</p>
+      <p>Technical Documentation — v21</p>
     </div>
 
     <div class="docs-nav-group">
@@ -2027,7 +2038,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v20')" id="vnav-v20"><span class="ddot" style="background:#ee4d2d"></span>v20 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v21')" id="vnav-v21"><span class="ddot" style="background:#ee4d2d"></span>v21 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v20')" id="vnav-v20"><span class="ddot" style="background:#6b7280"></span>v20</a>
     <a class="docs-nav-item" onclick="scrollToVer('v19')" id="vnav-v19"><span class="ddot" style="background:#6b7280"></span>v19</a>
     <a class="docs-nav-item" onclick="scrollToVer('v18')" id="vnav-v18"><span class="ddot" style="background:#6b7280"></span>v18</a>
     <a class="docs-nav-item" onclick="scrollToVer('v17')" id="vnav-v17"><span class="ddot" style="background:#6b7280"></span>v17</a>
@@ -2050,11 +2062,51 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
+      <!-- v21 -->
+      <div id="vsec-v21" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v21 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">15 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>🔥 Firebase Realtime Sync — Scripts</strong> — replaced Supabase pull-based sync with Firebase Realtime Database. Apps Script pushes to <code>sg/scripts</code>; all open generators subscribe and auto-reload within seconds. No manual Pull from Cloud button — fully live. Same Firebase project as WJ Dashboard can be reused (<code>sg/</code> path, no collision)</li>
+            <li><strong>🔥 Firebase status in Admin</strong> — Script Flows and Evidence Collection tabs show a live status pill: 🟢 Live / 🟡 Connecting… / 🔴 Not connected / ⚫ Local only. Last push timestamp updates automatically when Apps Script writes to <code>sg/lastSync</code></li>
+            <li><strong>🔥 Admin Script Flows auto-refreshes on push</strong> — when Firebase fires the live listener, if Admin → Script Flows is open it re-renders immediately so scripts, counts, and P1 collapsibles reflect the new data without any page refresh</li>
+            <li><strong>🔴🔵 P1 Cases collapsibles split by user</strong> — Admin → Script Flows now has two separate collapsibles: <strong>Buyer Request › P1 Cases Only</strong> (red gradient) and <strong>Seller Dispute › With Buyer › P1 Cases Only</strong> (blue gradient), matching the same grouped layout as the Buyer/Seller Dispute flow sections</li>
+            <li><strong>🔴 Seller P1 Cases populated</strong> — <code>Cancel Reraise - Return Approval</code> and <code>Education &gt; Cancel Pre Order</code> added to <code>SELLER_P1_CASES</code>, with matching <code>SCRIPT_ASSEMBLY</code> and <code>_FLOW_META</code> entries. Both share the same script pools as the Buyer P1 versions</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Seller P1 buttons no longer appear as regular result buttons</strong> — <code>sellerWithBuyer</code> now excludes <code>SELLER_P1_CASES</code> values so they only appear in the blue P1 dropdown, not as grid buttons</li>
+            <li><strong>Seller P1 label fixed</strong> — <code>Seller|Cancel Reraise - Return Approval</code> raw key no longer appears in the ungrouped section; <code>p1FlowKeys</code> now covers both Buyer and Seller P1 flows</li>
+            <li><strong>P1 scripts now show in Admin after Firebase push</strong> — <code>buildP1Html</code> filter corrected; Seller P1 correctly reuses Buyer script rows via shared <code>qR</code> pools</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><code>SG_FIREBASE_CONFIG</code> — Firebase project config baked into file; <code>sgFbConfigured()</code> checks for placeholder values and falls back to RAW_DB if not set</li>
+            <li><code>initSgFirebase()</code> → <code>onSgFbLoaded()</code> → <code>sgFbLoadAndSubscribe()</code> — same dynamic SDK load pattern as WJ Dashboard; uses named app <code>'sg'</code> to avoid conflicts if both run on same page</li>
+            <li><code>sgApplyScripts()</code> — reconstructs CSV from Firebase row objects → calls <code>parseGSheetCSV()</code> → rebuilds <code>db</code> → triggers <code>renderAdminPanel()</code> if Script Flows tab is active</li>
+            <li><code>getAppsScriptCode()</code> — generates Firebase push script at runtime using <code>SG_FIREBASE_CONFIG.databaseURL</code>; uses HTTP PUT to <code>sg/scripts.json</code> for atomic replace</li>
+            <li><code>renderP1FlowsPanel()</code> rewritten — <code>buildP1Html(cases, userKey, accentColor)</code> helper populates buyer and seller bodies independently</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
       <!-- v20 -->
       <div id="vsec-v20" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v20 — Current</div>
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v20</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">15 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -2905,6 +2957,11 @@ function sgApplyScripts(firebaseData){
   if(scriptRows.length < 3) return; // too few — ignore bad push
   db = scriptRows.map((r,i) => ({id:i, data:[...r]}));
   console.log('SG Firebase: loaded', db.length, 'scripts');
+
+  // If Admin → Script Flows is open, re-render it so the update is visible immediately
+  if(state && state.view === 'admin' && state.adminTab === 'scripts'){
+    renderAdminPanel();
+  }
 }
 
 function _csvEscape(v){
@@ -4703,10 +4760,13 @@ function renderAdminPanel(){
 
   // Any ungrouped
   const allGroupedFlows = new Set(flowGroups.flatMap(g=>g.flows));
-  const p1FlowKeys = new Set(P1_CASES.map(p=>'Buyer|'+p.value));
+  const p1FlowKeys = new Set([
+    ...P1_CASES.map(p=>'Buyer|'+p.value),
+    ...SELLER_P1_CASES.map(p=>'Seller|'+p.value)
+  ]);
   Object.keys(groups).forEach(fk=>{
     if(allGroupedFlows.has(fk)) return;
-    if(p1FlowKeys.has(fk)) return; // shown in P1 collapsible instead
+    if(p1FlowKeys.has(fk)) return; // shown in P1 collapsibles instead
     const items = groups[fk];
     if(!items || !items.length) return;
     html += `<div style="margin-bottom:8px;border:1.5px solid #e5e7eb;border-radius:12px;overflow:hidden;background:white">`;
@@ -4728,39 +4788,70 @@ function renderAdminPanel(){
 }
 
 function renderP1FlowsPanel(){
-  const body = document.getElementById('p1-flows-body');
-  const countEl = document.getElementById('p1-flows-count');
-  if(!body) return;
-  const p1Scripts = db.filter(r => P1_CASES.some(p => r.data[3] === p.value));
-  if(countEl) countEl.textContent = '\u2014 ' + p1Scripts.length + ' scripts';
-  let html = '';
-  P1_CASES.forEach(p1 => {
-    const items = p1Scripts.filter(r => r.data[3] === p1.value);
-    if(!items.length) return;
-    const bySec = {};
-    items.forEach(({id, data}) => { const sec = data[4].trim(); if(!bySec[sec]) bySec[sec] = []; bySec[sec].push({id, data}); });
-    html += '<div style="margin-bottom:16px">';
-    html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-size:13px;font-weight:700;color:#dc2626">' + esc(p1.label) + '</span><span style="font-size:11px;color:#9ca3af;font-weight:500">' + items.length + ' scripts</span></div>';
-    const assembly = SCRIPT_ASSEMBLY['Buyer|' + p1.value];
-    if(assembly){
-      html += '<div style="background:#fff5f5;border:1.5px solid #fecaca;border-radius:8px;padding:8px 12px;margin-bottom:10px"><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#dc2626;margin-bottom:3px">Flow</div><div style="font-size:12px;font-weight:600;color:#374151">' + assembly.map(a => a.item.trim()).join(' \u2192 ') + '</div></div>';
-    }
-    Object.entries(bySec).forEach(([sec, secItems]) => {
-      html += '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;padding-left:4px">' + esc(sec) + ' <span style="font-weight:500;color:#9ca3af">(' + secItems.length + ')</span></div>';
-      secItems.forEach(({id, data}) => {
-        const isEditing = state.editId === id;
-        if(isEditing){
-          html += '<div style="padding:4px 4px 8px 12px"><textarea class="edit-textarea" id="edit-ta-' + id + '" rows="3" style="font-size:12px;width:100%;border-radius:8px;border:1.5px solid #fca5a5;padding:8px;font-family:\'Sora\',sans-serif">' + esc(data[5]) + '</textarea><div class="flex-gap" style="margin-top:6px"><button class="btn-orange" style="padding:4px 12px;font-size:12px" onclick="saveEdit(' + id + ')">\u2713 Save</button><button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="cancelEdit()">Cancel</button></div></div>';
-        } else {
-          html += '<div style="padding:3px 4px 6px 12px;display:flex;gap:8px;align-items:flex-start"><div style="flex:1;font-size:12px;color:#374151;line-height:1.55;background:#f9fafb;border-radius:8px;padding:8px 10px;border:1px solid #f3f4f6;white-space:pre-wrap">' + esc(data[5]) + '</div><div style="display:flex;gap:4px;flex-shrink:0"><button class="btn-edit" style="font-size:11px;padding:4px 8px" onclick="startEdit(' + id + ')">\u270f\ufe0f Edit</button><button class="btn-del" style="font-size:11px;padding:4px 8px" onclick="delScript(' + id + ')">\ud83d\uddd1\ufe0f Del</button></div></div>';
-        }
+  // ── helper: build inner HTML for one set of P1 cases ──
+  function buildP1Html(cases, userKey, accentColor){
+    const allP1Keys = new Set(cases.map(p => p.value));
+    // Seller P1 reuses Buyer script rows (same qR pools) — match by result value only
+    const scripts = db.filter(r => allP1Keys.has(r.data[3]));
+    let html = '';
+    cases.forEach(p1 => {
+      const items = scripts.filter(r => r.data[3] === p1.value);
+      if(!items.length) return;
+      const bySec = {};
+      items.forEach(({id, data}) => {
+        const sec = data[4].trim();
+        if(!bySec[sec]) bySec[sec] = [];
+        bySec[sec].push({id, data});
+      });
+      html += '<div style="margin-bottom:18px">';
+      // Flow label + pill
+      html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
+      html += '<span style="font-size:13px;font-weight:800;color:' + accentColor + '">' + esc(p1.label) + '</span>';
+      html += '<span style="font-size:11px;color:#9ca3af;font-weight:500">' + items.length + ' scripts</span>';
+      html += '</div>';
+      // Flow path
+      const assembly = SCRIPT_ASSEMBLY[userKey + '|' + p1.value];
+      if(assembly){
+        html += '<div style="background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:8px;padding:8px 12px;margin-bottom:10px">';
+        html += '<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin-bottom:3px">Flow</div>';
+        html += '<div style="font-size:12px;font-weight:600;color:#374151">' + assembly.map(a => a.item.trim()).join(' → ') + '</div>';
+        html += '</div>';
+      }
+      // Scripts by section
+      Object.entries(bySec).forEach(([sec, secItems]) => {
+        html += '<div style="margin-bottom:8px"><div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px;padding-left:4px">' + esc(sec) + ' <span style="font-weight:500;color:#9ca3af">(' + secItems.length + ')</span></div>';
+        secItems.forEach(({id, data}) => {
+          const isEditing = state.editId === id;
+          if(isEditing){
+            html += '<div style="padding:4px 4px 8px 12px"><textarea class="edit-textarea" id="edit-ta-' + id + '" rows="3" style="font-size:12px;width:100%;border-radius:8px;border:1.5px solid #e5e7eb;padding:8px;font-family:\'Sora\',sans-serif">' + esc(data[5]) + '</textarea><div class="flex-gap" style="margin-top:6px"><button class="btn-orange" style="padding:4px 12px;font-size:12px" onclick="saveEdit(' + id + ')">✓ Save</button><button class="btn-outline" style="padding:4px 10px;font-size:12px" onclick="cancelEdit()">Cancel</button></div></div>';
+          } else {
+            html += '<div style="padding:3px 4px 6px 12px;display:flex;gap:8px;align-items:flex-start"><div style="flex:1;font-size:12px;color:#374151;line-height:1.55;background:#f9fafb;border-radius:8px;padding:8px 10px;border:1px solid #f3f4f6;white-space:pre-wrap">' + esc(data[5]) + '</div><div style="display:flex;gap:4px;flex-shrink:0"><button class="btn-edit" style="font-size:11px;padding:4px 8px" onclick="startEdit(' + id + ')">✏️ Edit</button><button class="btn-del" style="font-size:11px;padding:4px 8px" onclick="delScript(' + id + ')">🗑️ Del</button></div></div>';
+          }
+        });
+        html += '</div>';
       });
       html += '</div>';
     });
-    html += '</div>';
-  });
-  if(!html) html = '<div style="color:#9ca3af;font-size:13px;text-align:center;padding:12px">No P1 scripts found</div>';
-  body.innerHTML = html;
+    return { html, count: scripts.length };
+  }
+
+  // ── Buyer P1 ──
+  const buyerBody  = document.getElementById('p1-buyer-body');
+  const buyerCount = document.getElementById('p1-buyer-count');
+  if(buyerBody){
+    const { html, count } = buildP1Html(P1_CASES, 'Buyer', '#dc2626');
+    buyerBody.innerHTML = html || '<div style="color:#9ca3af;font-size:13px;text-align:center;padding:12px">No Buyer P1 scripts found</div>';
+    if(buyerCount) buyerCount.textContent = count + ' scripts';
+  }
+
+  // ── Seller P1 ──
+  const sellerBody  = document.getElementById('p1-seller-body');
+  const sellerCount = document.getElementById('p1-seller-count');
+  if(sellerBody){
+    const { html, count } = buildP1Html(SELLER_P1_CASES, 'Seller', '#1d4ed8');
+    sellerBody.innerHTML = html || '<div style="color:#9ca3af;font-size:13px;text-align:center;padding:12px">No Seller P1 scripts found</div>';
+    if(sellerCount) sellerCount.textContent = count + ' scripts';
+  }
 }
 
 function setAdminTab(item){state.adminTab=item;renderAdminPanel();
