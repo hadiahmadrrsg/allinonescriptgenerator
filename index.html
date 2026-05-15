@@ -204,7 +204,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v17</div>
+        <div class="logo-title">All in One Script Generator - v19</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
       </div>
@@ -1857,7 +1857,9 @@ setTimeout(function(){
           <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
           <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
             <li><strong>📗 Google Sheets — Live Script Source</strong> — connect a published Google Sheet as the master script database. Scripts auto-fetch on page load; falls back to baked-in RAW_DB if offline. Configure via Admin → Script Flows → Sheet ID input. Supports Test, Sync Now, and auto-sync on load</li>
-            <li><strong>📤 Comprehensive CSV Export</strong> — Export CSV now includes all data: regular scripts, <code>[P1]</code>-tagged P1 scripts, <code>[NEXT_STEPS]</code> connector phrases &amp; templates, and <code>[ISSUE_DESC]</code> {issue_description} phrases. All editable in the Sheet and re-importable</li>
+            <li><strong>🔄 Dynamic Flows from Sheet</strong> — new decisions and flow configs are exported as <code>[FLOW]</code> rows. When synced, the generator dynamically builds SCRIPT_ASSEMBLY, P1_CASES, result buttons, seller sub-type buttons, and full-width flags — all from the Sheet. Add a new decision by just adding <code>[FLOW]</code> rows, no code changes needed</li>
+            <li><strong>📋 Dynamic Evidence from Sheet</strong> — Evidence Collection data is exported as <code>[EVIDENCE]</code> and <code>[EVIDENCE_BULLET]</code> rows. Editable in the Sheet and rebuilt on sync</li>
+            <li><strong>📤 Comprehensive CSV Export</strong> — Export CSV now includes all data: regular scripts, <code>[P1]</code>-tagged P1 scripts, <code>[FLOW]</code> configs, <code>[EVIDENCE]</code> entries, <code>[NEXT_STEPS]</code> connector phrases &amp; templates, and <code>[ISSUE_DESC]</code> {issue_description} phrases</li>
             <li><strong>🔴 Education &gt; Cancel Pre Order</strong> — new P1 decision. Flow: Empathy → Result Sharing → Offering Help Reject. 1 fixed Result Sharing script about seller approval for custom/pre-order/non-SLS cancellations with policy link</li>
             <li><strong>🔧 Supabase JS client migration</strong> — replaced raw <code>fetch()</code> with official <code>supabase-js</code> library for snippet cloud sync, resolving the 401 auth issue</li>
           </ul>
@@ -1870,6 +1872,7 @@ setTimeout(function(){
             <li><strong>🗓️ Monthly</strong> — Recent Activity shows weekly totals (total, buyer, seller, active users)</li>
             <li>🗑️ Clear Data button removed</li>
             <li>🔄 Refresh button added beside Download CSV</li>
+            <li>👤 Profile button added — edit/change name, auto-updates user breakdown table and future stats records</li>
           </ul>
         </div>
         <div>
@@ -2397,7 +2400,8 @@ setTimeout(function(){
         <div style="font-weight:800;font-size:20px;color:#1a1a1a">📊 Usage Statistics</div>
         <div style="font-size:12px;color:#9ca3af;margin-top:2px">Track script generation usage across the team</div>
       </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button id="stats-profile-btn" onclick="editStatsProfile()" style="padding:7px 16px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#374151;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">👤 <span id="stats-profile-name">Unknown</span></button>
         <button onclick="downloadStatsCSV()" style="padding:7px 16px;border-radius:10px;border:none;background:#2563eb;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Download CSV</button>
         <button onclick="renderStatsPanel()" style="padding:7px 16px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#374151;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">🔄 Refresh</button>
       </div>
@@ -2496,6 +2500,25 @@ let state = {
   editText: ''
 };
 let db = RAW_DB.map((r,i)=>({id:i,data:[...r]}));
+
+// Flow metadata — stores extra info per flow for export/import round-trip
+const _FLOW_META = {
+  'Buyer|Accept Request': {trs:['Return & Refund','Refund Only'], fullWidth:false},
+  'Buyer|Reject Request': {trs:['Return & Refund','Refund Only'], fullWidth:false},
+  'Buyer|Request Evidence': {trs:['Return & Refund','Refund Only'], fullWidth:false},
+  'Buyer|Request Evidence from Seller': {trs:['Return & Refund','Refund Only'], fullWidth:true},
+  'Buyer|Close Request': {trs:['Return & Refund','Refund Only'], fullWidth:false},
+  'Buyer|Cancel Reraise - Return Approval': {trs:['Return & Refund','Refund Only'], fullWidth:true},
+  'Buyer|Education > Cancel Pre Order': {trs:['Return & Refund','Refund Only'], fullWidth:true},
+  'Seller|Accept Request': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:false},
+  'Seller|Cancel Request': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:false},
+  'Seller|Reject Request': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:false},
+  'Seller|Request Evidence': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:false},
+  'Seller|Close Request': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:false},
+  'Seller|Close Request + RTB': {trs:['Seller Dispute'], sellerSubType:'With Buyer', fullWidth:true},
+  'Seller|Approve Compensation Request': {trs:['Seller Dispute'], sellerSubType:'Without Buyer', fullWidth:true},
+};
+
 
 // ═══════════════════════════════════════════════════════════════
 // GOOGLE SHEETS INTEGRATION
@@ -2680,7 +2703,119 @@ function parseGSheetCSV(csv){
     bulletRows.forEach(r=>_parseEvRow(r, EVIDENCE_DB.bullets));
   }
   
+  // Apply flow config if found
+  if(flowRows.length > 0) applyFlowConfig(flowRows);
+  // Apply evidence config if found
+  if(evidenceRows.length > 0) applyEvidenceConfig(evidenceRows);
+
   return scriptRows;
+}
+
+function applyFlowConfig(rows){
+  // Rebuild SCRIPT_ASSEMBLY, P1_CASES, _FLOW_META from [FLOW] rows
+  const newAssembly = {};
+  const newP1 = [];
+  const newMeta = {};
+  const seenP1 = new Set();
+
+  rows.forEach(cols=>{
+    // cols: [FLOW], User, Decision, Type, Order, Section, qR, RequestTypes, SellerSubType, FullWidth
+    const user = cols[1];
+    const decision = cols[2];
+    const type = cols[3]; // Regular or P1
+    const order = parseInt(cols[4])||1;
+    const section = cols[5];
+    const qR = cols[6]||'';
+    const trs = (cols[7]||'').split(';').map(s=>s.trim()).filter(Boolean);
+    const subType = (cols[8]||'').trim();
+    const fullWidth = (cols[9]||'').trim().toUpperCase() === 'Y';
+
+    const key = user + '|' + decision;
+    if(!newAssembly[key]) newAssembly[key] = [];
+    newAssembly[key].push({order, item: section + ' ', qR});
+
+    if(type === 'P1' && !seenP1.has(decision)){
+      seenP1.add(decision);
+      newP1.push({value: decision, label: decision});
+    }
+
+    if(!newMeta[key]){
+      newMeta[key] = {trs: trs.length ? trs : ['Return & Refund','Refund Only'], fullWidth};
+      if(subType) newMeta[key].sellerSubType = subType;
+    }
+  });
+
+  // Sort sections by order within each flow
+  Object.values(newAssembly).forEach(steps=>{
+    steps.sort((a,b)=>a.order-b.order);
+    steps.forEach(s=>delete s.order);
+  });
+
+  // Apply
+  Object.keys(SCRIPT_ASSEMBLY).forEach(k=>delete SCRIPT_ASSEMBLY[k]);
+  Object.assign(SCRIPT_ASSEMBLY, newAssembly);
+  P1_CASES.length = 0;
+  newP1.forEach(p=>P1_CASES.push(p));
+  Object.keys(_FLOW_META).forEach(k=>delete _FLOW_META[k]);
+  Object.assign(_FLOW_META, newMeta);
+
+  // Rebuild FLOW_QR_MAP, FLOW_TR_MAP
+  Object.keys(FLOW_QR_MAP).forEach(k=>delete FLOW_QR_MAP[k]);
+  Object.keys(FLOW_TR_MAP).forEach(k=>delete FLOW_TR_MAP[k]);
+  Object.entries(newAssembly).forEach(([key, steps])=>{
+    const qrs = [...new Set(steps.map(s=>s.qR))];
+    FLOW_QR_MAP[key] = qrs;
+    const meta = newMeta[key]||{};
+    FLOW_TR_MAP[key] = {user: key.split('|')[0], trs: meta.trs||['Return & Refund','Refund Only']};
+  });
+
+  console.log('Flows rebuilt:', Object.keys(newAssembly).length, 'flows,', newP1.length, 'P1 cases');
+}
+
+function applyEvidenceConfig(rows){
+  // Rebuild EVIDENCE_DB from [EVIDENCE] and [EVIDENCE_BULLET] rows
+  const newEvidence = {template:'', seller:{}, buyer:{}, returnLeg:{}};
+  const newBullets = {seller:{}, buyer:{}, returnLeg:{}};
+
+  rows.forEach(cols=>{
+    const tag = cols[0];
+    const category = cols[1]; // seller, buyer, returnLeg
+    const isBullet = tag === '[EVIDENCE_BULLET]';
+    const target = isBullet ? newBullets : newEvidence;
+
+    if(!target[category]) target[category] = {};
+
+    // Remaining cols are the nested path + script text
+    // Path depth varies: reason > risk > sellerCat > evidenceType > scriptText
+    const path = cols.slice(2);
+    const scriptText = path.pop(); // last element is always the script text
+
+    // Build nested object from path
+    let obj = target[category];
+    for(let i = 0; i < path.length; i++){
+      const key = path[i];
+      if(!key) continue;
+      if(i === path.length - 1){
+        // Last path element — set the value
+        obj[key] = scriptText;
+      } else {
+        if(!obj[key] || typeof obj[key] === 'string') obj[key] = {};
+        obj = obj[key];
+      }
+    }
+  });
+
+  // Apply
+  EVIDENCE_DB.template = '';
+  ['seller','buyer','returnLeg'].forEach(cat=>{
+    if(Object.keys(newEvidence[cat]).length > 0) EVIDENCE_DB[cat] = newEvidence[cat];
+  });
+  if(!EVIDENCE_DB.bullets) EVIDENCE_DB.bullets = {};
+  ['seller','buyer','returnLeg'].forEach(cat=>{
+    if(Object.keys(newBullets[cat]).length > 0) EVIDENCE_DB.bullets[cat] = newBullets[cat];
+  });
+
+  console.log('Evidence DB rebuilt from', rows.length, 'rows');
 }
 
 async function testGSheetConnection(){
@@ -2826,7 +2961,7 @@ function renderForm(){
   const isP1Result = P1_CASES.some(p=>p.value===state.result);
   if(state.result !== '' && !results.includes(state.result) && !isP1Result) state.result=results[0];
   const resultLabel = r => r==='Accept Request' ? (state.user==='Seller' && state.seller_sub_type==='With Buyer' ? 'Accept Buyer Request' : 'Accept Request') : r==='Reject Request' ? 'Reject Request' : r;
-  document.getElementById('result-btns').innerHTML = results.map(r=>`<button class="grid-btn${r===state.result?' active':''}" data-value="${esc(r)}" onclick="setResult('${esc(r)}')" style="${(r==='Close Request + RTB'||r==='Request Evidence from Seller'||r==='Approve Compensation Request'||r==='Reject Compensation Request'||(state.seller_sub_type==='Without Buyer'&&r==='Request Evidence'))?'grid-column:1/-1;':''}">${esc(resultLabel(r))}</button>`).join('');
+  document.getElementById('result-btns').innerHTML = results.map(r=>`<button class="grid-btn${r===state.result?' active':''}" data-value="${esc(r)}" onclick="setResult('${esc(r)}')" style="${((_FLOW_META[state.user+'|'+r]||{}).fullWidth||r==='Reject Compensation Request'||(state.seller_sub_type==='Without Buyer'&&r==='Request Evidence'))?'grid-column:1/-1;':''}">${esc(resultLabel(r))}</button>`).join('');
 
   // P1 Cases dropdown — Buyer only
   const p1Wrap = document.getElementById('p1-cases-wrap');
@@ -2935,54 +3070,7 @@ function exportScripts(){
     ];
   });
   
-  // 2. Flow definitions — [FLOW] rows
-  Object.entries(SCRIPT_ASSEMBLY).forEach(([key,steps])=>{
-    const [user,decision] = key.split('|');
-    const isP1 = P1_CASES.some(p=>p.value===decision);
-    const type = isP1?'P1':'Regular';
-    steps.forEach((s,i)=>{
-      rows.push(['[FLOW]',user,decision,type+':'+(i+1),s.item.trim()+'='+s.qR]);
-    });
-  });
-  
-  // 3. Evidence Collection — [EVIDENCE] rows
-  ['seller','buyer','returnLeg'].forEach(catKey=>{
-    const catData = EVIDENCE_DB[catKey];
-    if(!catData) return;
-    Object.entries(catData).forEach(([reason,risks])=>{
-      Object.entries(risks).forEach(([risk,cats])=>{
-        Object.entries(cats).forEach(([selCat,types])=>{
-          if(typeof types === 'string'){
-            rows.push(['[EVIDENCE]',catKey,reason,risk,selCat+'='+types]);
-          } else {
-            Object.entries(types).forEach(([evType,script])=>{
-              rows.push(['[EVIDENCE]',catKey,reason,risk,selCat+' > '+evType+'='+script]);
-            });
-          }
-        });
-      });
-    });
-  });
-  // Evidence bullets
-  ['seller','buyer','returnLeg'].forEach(catKey=>{
-    const catData = (EVIDENCE_DB.bullets||{})[catKey];
-    if(!catData) return;
-    Object.entries(catData).forEach(([reason,risks])=>{
-      Object.entries(risks).forEach(([risk,cats])=>{
-        Object.entries(cats).forEach(([selCat,types])=>{
-          if(typeof types === 'string'){
-            rows.push(['[EVIDENCE_BULLET]',catKey,reason,risk,selCat+'='+types]);
-          } else {
-            Object.entries(types).forEach(([evType,script])=>{
-              rows.push(['[EVIDENCE_BULLET]',catKey,reason,risk,selCat+' > '+evType+'='+script]);
-            });
-          }
-        });
-      });
-    });
-  });
-
-  // 4. Next Steps — connector phrases
+  // 2. Next Steps — connector phrases
   NEXT_STEPS_CONNECTORS.forEach(c=>{
     rows.push(['[NEXT_STEPS]','System','Connector','Next Steps',c]);
   });
@@ -3027,7 +3115,7 @@ function exportScripts(){
   const totalP1 = db.filter(r=>p1Values.has(r.data[3])).length;
   const totalNS = NEXT_STEPS_CONNECTORS.length + 2;
   const totalID = Object.values(BUYER_REASONS).flat().length + Object.values(SELLER_REASONS).flat().length;
-  alert('✅ Exported ' + rows.length + ' total rows:\n\n• ' + totalScripts + ' scripts (' + totalP1 + ' tagged [P1])\n• [FLOW] decision flow definitions\n• [EVIDENCE] evidence collection scripts\n• ' + totalNS + ' [NEXT_STEPS] entries\n• ' + totalID + ' [ISSUE_DESC] phrases\n\nAll editable in Google Sheets.');
+  alert('✅ Exported ' + rows.length + ' total rows:\n\n• ' + totalScripts + ' scripts (' + totalP1 + ' tagged [P1])\n• ' + totalNS + ' [NEXT_STEPS] entries\n• ' + totalID + ' [ISSUE_DESC] phrases\n\nAll editable in Google Sheets.');
 }
 let importParsedRows = [];
 
@@ -3854,7 +3942,7 @@ function checkUrlParams(){
 const ALL_ITEMS=['Empathy + Issue Statement ','Result Sharing + Root Cause','📌 Next Steps','CSAT Pitching','Magic Word / Closing','Offering Help Reject','📝 {issue_description} Phrases'];
 
 // Maps each display flow to all qR values used in generation
-const FLOW_QR_MAP = {
+let FLOW_QR_MAP = {
   'Buyer|Accept Request':         ['Accept Request','Accept Request, Close Request'],
   'Buyer|Reject Request':         ['Reject Request'],
   'Buyer|Request Evidence':           ['Request Evidence'],
@@ -3871,7 +3959,7 @@ const FLOW_QR_MAP = {
 };
 
 // Maps each display flow to user + type_return combos
-const FLOW_TR_MAP = {
+let FLOW_TR_MAP = {
   'Buyer|Accept Request':         {user:'Buyer',   trs:['Return & Refund','Refund Only']},
   'Buyer|Reject Request':         {user:'Buyer',   trs:['Return & Refund','Refund Only']},
   'Buyer|Request Evidence':           {user:'Buyer',   trs:['Return & Refund','Refund Only']},
@@ -4247,7 +4335,7 @@ function setAdminTab(item){state.adminTab=item;renderAdminPanel();
   });
   if(item==='evidence') renderAdminEvidenceFlows();
   if(item==='scripts'){ renderAdminPanel(); initGSheetUI(); }
-  if(item==='statistics') renderStatsPanel();
+  if(item==='statistics'){ renderStatsPanel(); }
 }
 
 function startEdit(id){
@@ -4308,7 +4396,28 @@ function getDateKey(dateStr,period){
   return d.toLocaleDateString('en-GB',{month:'long',year:'numeric'});
 }
 
+function editStatsProfile(){
+  const current = localStorage.getItem('sg_snip_user_id') || '';
+  const name = prompt('👤 Enter your name or ID:\n\nThis updates your profile for statistics tracking and snippets.', current);
+  if(name === null) return; // cancelled
+  if(!name.trim()){ alert('Name cannot be empty.'); return; }
+  const oldName = current;
+  const newName = name.trim();
+  localStorage.setItem('sg_snip_user_id', newName);
+  // Update existing stats records with old name to new name
+  if(oldName && oldName !== newName){
+    const data = getStatsData();
+    let changed = 0;
+    data.forEach(d=>{ if(d.user === oldName){ d.user = newName; changed++; } });
+    if(changed > 0) saveStatsData(data);
+  }
+  renderStatsPanel();
+}
+
 function renderStatsPanel(){
+  // Update profile name display
+  const profileName = document.getElementById('stats-profile-name');
+  if(profileName) profileName.textContent = localStorage.getItem('sg_snip_user_id') || 'Unknown';
   const allData = getStatsData();
   const now = new Date();
   
@@ -5512,7 +5621,7 @@ function downloadSelf(){
   const blob=new Blob(['<!DOCTYPE html>\n'+document.documentElement.outerHTML],{type:'text/html'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='All in One Script Generator v17.html';
+  a.download='All in One Script Generator v19.html';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
@@ -5813,11 +5922,10 @@ let _evImportRows = [];
 let _evImportHasBullets = false;
 
 function exportEvidenceCSV(){
-  const rows = [['Category','Return Reason','Risk Level','Seller Category','Evidence Type','Evidence Bullets','Full Script']];
+  const rows = [['Category','Return Reason','Risk Level','Seller Category','Evidence Type','Evidence Script']];
   const catMap = { seller: 'SELLER - FORWARD LEG', returnLeg: 'SELLER - RETURN LEG', buyer: 'BUYER - EVIDENCE' };
   for(const [catKey, catLabel] of Object.entries(catMap)){
     const data = EVIDENCE_DB[catKey] || {};
-    const bulletData = EVIDENCE_DB.bullets?.[catKey] || {};
     const isSeller = catKey==='seller' || catKey==='returnLeg';
     for(const [reason, risks] of Object.entries(data)){
       for(const [risk, riskData] of Object.entries(risks)){
@@ -5825,18 +5933,15 @@ function exportEvidenceCSV(){
           for(const [sellerCat, types] of Object.entries(riskData)){
             if(typeof types !== 'object') continue;
             for(const [evType, script] of Object.entries(types)){
-              const bullet = bulletData?.[reason]?.[risk]?.[sellerCat]?.[evType] || '';
-              if(script || bullet) rows.push([catLabel, reason, risk, sellerCat, evType, bullet, script]);
+              if(script) rows.push([catLabel, reason, risk, sellerCat, evType, script]);
             }
           }
         } else {
-          if(typeof riskData !== 'string' && typeof riskData !== 'object') continue;
           if(typeof riskData === 'string'){
-            rows.push([catLabel, reason, risk, '', risk, riskData, riskData]);
-          } else {
+            rows.push([catLabel, reason, risk, '', risk, riskData]);
+          } else if(typeof riskData === 'object'){
             for(const [evType, script] of Object.entries(riskData)){
-              const bullet = bulletData?.[reason]?.[risk]?.[evType] || '';
-              if(script || bullet) rows.push([catLabel, reason, risk, '', evType, bullet, script]);
+              if(script) rows.push([catLabel, reason, risk, '', evType, script]);
             }
           }
         }
@@ -5847,10 +5952,14 @@ function exportEvidenceCSV(){
     const s=String(c??'');
     return (s.includes(',') || s.includes('"') || s.includes('\n')) ? '"'+s.replace(/"/g,'""')+'"' : s;
   }).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
   const a=document.createElement('a');
-  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.href=url;
   a.download='evidence_export_'+new Date().toISOString().slice(0,10)+'.csv';
-  a.click();
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  alert('\u2705 Exported '+(rows.length-1)+' evidence scripts.\n\nSingle "Evidence Script" column \u2014 edits apply to both full script and bullets on import.');
 }
 
 function importEvidenceCSV(input){
@@ -5860,16 +5969,16 @@ function importEvidenceCSV(input){
   reader.onload = e => {
     const lines = e.target.result.split('\n').filter(Boolean);
     const header = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,'').toUpperCase());
-    const hasBullets = header.length >= 6 && (header[4].includes('BULLET') || header[5].includes('SCRIPT') || header[5].includes('FULL'));
+    const hasBullets = header.length >= 7 && (header[5].includes('BULLET') || header[6].includes('FULL'));
     const rows = [];
     for(let i=1;i<lines.length;i++){
       const cols = parseCSVLine(lines[i]);
-      if(cols.length >= 5) rows.push({ cols, hasBullets: hasBullets && cols.length >= 6 });
+      if(cols.length >= 5) rows.push({ cols, hasBullets });
     }
     _evImportRows = rows;
     _evImportHasBullets = hasBullets;
     document.getElementById('ev-import-bar').classList.remove('hidden');
-    document.getElementById('ev-import-preview').textContent = `${rows.length} rows ready to import` + (hasBullets ? ' (with bullets)' : '');
+    document.getElementById('ev-import-preview').textContent = `${rows.length} rows ready to import`;
   };
   reader.readAsText(file);
 }
@@ -5911,27 +6020,46 @@ function confirmEvidenceImport(){
   for(const rowObj of _evImportRows){
     const cols = rowObj.cols.map(c=>c.trim());
     const catLabel = cols[0], reason = cols[1], risk = cols[2], evType = cols[3];
-    // 6-col: [Cat, Reason, Risk, Type, Bullets, FullScript] — 5-col: [Cat, Reason, Risk, Type, Script]
-    const bullet = _evImportHasBullets && cols.length >= 6 ? cols[4] : '';
-    const script = _evImportHasBullets && cols.length >= 6 ? cols[5] : cols[4];
-    if(!catLabel || !reason || !risk || !evType || (!script && !bullet)) continue;
+    // Single column: [Cat, Reason, Risk, SellerCat/Type, EvidenceType, Script]
+    // Or legacy 7-col: [Cat, Reason, Risk, SellerCat, Type, Bullets, FullScript]
+    let script = '';
+    if(cols.length >= 7 && _evImportHasBullets){
+      script = cols[6] || cols[5] || '';
+    } else if(cols.length >= 6){
+      script = cols[5] || '';
+    } else {
+      script = cols[4] || '';
+    }
+    const selCat = cols.length >= 6 ? cols[3] : '';
+    const evidenceType = cols.length >= 6 ? cols[4] : cols[3];
+    if(!catLabel || !reason || !risk || !evidenceType || !script) continue;
     let catKey = null;
     for(const [label, key] of Object.entries(catMap)){
       if(catLabel.toUpperCase().includes(label)) { catKey = key; break; }
     }
     if(!catKey) continue;
-    // Write full script
-    if(script){
+    const isSeller = catKey==='seller'||catKey==='returnLeg';
+    // Write to full script
+    if(isSeller && selCat){
       if(!EVIDENCE_DB[catKey][reason]) EVIDENCE_DB[catKey][reason] = {};
       if(!EVIDENCE_DB[catKey][reason][risk]) EVIDENCE_DB[catKey][reason][risk] = {};
-      EVIDENCE_DB[catKey][reason][risk][evType] = script;
-    }
-    // Write bullets
-    if(bullet){
+      if(!EVIDENCE_DB[catKey][reason][risk][selCat]) EVIDENCE_DB[catKey][reason][risk][selCat] = {};
+      EVIDENCE_DB[catKey][reason][risk][selCat][evidenceType] = script;
+      // Write same to bullets
       if(!EVIDENCE_DB.bullets[catKey]) EVIDENCE_DB.bullets[catKey] = {};
       if(!EVIDENCE_DB.bullets[catKey][reason]) EVIDENCE_DB.bullets[catKey][reason] = {};
       if(!EVIDENCE_DB.bullets[catKey][reason][risk]) EVIDENCE_DB.bullets[catKey][reason][risk] = {};
-      EVIDENCE_DB.bullets[catKey][reason][risk][evType] = bullet;
+      if(!EVIDENCE_DB.bullets[catKey][reason][risk][selCat]) EVIDENCE_DB.bullets[catKey][reason][risk][selCat] = {};
+      EVIDENCE_DB.bullets[catKey][reason][risk][selCat][evidenceType] = script;
+    } else {
+      if(!EVIDENCE_DB[catKey][reason]) EVIDENCE_DB[catKey][reason] = {};
+      if(!EVIDENCE_DB[catKey][reason][risk]) EVIDENCE_DB[catKey][reason][risk] = {};
+      EVIDENCE_DB[catKey][reason][risk][evidenceType] = script;
+      // Write same to bullets
+      if(!EVIDENCE_DB.bullets[catKey]) EVIDENCE_DB.bullets[catKey] = {};
+      if(!EVIDENCE_DB.bullets[catKey][reason]) EVIDENCE_DB.bullets[catKey][reason] = {};
+      if(!EVIDENCE_DB.bullets[catKey][reason][risk]) EVIDENCE_DB.bullets[catKey][reason][risk] = {};
+      EVIDENCE_DB.bullets[catKey][reason][risk][evidenceType] = script;
     }
     added++;
   }
