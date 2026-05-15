@@ -2915,14 +2915,18 @@ function sgFbLoadAndSubscribe(){
   _sgFbDB.ref('sg/scripts').once('value', snap => {
     const val = snap.val();
     if(val){ sgApplyScripts(val); sgFbStatus('ok'); }
-    else { sgFbStatus('ok'); } // connected, just no data pushed yet
-    // Subscribe: auto-reload whenever Apps Script pushes
+    else { sgFbStatus('ok'); }
+    // Subscribe: auto-reload whenever Apps Script pushes scripts
     if(!_sgFbSubbed){
       _sgFbSubbed = true;
       _sgFbDB.ref('sg/scripts').on('value', s => {
         if(s.val()) sgApplyScripts(s.val());
       });
-      // Also subscribe to the last-push timestamp for UI display
+      // Subscribe: evidence
+      _sgFbDB.ref('sg/evidence').on('value', s => {
+        if(s.val()) sgApplyEvidence(s.val());
+      });
+      // Last-push timestamp
       _sgFbDB.ref('sg/lastSync').on('value', s => {
         if(!s.val()) return;
         const el1 = document.getElementById('fb-sync-last');
@@ -3023,6 +3027,56 @@ function _csvEscape(v){
   return v;
 }
 
+// Apply evidence rows pushed from Firebase sg/evidence
+// Each row: { row_index, category, reason, risk, seller_cat, ev_type, script, is_bullet }
+// category: 'SELLER - FORWARD LEG' | 'SELLER - RETURN LEG' | 'BUYER - EVIDENCE'
+function sgApplyEvidence(firebaseData){
+  const rows = Array.isArray(firebaseData) ? firebaseData : Object.values(firebaseData || {});
+  if(!rows || rows.length === 0) return;
+
+  const catKeyMap = {
+    'SELLER - FORWARD LEG': 'seller',
+    'SELLER - RETURN LEG':  'returnLeg',
+    'BUYER - EVIDENCE':     'buyer'
+  };
+
+  // Separate script rows from bullet rows
+  const scriptRows = rows.filter(r => !r.is_bullet);
+  const bulletRows  = rows.filter(r =>  r.is_bullet);
+
+  function applyRows(rowList, target){
+    rowList.forEach(r => {
+      const catKey = catKeyMap[r.category] || r.category;
+      if(!target[catKey]) target[catKey] = {};
+      const reasonObj = target[catKey][r.reason] = target[catKey][r.reason] || {};
+      const riskObj   = reasonObj[r.risk]         = reasonObj[r.risk]        || {};
+      const isSeller  = catKey === 'seller' || catKey === 'returnLeg';
+      if(isSeller && r.seller_cat){
+        if(!riskObj[r.seller_cat]) riskObj[r.seller_cat] = {};
+        riskObj[r.seller_cat][r.ev_type] = r.script;
+      } else {
+        riskObj[r.ev_type] = r.script;
+      }
+    });
+  }
+
+  if(scriptRows.length > 0){
+    ['seller','buyer','returnLeg'].forEach(k => { if(EVIDENCE_DB[k]) delete EVIDENCE_DB[k]; });
+    applyRows(scriptRows, EVIDENCE_DB);
+  }
+  if(bulletRows.length > 0){
+    if(!EVIDENCE_DB.bullets) EVIDENCE_DB.bullets = {};
+    ['seller','buyer','returnLeg'].forEach(k => { if(EVIDENCE_DB.bullets[k]) delete EVIDENCE_DB.bullets[k]; });
+    applyRows(bulletRows, EVIDENCE_DB.bullets);
+  }
+
+  console.log('SG Firebase: evidence updated —', scriptRows.length, 'scripts,', bulletRows.length, 'bullets');
+  // Re-render Evidence admin if it's open
+  if(state && state.view === 'admin' && state.adminTab === 'evidence'){
+    renderAdminEvidenceFlows();
+  }
+}
+
 // ─── Apps Script helper UI ───────────────────────────────────────
 function toggleAppsScriptHelp(){
   const el = document.getElementById('apps-script-help');
@@ -3041,103 +3095,152 @@ function toggleAppsScriptHelp(){
 
 function copyAppsScript(){
   const code = getAppsScriptCode();
-  navigator.clipboard.writeText(code).then(()=>{
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    setTimeout(()=>{ btn.textContent = orig; }, 1500);
-  }).catch(()=>{ alert('Could not copy — please select the code manually.'); });
+  // Use textarea fallback — works in all browsers including non-HTTPS/iframe contexts
+  const ta = document.createElement('textarea');
+  ta.value = code;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  let success = false;
+  try { success = document.execCommand('copy'); } catch(_){}
+  document.body.removeChild(ta);
+  if(!success){
+    // Last resort — try clipboard API
+    navigator.clipboard && navigator.clipboard.writeText(code).catch(()=>{});
+  }
+  const btn = event.target;
+  const orig = btn.textContent;
+  btn.textContent = success ? '✓ Copied!' : '✓ Done — paste now';
+  setTimeout(()=>{ btn.textContent = orig; }, 1800);
 }
 
 function getAppsScriptCode(){
-  // Pull the live config values from the constants already in the file
   const cfg = SG_FIREBASE_CONFIG;
   const DB_URL = cfg.databaseURL || 'PASTE_YOUR_DATABASE_URL';
   return [
     '// ─────────────────────────────────────────────────────────────',
     '// All-in-One Script Generator — Google Sheet → Firebase Sync',
-    '// Paste into Extensions → Apps Script inside your Google Sheet.',
+    '// Paste into Extensions → Apps Script in your Google Sheet.',
+    '//',
+    '// Sheet tabs required:',
+    '//   "Scripts"  — Type Return | User | Result | Section | Script Text',
+    '//   "Evidence" — Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Scripts',
+    '//',
     '// First time: run pushToFirebase once to grant permissions.',
-    '// After that, use the 🔥 Sync to Firebase menu in the Sheet.',
+    '// After that use the 🔥 Sync to Firebase menu in the Sheet.',
     '// ─────────────────────────────────────────────────────────────',
     '',
-    '// Your Firebase Realtime Database URL (from your project config)',
-    "var FIREBASE_DB_URL = '" + DB_URL + "';",
-    '',
-    '// Path inside the database where scripts are stored',
-    "var FB_PATH = 'sg/scripts';",
-    "var FB_SYNC_PATH = 'sg/lastSync';",
-    '',
-    '// If null, uses the active Sheet. Set to a specific name to lock it.',
-    "var SHEET_NAME = null;",
+    "var FIREBASE_DB_URL  = '" + DB_URL + "';",
+    "var SCRIPTS_PATH     = 'sg/scripts';",
+    "var EVIDENCE_PATH    = 'sg/evidence';",
+    "var SYNC_PATH        = 'sg/lastSync';",
+    "var SCRIPTS_SHEET    = 'Scripts';",
+    "var EVIDENCE_SHEET   = 'Evidence';",
     '',
     'function onOpen(){',
     '  SpreadsheetApp.getUi()',
-    "    .createMenu('🔥 Sync to Firebase')",
-    "    .addItem('⬆️ Push all rows', 'pushToFirebase')",
-    "    .addItem('🧪 Test connection', 'testConnection')",
+    "    .createMenu('\uD83D\uDD25 Sync to Firebase')",
+    "    .addItem('\u2B06\uFE0F Push Scripts + Evidence', 'pushToFirebase')",
+    "    .addItem('\u2B06\uFE0F Push Scripts only',        'pushScriptsOnly')",
+    "    .addItem('\u2B06\uFE0F Push Evidence only',       'pushEvidenceOnly')",
+    "    .addItem('\uD83E\uDDEA Test connection',          'testConnection')",
     '    .addToUi();',
     '}',
     '',
-    'function _getSheet(){',
+    'function _getSheet(name){',
     '  var ss = SpreadsheetApp.getActiveSpreadsheet();',
-    '  return SHEET_NAME ? ss.getSheetByName(SHEET_NAME) : ss.getActiveSheet();',
-    '}',
-    '',
-    'function _readRows(){',
-    '  var sheet = _getSheet();',
-    '  if(!sheet) throw new Error("Sheet not found");',
-    '  var values = sheet.getDataRange().getValues();',
-    '  if(values.length < 2) throw new Error("Sheet has no data rows");',
-    '  var rows = [];',
-    '  for(var i = 0; i < values.length; i++){',
-    '    var r = values[i];',
-    '    if(i === 0 && String(r[0]).trim() === "Type Return") continue; // skip header',
-    '    var cols = [r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9]]',
-    '               .map(function(v){ return v === null || v === undefined ? "" : String(v).trim(); });',
-    '    if(!cols[0] && !cols[1] && !cols[2] && !cols[3] && !cols[4] && !cols[5]) continue;',
-    '    rows.push({row_index:i, col0:cols[0], col1:cols[1], col2:cols[2], col3:cols[3],',
-    '               col4:cols[4], col5:cols[5], col6:cols[6], col7:cols[7],',
-    '               col8:cols[8], col9:cols[9]});',
-    '  }',
-    '  return rows;',
+    '  var sh = ss.getSheetByName(name);',
+    "  if(!sh) throw new Error('Sheet tab [' + name + '] not found. Check the tab name exactly.');",
+    '  return sh;',
     '}',
     '',
     'function _fbRequest(path, method, payload){',
-    '  var url = FIREBASE_DB_URL + "/" + path + ".json";',
+    '  var url  = FIREBASE_DB_URL + "/" + path + ".json";',
     '  var opts = { method: method, contentType: "application/json", muteHttpExceptions: true };',
     '  if(payload !== undefined) opts.payload = JSON.stringify(payload);',
     '  var resp = UrlFetchApp.fetch(url, opts);',
     '  var code = resp.getResponseCode();',
-    '  if(code >= 400) throw new Error("Firebase " + method + " " + path + " → HTTP " + code + ": " + resp.getContentText());',
+    '  if(code >= 400) throw new Error("Firebase " + method + " HTTP " + code + ": " + resp.getContentText());',
     '  return resp;',
+    '}',
+    '',
+    'function _readScriptRows(){',
+    '  var sheet  = _getSheet(SCRIPTS_SHEET);',
+    '  var values = sheet.getDataRange().getValues();',
+    '  if(values.length < 2) throw new Error("Scripts sheet has no data rows.");',
+    '  var rows = [];',
+    '  for(var i = 0; i < values.length; i++){',
+    '    var r = values[i];',
+    '    if(i === 0 && String(r[0]).trim() === "Type Return") continue;',
+    '    var cols = [r[0],r[1],r[2],r[3],r[4],r[5],r[6],r[7],r[8],r[9]]',
+    '               .map(function(v){ return v===null||v===undefined?"":String(v).trim(); });',
+    '    if(!cols[0]&&!cols[1]&&!cols[2]&&!cols[3]&&!cols[4]&&!cols[5]) continue;',
+    '    rows.push({row_index:i,col0:cols[0],col1:cols[1],col2:cols[2],col3:cols[3],',
+    '               col4:cols[4],col5:cols[5],col6:cols[6],col7:cols[7],col8:cols[8],col9:cols[9]});',
+    '  }',
+    '  return rows;',
+    '}',
+    '',
+    'function _readEvidenceRows(){',
+    '  // Columns: Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Scripts',
+    '  var sheet  = _getSheet(EVIDENCE_SHEET);',
+    '  var values = sheet.getDataRange().getValues();',
+    '  if(values.length < 2) return [];',
+    '  var rows = [];',
+    '  for(var i = 1; i < values.length; i++){',
+    '    var r          = values[i];',
+    '    var category   = String(r[0]||"").trim();',
+    '    var reason     = String(r[1]||"").trim();',
+    '    var risk       = String(r[2]||"").trim();',
+    '    var seller_cat = String(r[3]||"").trim();',
+    '    var ev_type    = String(r[4]||"").trim();',
+    '    var script     = String(r[5]||"").trim();',
+    '    if(!category||!reason||!ev_type||!script) continue;',
+    '    rows.push({row_index:i, category:category, reason:reason, risk:risk,',
+    '               seller_cat:seller_cat, ev_type:ev_type, script:script, is_bullet:false});',
+    '  }',
+    '  return rows;',
     '}',
     '',
     'function pushToFirebase(){',
     '  var ui = SpreadsheetApp.getUi();',
-    '  var rows;',
-    '  try{ rows = _readRows(); } catch(e){ ui.alert("❌ Read failed: " + e.message); return; }',
-    '',
-    '  // PUT replaces the entire node — clean, atomic, no stale rows',
+    '  var sRows, eRows;',
+    '  try{ sRows = _readScriptRows();  }catch(e){ ui.alert("Scripts read failed: "+e.message); return; }',
+    '  try{ eRows = _readEvidenceRows();}catch(e){ ui.alert("Evidence read failed: "+e.message); return; }',
     '  try{',
-    '    _fbRequest(FB_PATH, "put", rows);',
-    '    _fbRequest(FB_SYNC_PATH, "put", new Date().toISOString());',
-    '  } catch(e){ ui.alert("❌ Firebase write failed: " + e.message); return; }',
+    '    _fbRequest(SCRIPTS_PATH,  "put", sRows);',
+    '    if(eRows.length>0) _fbRequest(EVIDENCE_PATH,"put",eRows);',
+    '    _fbRequest(SYNC_PATH, "put", new Date().toISOString());',
+    '  }catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
+    '  ui.alert("Pushed:\n- "+sRows.length+" scripts\n- "+eRows.length+" evidence rows\n\nAll open generators will update within seconds.");',
+    '}',
     '',
-    '  ui.alert("✅ Pushed " + rows.length + " rows to Firebase.\\n\\nAll open generators will auto-reload within seconds.");',
+    'function pushScriptsOnly(){',
+    '  var ui = SpreadsheetApp.getUi(), rows;',
+    '  try{ rows=_readScriptRows(); }catch(e){ ui.alert("Scripts read failed: "+e.message); return; }',
+    '  try{ _fbRequest(SCRIPTS_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); }',
+    '  catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
+    '  ui.alert("Pushed "+rows.length+" scripts.");',
+    '}',
+    '',
+    'function pushEvidenceOnly(){',
+    '  var ui = SpreadsheetApp.getUi(), rows;',
+    '  try{ rows=_readEvidenceRows(); }catch(e){ ui.alert("Evidence read failed: "+e.message); return; }',
+    '  if(!rows.length){ ui.alert("No evidence rows found. Check the Evidence tab name."); return; }',
+    '  try{ _fbRequest(EVIDENCE_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); }',
+    '  catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
+    '  ui.alert("Pushed "+rows.length+" evidence rows.");',
     '}',
     '',
     'function testConnection(){',
     '  var ui = SpreadsheetApp.getUi();',
-    '  try{',
-    '    var resp = _fbRequest(FB_SYNC_PATH, "get", undefined);',
-    '    ui.alert("✅ Connection OK. Firebase is reachable.");',
-    '  } catch(e){',
-    '    ui.alert("❌ Connection failed: " + e.message);',
-    '  }',
+    '  try{ _fbRequest(SYNC_PATH,"get",undefined); ui.alert("Connection OK. Firebase is reachable."); }',
+    '  catch(e){ ui.alert("Connection failed: "+e.message); }',
     '}'
   ].join('\n');
 }
+
 
 // Refresh Script Flows tab pill on open
 function initGSheetUI(){
