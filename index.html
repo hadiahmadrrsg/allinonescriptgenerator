@@ -398,7 +398,6 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <div style="font-size:56px;margin-bottom:16px">📋</div>
       <div style="font-weight:700;font-size:18px;color:#374151;margin-bottom:8px">Ready to Generate</div>
       <div style="color:#9ca3af;font-size:14px;max-width:300px">Fill in the case details on the left and click <strong>Generate Script</strong> to create a professional customer service response.</div>
-      <div style="margin-top:20px;background:#fff7ed;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;color:#c2410c">⚠️ Please re-read and double-check for errors!</div>
     </div>
     <div class="output-card hidden" id="output-result">
       <div class="output-header">
@@ -3330,11 +3329,11 @@ function initGSheetUI(){
     if(lastEl && cacheVer){
       try{
         // Format: "v22r1|2026-05-15T04:38:00.000Z"
-        const ts = cacheVer.includes('|') ? cacheVer.split('|')[1] : cacheVer;
-        const d = new Date(ts);
-        const ts = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
+        const rawTs = cacheVer.includes('|') ? cacheVer.split('|')[1] : cacheVer;
+        const d = new Date(rawTs);
+        const displayTs = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
                    d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-        lastEl.textContent = 'Cached: ' + ts + ' · ' + db.length + ' scripts';
+        lastEl.textContent = 'Cached: ' + displayTs + ' · ' + db.length + ' scripts';
       } catch(_){}
     }
   }
@@ -6466,6 +6465,10 @@ function downloadSelf(){
 // ═══════════════════════════════════════════════════════════════
 renderForm();
 setTimeout(checkUrlParams, 150);
+// Safety re-render — ensures UI is populated even if first call had a timing issue
+setTimeout(()=>{
+  if(!document.getElementById('typereturn-btns').children.length) renderForm();
+}, 300);
 
 
 // ═══════════════════════════════════════════════════════════════
