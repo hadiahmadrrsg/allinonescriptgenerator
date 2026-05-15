@@ -2953,12 +2953,65 @@ function sgApplyScripts(firebaseData){
     return fields.map(_csvEscape).join(',');
   }).join('\n');
 
+  // Snapshot the structural config BEFORE parsing — we restore it if the push
+  // doesn't contain [FLOW]/[EVIDENCE] rows, so a plain script-only push never
+  // wipes SCRIPT_ASSEMBLY, P1_CASES, _FLOW_META, EVIDENCE_DB, NEXT_STEPS, etc.
+  const hadFlowRows     = csv.includes('[FLOW]');
+  const hadEvidenceRows = csv.includes('[EVIDENCE]');
+  const hadNextSteps    = csv.includes('[NEXT_STEPS]');
+  const hadIssueDesc    = csv.includes('[ISSUE_DESC]');
+
+  // Save current structural state
+  const savedAssembly   = JSON.parse(JSON.stringify(SCRIPT_ASSEMBLY));
+  const savedP1         = JSON.parse(JSON.stringify(P1_CASES));
+  const savedSellerP1   = JSON.parse(JSON.stringify(SELLER_P1_CASES));
+  const savedFlowMeta   = JSON.parse(JSON.stringify(_FLOW_META));
+  const savedNSConn     = [...NEXT_STEPS_CONNECTORS];
+  const savedNSReturn   = NEXT_STEPS_RETURN;
+  const savedNSRefund   = NEXT_STEPS_REFUND_ONLY;
+  const savedBuyerR     = JSON.parse(JSON.stringify(BUYER_REASONS));
+  const savedSellerR    = JSON.parse(JSON.stringify(SELLER_REASONS));
+  const savedEvDB       = JSON.parse(JSON.stringify(EVIDENCE_DB));
+
   const scriptRows = parseGSheetCSV(csv);
-  if(scriptRows.length < 3) return; // too few — ignore bad push
+
+  // Require a reasonable number of script rows — ignore suspiciously small pushes
+  if(scriptRows.length < 10){
+    console.warn('SG Firebase: only', scriptRows.length, 'script rows — ignoring push to protect existing data');
+    return;
+  }
+
+  // Always update the script text pool
   db = scriptRows.map((r,i) => ({id:i, data:[...r]}));
   console.log('SG Firebase: loaded', db.length, 'scripts');
 
-  // If Admin → Script Flows is open, re-render it so the update is visible immediately
+  // Restore structural config if the push didn't include those special rows
+  // This prevents a plain-scripts-only Sheet from wiping flows/evidence/etc.
+  if(!hadFlowRows){
+    Object.keys(SCRIPT_ASSEMBLY).forEach(k => delete SCRIPT_ASSEMBLY[k]);
+    Object.assign(SCRIPT_ASSEMBLY, savedAssembly);
+    P1_CASES.length = 0; savedP1.forEach(p => P1_CASES.push(p));
+    SELLER_P1_CASES.length = 0; savedSellerP1.forEach(p => SELLER_P1_CASES.push(p));
+    Object.keys(_FLOW_META).forEach(k => delete _FLOW_META[k]);
+    Object.assign(_FLOW_META, savedFlowMeta);
+  }
+  if(!hadNextSteps){
+    NEXT_STEPS_CONNECTORS.length = 0; savedNSConn.forEach(c => NEXT_STEPS_CONNECTORS.push(c));
+    NEXT_STEPS_RETURN = savedNSReturn;
+    NEXT_STEPS_REFUND_ONLY = savedNSRefund;
+  }
+  if(!hadIssueDesc){
+    Object.keys(BUYER_REASONS).forEach(k => delete BUYER_REASONS[k]);
+    Object.assign(BUYER_REASONS, savedBuyerR);
+    Object.keys(SELLER_REASONS).forEach(k => delete SELLER_REASONS[k]);
+    Object.assign(SELLER_REASONS, savedSellerR);
+  }
+  if(!hadEvidenceRows){
+    Object.keys(EVIDENCE_DB).forEach(k => delete EVIDENCE_DB[k]);
+    Object.assign(EVIDENCE_DB, savedEvDB);
+  }
+
+  // Re-render Script Flows if it's open
   if(state && state.view === 'admin' && state.adminTab === 'scripts'){
     renderAdminPanel();
   }
