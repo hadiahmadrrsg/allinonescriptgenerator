@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v21</title>
+<title>All in One Script Generator - v22</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -205,7 +205,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v21</div>
+        <div class="logo-title">All in One Script Generator - v22</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
       </div>
@@ -1252,7 +1252,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="docs-sidebar-logo">
       <span class="ds-badge">Shopee Return & Refund</span>
       <h2>All in One Script Generator</h2>
-      <p>Technical Documentation — v21</p>
+      <p>Technical Documentation — v22</p>
     </div>
 
     <div class="docs-nav-group">
@@ -2038,7 +2038,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v21')" id="vnav-v21"><span class="ddot" style="background:#ee4d2d"></span>v21 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v22')" id="vnav-v22"><span class="ddot" style="background:#ee4d2d"></span>v22 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v21')" id="vnav-v21"><span class="ddot" style="background:#6b7280"></span>v21</a>
     <a class="docs-nav-item" onclick="scrollToVer('v20')" id="vnav-v20"><span class="ddot" style="background:#6b7280"></span>v20</a>
     <a class="docs-nav-item" onclick="scrollToVer('v19')" id="vnav-v19"><span class="ddot" style="background:#6b7280"></span>v19</a>
     <a class="docs-nav-item" onclick="scrollToVer('v18')" id="vnav-v18"><span class="ddot" style="background:#6b7280"></span>v18</a>
@@ -2062,11 +2063,42 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
+      <!-- v22 -->
+      <div id="vsec-v22" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v22 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">15 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Script generation restored</strong> — <code>parseGSheetCSV</code> had two conflicting rebuild paths running back-to-back. The inline rebuild (lines 3324–3343) correctly used <code>{user, decision}</code> objects to rebuild <code>SCRIPT_ASSEMBLY</code>. Then <code>applyFlowConfig(flowRows)</code> was called immediately after with the same objects — but that function expects raw CSV column arrays, so it built an empty <code>newAssembly</code> and wiped <code>SCRIPT_ASSEMBLY</code> clean. Every Firebase push silently destroyed the assembly → <code>generateScript()</code> found no flow → returned early → no script. Fixed by removing the duplicate <code>applyFlowConfig</code> and <code>applyEvidenceConfig</code> calls from inside <code>parseGSheetCSV</code> — the inline rebuilds are sufficient; both functions remain available for the CSV import feature which passes the correct raw column format</li>
+            <li><strong>Apps Script copy button fixed</strong> — replaced <code>navigator.clipboard</code> (fails without HTTPS focus) with <code>document.execCommand('copy')</code> via hidden textarea — works in all browsers and GitHub Pages contexts</li>
+            <li><strong>Apps Script syntax errors fixed</strong> — removed emoji surrogate pairs (<code>\uD83D\uDD25</code> etc.) and escaped double quotes from the generated Apps Script code string; replaced with plain text menu labels. Also fixed <code>\n</code> inside double-quoted strings in alert calls</li>
+            <li><strong>Evidence Collection Firebase sync</strong> — <code>sgApplyEvidence()</code> added; generator now subscribes to <code>sg/evidence</code> Firebase node and rebuilds <code>EVIDENCE_DB</code> live when Apps Script pushes evidence rows. Apps Script updated with <code>_readEvidenceRows()</code> reading 6-column Evidence sheet tab</li>
+            <li><strong>Apps Script menu expanded</strong> — new options: Push Scripts + Evidence, Push Scripts only, Push Evidence only, Test connection</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>Removed <code>applyFlowConfig(flowRows)</code> and <code>applyEvidenceConfig(evidenceRows)</code> calls from inside <code>parseGSheetCSV</code> — those functions are for CSV import only (raw column arrays); <code>parseGSheetCSV</code> uses its own inline object-based rebuilds</li>
+            <li><code>sgApplyEvidence(firebaseData)</code> — maps <code>{category, reason, risk, seller_cat, ev_type, script, is_bullet}</code> Firebase rows directly into <code>EVIDENCE_DB</code> nested structure</li>
+            <li>Evidence sheet format: 6 columns — Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Scripts</li>
+            <li>Firebase paths: <code>sg/scripts</code> (scripts), <code>sg/evidence</code> (evidence), <code>sg/lastSync</code> (timestamp)</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
       <!-- v21 -->
       <div id="vsec-v21" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v21 — Current</div>
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v21</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">15 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -3368,11 +3400,6 @@ function parseGSheetCSV(csv){
     bulletRows.forEach(r=>_parseEvRow(r, EVIDENCE_DB.bullets));
   }
   
-  // Apply flow config if found
-  if(flowRows.length > 0) applyFlowConfig(flowRows);
-  // Apply evidence config if found
-  if(evidenceRows.length > 0) applyEvidenceConfig(evidenceRows);
-
   return scriptRows;
 }
 
