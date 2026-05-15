@@ -4085,7 +4085,12 @@ function generateScript(){
   const vars = {username:(state.result==='Request Evidence from Seller'?(state.seller_username||state.username||'Seller'):state.user==='Seller'?(state.seller_username||'Seller'):(state.username||'Customer')),order_sn:state.order_sn||'[Order SN]',product_name:state.product_name||'[Product Name]',issue_description,result:lookupType};
   state.generatedSections = assembly.map(({qR,item})=>{
     const lookupTypeReturn = state.user==='Seller' ? 'Seller Dispute' : state.type_return;
-    const pool = getPool(lookupTypeReturn,state.type_script,state.user,qR,item);
+    let pool = getPool(lookupTypeReturn,state.type_script,state.user,qR,item);
+    // Seller P1 flows reuse Buyer script pools — fall back to Buyer lookup if empty
+    if(pool.length === 0 && state.user === 'Seller' && SELLER_P1_CASES.some(p=>p.value===state.result)){
+      pool = getPool('Return & Refund, Refund Only',state.type_script,'Buyer',qR,item);
+      if(pool.length === 0) pool = getPool('Return & Refund',state.type_script,'Buyer',qR,item);
+    }
     const script = pool.length>0?rand(pool):'';
     if(!script) return null;
     return {item,qR,text:fill(script,vars)};
@@ -4151,7 +4156,12 @@ function reshuffleSection(i){
   if(evGen.reason==='Functional Damaged'&&(state.result==='Request Evidence'||state.result==='Request Evidence from Seller')) issue_description='product is faulty';
   const lookupType = state.user==='Seller' ? 'Seller Dispute' : state.type_return;
   const vars = {username:(state.result==='Request Evidence from Seller'?(state.seller_username||state.username||'Seller'):state.user==='Seller'?(state.seller_username||'Seller'):(state.username||'Customer')),order_sn:state.order_sn||'[Order SN]',product_name:state.product_name||'[Product Name]',issue_description,result:lookupType};
-  const pool = getPool(lookupType,state.type_script,state.user,sec.qR,sec.item);
+  let pool = getPool(lookupType,state.type_script,state.user,sec.qR,sec.item);
+  // Seller P1 flows reuse Buyer script pools — fall back to Buyer lookup if empty
+  if(pool.length === 0 && state.user === 'Seller' && SELLER_P1_CASES.some(p=>p.value===state.result)){
+    pool = getPool('Return & Refund, Refund Only',state.type_script,'Buyer',sec.qR,sec.item);
+    if(pool.length === 0) pool = getPool('Return & Refund',state.type_script,'Buyer',sec.qR,sec.item);
+  }
   if(pool.length>0){
     let newText = fill(rand(pool),vars);
     // Re-append refund amount / SLA wallet to Result Sharing after reshuffle
