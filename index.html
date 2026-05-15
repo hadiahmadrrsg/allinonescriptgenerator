@@ -2976,82 +2976,56 @@ function sgFbLoadAndSubscribe(){
 }
 
 function sgApplyScripts(firebaseData){
-  // Firebase stores the rows as an array or object of {col0..col9}
   const rows = Array.isArray(firebaseData) ? firebaseData : Object.values(firebaseData || {});
   if(!rows || rows.length === 0) return;
 
-  // Reconstruct the CSV string the existing parser expects
-  const csv = rows.map(r => {
-    const fields = [r.col0||'', r.col1||'', r.col2||'', r.col3||'',
-                    r.col4||'', r.col5||'', r.col6||'', r.col7||'',
-                    r.col8||'', r.col9||''];
-    while(fields.length > 5 && !fields[fields.length-1]) fields.pop();
-    return fields.map(_csvEscape).join(',');
-  }).join('\n');
+  // Build db directly from Firebase row objects — no CSV round-trip, no parser ambiguity.
+  // Handles both 5-col Sheet format (TypeReturn|User|Result|Section|Script)
+  // and 6-col RAW_DB format (TypeReturn|TypeScript|User|Result|Section|Script)
+  const newDb = [];
+  for(const r of rows){
+    const c0 = (r.col0||'').trim();
+    const c1 = (r.col1||'').trim();
+    const c2 = (r.col2||'').trim();
+    const c3 = (r.col3||'').trim();
+    const c4 = (r.col4||'').trim();
+    const c5 = (r.col5||'').trim();
 
-  // Snapshot the structural config BEFORE parsing — we restore it if the push
-  // doesn't contain [FLOW]/[EVIDENCE] rows, so a plain script-only push never
-  // wipes SCRIPT_ASSEMBLY, P1_CASES, _FLOW_META, EVIDENCE_DB, NEXT_STEPS, etc.
-  const hadFlowRows     = csv.includes('[FLOW]');
-  const hadEvidenceRows = csv.includes('[EVIDENCE]');
-  const hadNextSteps    = csv.includes('[NEXT_STEPS]');
-  const hadIssueDesc    = csv.includes('[ISSUE_DESC]');
+    if(!c0) continue;
+    if(c0 === 'Type Return') continue; // header row
 
-  // Save current structural state
-  const savedAssembly   = JSON.parse(JSON.stringify(SCRIPT_ASSEMBLY));
-  const savedP1         = JSON.parse(JSON.stringify(P1_CASES));
-  const savedSellerP1   = JSON.parse(JSON.stringify(SELLER_P1_CASES));
-  const savedFlowMeta   = JSON.parse(JSON.stringify(_FLOW_META));
-  const savedNSConn     = [...NEXT_STEPS_CONNECTORS];
-  const savedNSReturn   = NEXT_STEPS_RETURN;
-  const savedNSRefund   = NEXT_STEPS_REFUND_ONLY;
-  const savedBuyerR     = JSON.parse(JSON.stringify(BUYER_REASONS));
-  const savedSellerR    = JSON.parse(JSON.stringify(SELLER_REASONS));
-  const savedEvDB       = JSON.parse(JSON.stringify(EVIDENCE_DB));
+    // Skip structural special rows — SCRIPT_ASSEMBLY/EVIDENCE_DB are baked-in
+    // and only updated when the full sheet with [FLOW]/[EVIDENCE] rows is pushed
+    if(c0.startsWith('[')) continue;
 
-  const scriptRows = parseGSheetCSV(csv);
+    let typeReturn, typeScript, user, result, section, script;
+    if(c1 === 'Type A (With Emoji)' || c1 === 'Type B (Without Emoji)'){
+      // 6-col RAW_DB format
+      typeReturn=c0; typeScript=c1; user=c2; result=c3; section=c4; script=c5;
+    } else {
+      // 5-col Sheet format (no typeScript column)
+      typeReturn=c0; typeScript='Type A (With Emoji)'; user=c1; result=c2; section=c3; script=c4;
+    }
 
-  // Require a reasonable number of script rows — ignore suspiciously small pushes
-  if(scriptRows.length < 10){
-    console.warn('SG Firebase: only', scriptRows.length, 'script rows — ignoring push to protect existing data');
+    const cleanType = typeReturn.replace(/^\[P1\]\s*/,'') || 'Return & Refund, Refund Only';
+    if(!user || !result || !section || !script) continue;
+    newDb.push({id: newDb.length, data: [cleanType, typeScript, user, result, section, script]});
+  }
+
+  if(newDb.length < 10){
+    console.warn('SG Firebase: only', newDb.length, 'rows after parsing — ignoring push to protect existing data');
     return;
   }
 
-  // Always update the script text pool
-  db = scriptRows.map((r,i) => ({id:i, data:[...r]}));
+  db = newDb;
   console.log('SG Firebase: loaded', db.length, 'scripts');
 
-  // Restore structural config if the push didn't include those special rows
-  // This prevents a plain-scripts-only Sheet from wiping flows/evidence/etc.
-  if(!hadFlowRows){
-    Object.keys(SCRIPT_ASSEMBLY).forEach(k => delete SCRIPT_ASSEMBLY[k]);
-    Object.assign(SCRIPT_ASSEMBLY, savedAssembly);
-    P1_CASES.length = 0; savedP1.forEach(p => P1_CASES.push(p));
-    SELLER_P1_CASES.length = 0; savedSellerP1.forEach(p => SELLER_P1_CASES.push(p));
-    Object.keys(_FLOW_META).forEach(k => delete _FLOW_META[k]);
-    Object.assign(_FLOW_META, savedFlowMeta);
-  }
-  if(!hadNextSteps){
-    NEXT_STEPS_CONNECTORS.length = 0; savedNSConn.forEach(c => NEXT_STEPS_CONNECTORS.push(c));
-    NEXT_STEPS_RETURN = savedNSReturn;
-    NEXT_STEPS_REFUND_ONLY = savedNSRefund;
-  }
-  if(!hadIssueDesc){
-    Object.keys(BUYER_REASONS).forEach(k => delete BUYER_REASONS[k]);
-    Object.assign(BUYER_REASONS, savedBuyerR);
-    Object.keys(SELLER_REASONS).forEach(k => delete SELLER_REASONS[k]);
-    Object.assign(SELLER_REASONS, savedSellerR);
-  }
-  if(!hadEvidenceRows){
-    Object.keys(EVIDENCE_DB).forEach(k => delete EVIDENCE_DB[k]);
-    Object.assign(EVIDENCE_DB, savedEvDB);
-  }
-
-  // Re-render Script Flows if it's open
+  // Re-render Script Flows if it is open
   if(state && state.view === 'admin' && state.adminTab === 'scripts'){
     renderAdminPanel();
   }
 }
+
 
 function _csvEscape(v){
   v = String(v == null ? '' : v);
@@ -3312,7 +3286,7 @@ function parseGSheetCSV(csv){
     if(!line.trim())continue;
     const cols = parseCSVLine(line);
     if(cols.length<5)continue;
-    if(cols[0]==='Type Return'&&cols[1]==='User') continue;
+    if(cols[0]==='Type Return') continue; // skip any header row regardless of format
     const [type_return,user,result,section,...scriptParts] = cols;
     const script = scriptParts.join(',').trim();
     if(!script) continue;
@@ -4225,6 +4199,24 @@ function generateScript(){
     if(!script) return null;
     return {item,qR,text:fill(script,vars)};
   }).filter(Boolean);
+
+  // ── RAW_DB fallback — if Firebase push corrupted db, silently use baked-in data ──
+  if(state.generatedSections.length === 0){
+    const rawDbFallback = RAW_DB.map((r,i)=>({id:i,data:[...r]}));
+    state.generatedSections = assembly.map(({qR,item})=>{
+      const lookupTypeReturn = state.user==='Seller' ? 'Seller Dispute' : state.type_return;
+      let pool = rawDbFallback.filter(r=>r.data[0].includes(lookupTypeReturn)&&r.data[1]===state.type_script&&r.data[2]===state.user&&r.data[3]===qR&&r.data[4].trim()===item.trim()).map(r=>r.data[5]);
+      if(pool.length === 0 && state.user === 'Seller' && SELLER_P1_CASES.some(p=>p.value===state.result)){
+        pool = rawDbFallback.filter(r=>r.data[0].includes('Return & Refund')&&r.data[1]===state.type_script&&r.data[2]==='Buyer'&&r.data[3]===qR&&r.data[4].trim()===item.trim()).map(r=>r.data[5]);
+      }
+      const script = pool.length>0?rand(pool):'';
+      if(!script) return null;
+      return {item,qR,text:fill(script,vars)};
+    }).filter(Boolean);
+    if(state.generatedSections.length > 0){
+      console.warn('SG: db empty for this flow — used RAW_DB fallback. Re-push from Sheets to fix.');
+    }
+  }
 
   // ── Read case-detail values live from DOM — only if field is visible ────
   const fieldVisible = id => !document.getElementById(id)?.classList.contains('hidden');
