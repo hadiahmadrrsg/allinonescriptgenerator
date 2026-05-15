@@ -2835,24 +2835,29 @@ let state = {
 // Priority: 1) localStorage cached Sheet data  2) baked-in RAW_DB
 const _SG_DB_CACHE_KEY = 'sg_cached_db';
 const _SG_DB_CACHE_VER = 'sg_cached_db_ver';
+const _SG_CACHE_VERSION = 'v22r1'; // bump this when db structure changes to auto-invalidate old caches
 let db = (()=>{
   try{
-    const cached = localStorage.getItem(_SG_DB_CACHE_KEY);
-    if(cached){
+    const cached    = localStorage.getItem(_SG_DB_CACHE_KEY);
+    const cachedVer = localStorage.getItem(_SG_DB_CACHE_VER);
+    // If cache is from a different file version, discard it
+    if(cachedVer && !cachedVer.startsWith(_SG_CACHE_VERSION)){
+      localStorage.removeItem(_SG_DB_CACHE_KEY);
+      localStorage.removeItem(_SG_DB_CACHE_VER);
+      console.log('SG: stale cache cleared (version mismatch), using RAW_DB');
+    } else if(cached){
       const parsed = JSON.parse(cached);
       if(Array.isArray(parsed) && parsed.length >= 10){
         console.log('SG: loaded', parsed.length, 'scripts from localStorage cache');
-        // Cache = last Sheet push, so db is up to date
         setTimeout(()=>setRefreshStatus('ok'), 100);
         return parsed.map((r,i)=>({id:i,data:[...r]}));
       } else {
-        // Bad cache — clear it and fall through to RAW_DB
+        // Bad cache — clear it
         localStorage.removeItem(_SG_DB_CACHE_KEY);
         localStorage.removeItem(_SG_DB_CACHE_VER);
       }
     }
   } catch(_){
-    // Corrupt cache — clear it
     try{ localStorage.removeItem(_SG_DB_CACHE_KEY); localStorage.removeItem(_SG_DB_CACHE_VER); } catch(__) {}
   }
   console.log('SG: using baked-in RAW_DB (', RAW_DB.length, 'scripts)');
@@ -3026,9 +3031,8 @@ function sgApplyScripts(firebaseData){
     if(!c0) continue;
     if(c0 === 'Type Return') continue; // header row
 
-    // Skip structural special rows — SCRIPT_ASSEMBLY/EVIDENCE_DB are baked-in
-    // and only updated when the full sheet with [FLOW]/[EVIDENCE] rows is pushed
-    if(c0.startsWith('[')) continue;
+    // Skip structural special rows (but NOT [P1] which are regular script rows with a tag)
+    if(c0.startsWith('[') && !c0.startsWith('[P1]')) continue;
 
     let typeReturn, typeScript, user, result, section, script;
     if(c1 === 'Type A (With Emoji)' || c1 === 'Type B (Without Emoji)'){
@@ -3056,7 +3060,7 @@ function sgApplyScripts(firebaseData){
   // Cache to localStorage so next page load uses Sheet data instantly (before Firebase connects)
   try{
     localStorage.setItem(_SG_DB_CACHE_KEY, JSON.stringify(db.map(r=>r.data)));
-    localStorage.setItem(_SG_DB_CACHE_VER, new Date().toISOString());
+    localStorage.setItem(_SG_DB_CACHE_VER, _SG_CACHE_VERSION + '|' + new Date().toISOString());
     console.log('SG: db cached to localStorage');
   } catch(e){
     console.warn('SG: could not cache db to localStorage:', e.message);
@@ -3325,7 +3329,9 @@ function initGSheetUI(){
     const lastEl = document.getElementById('fb-sync-last');
     if(lastEl && cacheVer){
       try{
-        const d = new Date(cacheVer);
+        // Format: "v22r1|2026-05-15T04:38:00.000Z"
+        const ts = cacheVer.includes('|') ? cacheVer.split('|')[1] : cacheVer;
+        const d = new Date(ts);
         const ts = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
                    d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
         lastEl.textContent = 'Cached: ' + ts + ' · ' + db.length + ' scripts';
@@ -5154,7 +5160,16 @@ function setAdminTab(item){state.adminTab=item;renderAdminPanel();
     if(sec){sec.classList.toggle('hidden',t!==item);}
   });
   if(item==='evidence'){ renderAdminEvidenceFlows(); _refreshEvSyncStatus(); }
-  if(item==='scripts'){ renderAdminPanel(); initGSheetUI(); }
+  if(item==='scripts'){
+    // Reset filters to All when opening Script Flows tab
+    const sf = document.getElementById('filter-section');
+    const uf = document.getElementById('filter-user');
+    const ff = document.getElementById('filter-result');
+    if(sf) sf.value = '';
+    if(uf) uf.value = '';
+    if(ff) ff.value = '';
+    renderAdminPanel(); initGSheetUI();
+  }
   if(item==='statistics'){ renderStatsPanel(); }
 }
 
