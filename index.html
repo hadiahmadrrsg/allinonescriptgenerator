@@ -1808,28 +1808,7 @@ EVIDENCE_DB = {
       <div style="font-size:13px;color:#374151;line-height:1.9">
         <strong>d)</strong> Open the generator HTML file in a text editor (VS Code, Notepad++, etc.)<br>
         <strong>e)</strong> Search for <code>SG_FIREBASE_CONFIG</code> — it's near the top of the <code>&lt;script&gt;</code> block<br>
-        <strong>f)</strong> Replace all the <code>// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyALze7ReVquyrxum-m17OrS88PaxtnzYpE",
-  authDomain: "allinone-generator.firebaseapp.com",
-  databaseURL: "https://allinone-generator-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "allinone-generator",
-  storageBucket: "allinone-generator.firebasestorage.app",
-  messagingSenderId: "982651988523",
-  appId: "1:982651988523:web:2cc9db6927aab615a9986e",
-  measurementId: "G-GJCBFMSM76"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);</code> values with your actual values from Firebase<br>
+        <strong>f)</strong> Replace all the <code>PASTE_YOUR_...</code> values with your actual values from Firebase<br>
         <strong>g)</strong> Save the file → re-upload to GitHub Pages
       </div>
       <div style="margin-top:10px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:8px 12px;font-size:11.5px;color:#065f46">
@@ -2796,13 +2775,13 @@ const _FLOW_META = {
    5. Replace the values below
    ─────────────────────────────────────────────────────────────── */
 const SG_FIREBASE_CONFIG = {
-  apiKey:            'PASTE_YOUR_API_KEY',
-  authDomain:        'PASTE_YOUR_PROJECT.firebaseapp.com',
-  databaseURL:       'PASTE_YOUR_DATABASE_URL',
-  projectId:         'PASTE_YOUR_PROJECT_ID',
-  storageBucket:     'PASTE_YOUR_PROJECT.firebasestorage.app',
-  messagingSenderId: 'PASTE_YOUR_SENDER_ID',
-  appId:             'PASTE_YOUR_APP_ID'
+  apiKey:            'AIzaSyALze7ReVquyrxum-m17OrS88PaxtnzYpE',
+  authDomain:        'allinone-generator.firebaseapp.com',
+  databaseURL:       'https://allinone-generator-default-rtdb.asia-southeast1.firebasedatabase.app',
+  projectId:         'allinone-generator',
+  storageBucket:     'allinone-generator.firebasestorage.app',
+  messagingSenderId: '982651988523',
+  appId:             '1:982651988523:web:2cc9db6927aab615a9986e'
 };
 
 var _sgFbReady  = false;
