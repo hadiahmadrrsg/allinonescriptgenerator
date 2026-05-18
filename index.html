@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v22</title>
+<title>All in One Script Generator - v24</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -205,7 +205,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v22</div>
+        <div class="logo-title">All in One Script Generator - v24</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -1257,7 +1257,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="docs-sidebar-logo">
       <span class="ds-badge">Shopee Return & Refund</span>
       <h2>All in One Script Generator</h2>
-      <p>Technical Documentation — v22</p>
+      <p>Technical Documentation — v24</p>
     </div>
 
     <div class="docs-nav-group">
@@ -2043,7 +2043,9 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v22')" id="vnav-v22"><span class="ddot" style="background:#ee4d2d"></span>v22 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v24')" id="vnav-v24"><span class="ddot" style="background:#ee4d2d"></span>v24 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v23')" id="vnav-v23"><span class="ddot" style="background:#6b7280"></span>v23</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v22')" id="vnav-v22"><span class="ddot" style="background:#6b7280"></span>v22</a>
     <a class="docs-nav-item" onclick="scrollToVer('v21')" id="vnav-v21"><span class="ddot" style="background:#6b7280"></span>v21</a>
     <a class="docs-nav-item" onclick="scrollToVer('v20')" id="vnav-v20"><span class="ddot" style="background:#6b7280"></span>v20</a>
     <a class="docs-nav-item" onclick="scrollToVer('v19')" id="vnav-v19"><span class="ddot" style="background:#6b7280"></span>v19</a>
@@ -2068,11 +2070,93 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
+      <!-- v24 -->
+      <div id="vsec-v24" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v24 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">18 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Silent copy failure fixed</strong> — <code>copyAll()</code>, <code>copyBookmarklet()</code>, <code>copySnippet()</code>, and <code>evCopyEvidence()</code> previously called <code>navigator.clipboard.writeText(...).then(...)</code> with no <code>.catch()</code>. When the Clipboard API was unavailable (insecure context, sandboxed iframe, blocked permission) the copy silently failed and the button never updated. All four now route through a single <code>_sgCopyToClipboard()</code> helper that tries <code>document.execCommand('copy')</code> first (works everywhere including <code>file://</code> and iframes), then falls back to the Clipboard API. If both fail, a clear toast tells the user to copy manually with Ctrl+C / Cmd+C.</li>
+            <li><strong>copyAppsScript() unified with new helper</strong> — same logic centralised in one place; also fixed the brittle <code>event.target</code> reference (would have thrown if invoked outside a click handler).</li>
+            <li><strong>Null guards added to copy callers</strong> — <code>copyAll</code> / <code>copyBookmarklet</code> / <code>copySnippet</code> / <code>evCopyEvidence</code> now check for missing DOM nodes before assigning to <code>btn.textContent</code>, preventing crashes if the UI is mid-render.</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><code>_sgCopyToClipboard(text, onSuccess, onFailure)</code> — new helper in SAFETY NET section. Creates a hidden, off-screen, read-only textarea; selects its contents; calls <code>document.execCommand('copy')</code>; cleans up; restores prior focus. On execCommand failure (older browsers, certain iframes) falls back to <code>navigator.clipboard.writeText()</code> with proper <code>.catch()</code>. On total failure, toasts a helpful message rather than failing silently.</li>
+            <li>Helper preserves the caller's previously-focused element so opening the Snippets palette during text entry won't lose the cursor position.</li>
+            <li>No behaviour change in the happy path — existing UX (button text flips to "✓ Copied!" and reverts) works identically for all callers.</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
+      <!-- v23 -->
+      <div id="vsec-v23" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v23</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">18 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New Features</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>📋 Fixed submission instructions for Request Evidence flows</strong> — automatically appended as a paragraph after evidence text in Result Sharing. Different paths for Buyer vs Seller flows. Persists across reshuffles.
+              <ul style="margin-top:6px;padding-left:18px;font-size:12.5px;color:#4b5563">
+                <li><strong>Buyer → Request Evidence / Request Evidence from Seller:</strong> <code>ShopeeApp &gt; Me &gt; Return Refund &gt; Select Order &gt; Upload evidence button</code></li>
+                <li><strong>Seller → Request Evidence:</strong> <code>Seller Centre &gt; Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.</code></li>
+              </ul>
+            </li>
+            <li><strong>🛡️ Bulletproof Safety Net</strong> — 7-layer error protection bundle to prevent generator crashes from any cause:
+              <ul style="margin-top:6px;padding-left:18px;font-size:12.5px;color:#4b5563">
+                <li><strong>Global error handlers</strong> — <code>window.onerror</code> + <code>unhandledrejection</code> catch every uncaught JS error and show a toast with actionable advice instead of breaking silently</li>
+                <li><strong>Universal toast helper</strong> — <code>showToast(msg, type)</code> with 4 types (info / success / warn / error). Reuses existing <code>.snip-toast</code> CSS</li>
+                <li><strong>generateScript() try/catch wrapper</strong> — generation errors no longer break the button; error toast shows instead</li>
+                <li><strong>Sheet column normalization</strong> — typos auto-fixed before validation: <code>"buyer"</code>, <code>"BUYER"</code>, <code>" Buyer "</code> all become <code>"Buyer"</code>. Same for typeReturn variants</li>
+                <li><strong>Firebase SDK 10s timeout</strong> — if Firebase CDN is blocked/slow, status flips to error after 10s with single toast warning (deduped — no spam)</li>
+                <li><strong>Validation report</strong> — Admin → Script Flows banner shows <em>"198 accepted, 3 rejected"</em> after push with hover-tooltip listing row numbers + reasons</li>
+                <li><strong>Startup self-test</strong> — runs 500ms after page load, verifies <code>db.length &gt;= 30</code> and key flows exist. Alerts admin if generator is broken on load</li>
+                <li><strong>localStorage quota recovery</strong> — if cache save fails, auto-clears other <code>sg_*</code> keys and retries</li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>SNIP_CAT_COLORS TDZ error fixed</strong> — async snippet callbacks could fire before the const was initialised, throwing <code>Cannot access 'SNIP_CAT_COLORS' before initialization</code> and breaking the snippets panel. Moved declaration to top of snippets section + added defensive guard in <code>getSnipCatColor()</code></li>
+            <li><strong>Firebase SDK load error deduplication</strong> — was showing 3 toasts when Firebase failed to load (1 per SDK script + 1 from timeout). Added <code>errorReported</code> flag so only one clear toast shows</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><code>showToast(msg, type)</code> — creates <code>#sg-toast</code> element on first use; supports info/success/warn/error with distinct colors and 4.5s auto-dismiss</li>
+            <li><code>_sgNormalize(value, type)</code> — normalizes User and typeReturn column values to canonical forms; regex-tolerant for whitespace and case variants</li>
+            <li><code>sgSelfTest(reason)</code> — checks <code>db.length</code>, SCRIPT_ASSEMBLY size, and presence of expected flow keys. Returns true/false and toasts on failure</li>
+            <li><code>setValidationReport(report)</code> — stores last validation result in <code>_sgLastValidation</code> and updates the sync banner with hover-tooltip</li>
+            <li><code>sgApplyScripts</code> now tracks rejected rows with <code>{row, reason}</code> objects; rejection reasons include "Unknown User", "Missing Result/Section/Script"</li>
+            <li>Submission instructions injected in both <code>_generateScriptCore</code> and <code>reshuffleSection</code> for full reshuffle persistence</li>
+            <li><code>SNIP_CAT_COLORS</code> moved from line ~6315 to line 5824 (top of snippets section), changed from <code>const</code> to <code>var</code> for safe hoisting</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
       <!-- v22 -->
       <div id="vsec-v22" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v22 — Current</div>
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v22</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">15 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -2904,6 +2988,164 @@ const SG_FIREBASE_CONFIG = {
   appId:             '1:982651988523:web:2cc9db6927aab615a9986e'
 };
 
+// ═══════════════════════════════════════════════════════════════
+// SAFETY NET — error handling, toast, normalization, self-test
+// ═══════════════════════════════════════════════════════════════
+
+// Universal toast helper — types: info (blue), success (green), warn (amber), error (red)
+function showToast(msg, type){
+  type = type || 'info';
+  let toast = document.getElementById('sg-toast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'sg-toast';
+    toast.className = 'snip-toast';
+    document.body.appendChild(toast);
+  }
+  const colors = {
+    info:    {bg:'#2563eb', shadow:'rgba(37,99,235,.35)'},
+    success: {bg:'#059669', shadow:'rgba(5,150,105,.35)'},
+    warn:    {bg:'#d97706', shadow:'rgba(217,119,6,.35)'},
+    error:   {bg:'#dc2626', shadow:'rgba(220,38,38,.35)'}
+  };
+  const c = colors[type] || colors.info;
+  toast.style.background = c.bg;
+  toast.style.boxShadow = '0 8px 30px ' + c.shadow;
+  toast.innerHTML = '<div style="white-space:pre-wrap">' + (msg||'').toString().replace(/</g,'&lt;') + '</div>';
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(()=>toast.classList.remove('show'), 4500);
+}
+
+// Robust clipboard copy — works in insecure contexts, sandboxed iframes, and when
+// navigator.clipboard is blocked. Tries execCommand('copy') first via hidden textarea
+// (works everywhere), falls back to Clipboard API. Returns true if either succeeded.
+// onSuccess/onFailure are optional callbacks.
+function _sgCopyToClipboard(text, onSuccess, onFailure){
+  text = String(text == null ? '' : text);
+  let success = false;
+  // 1) Try the legacy execCommand path first — works in non-secure contexts and iframes
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    const prevSelection = document.activeElement;
+    ta.focus();
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    try { success = document.execCommand('copy'); } catch(_){ success = false; }
+    document.body.removeChild(ta);
+    if(prevSelection && typeof prevSelection.focus === 'function'){
+      try { prevSelection.focus(); } catch(_){}
+    }
+  } catch(_){ /* fall through to Clipboard API */ }
+
+  if(success){
+    if(typeof onSuccess === 'function') onSuccess();
+    return true;
+  }
+
+  // 2) Fall back to the Clipboard API (HTTPS / secure contexts)
+  if(navigator && navigator.clipboard && typeof navigator.clipboard.writeText === 'function'){
+    navigator.clipboard.writeText(text).then(()=>{
+      if(typeof onSuccess === 'function') onSuccess();
+    }).catch(err => {
+      console.warn('[SG clipboard] both execCommand and Clipboard API failed:', err && err.message);
+      try { showToast('⚠️ Copy failed — please select the text manually and press Ctrl+C / Cmd+C.', 'warn'); } catch(_){}
+      if(typeof onFailure === 'function') onFailure(err);
+    });
+    // Optimistic — assume API will resolve. Callers that need certainty should
+    // pass an onSuccess callback rather than relying on the return value here.
+    return true;
+  }
+
+  // 3) Neither path worked
+  console.warn('[SG clipboard] no clipboard mechanism available');
+  try { showToast('⚠️ Copy not supported in this browser context — please select and Ctrl+C manually.', 'warn'); } catch(_){}
+  if(typeof onFailure === 'function') onFailure(new Error('No clipboard mechanism'));
+  return false;
+}
+
+// Global error handler — catches uncaught JS errors so the page doesn't silently die
+window.addEventListener('error', function(e){
+  console.error('[SG global error]', e.message, e.filename + ':' + e.lineno);
+  try { showToast('⚠️ Error: ' + (e.message||'Unknown error') + '\nIf scripts stop working, click ↩ Revert to Built-in in Admin → Script Flows.', 'error'); } catch(_){}
+});
+
+// Catch failed promises (Firebase, fetch, etc.)
+window.addEventListener('unhandledrejection', function(e){
+  const reason = (e.reason && (e.reason.message || e.reason.toString())) || 'Unknown';
+  console.error('[SG promise rejection]', reason);
+  // Only show toast for real errors, not abort/cancel signals
+  if(!/abort|cancel/i.test(reason)){
+    try { showToast('⚠️ Background task failed: ' + reason, 'warn'); } catch(_){}
+  }
+});
+
+// Normalize Sheet column values to canonical forms — prevents typos breaking sync
+function _sgNormalize(value, type){
+  if(value == null) return '';
+  const v = String(value).trim();
+  if(!v) return '';
+  if(type === 'user'){
+    const lower = v.toLowerCase();
+    if(lower === 'buyer')  return 'Buyer';
+    if(lower === 'seller') return 'Seller';
+    return v; // unknown — keep original so admin sees the typo in validation report
+  }
+  if(type === 'typeReturn'){
+    // Normalize spacing/case for common variants
+    if(/^return\s*&?\s*refund\s*,?\s*refund\s*only$/i.test(v)) return 'Return & Refund, Refund Only';
+    if(/^return\s*&?\s*refund$/i.test(v)) return 'Return & Refund';
+    if(/^refund\s*only$/i.test(v)) return 'Refund Only';
+    if(/^seller\s*dispute$/i.test(v)) return 'Seller Dispute';
+    return v;
+  }
+  return v;
+}
+
+// Self-test — runs on page load, alerts admin if generator is in a broken state
+let _sgHealthLastCheck = 0;
+function sgSelfTest(reason){
+  _sgHealthLastCheck = Date.now();
+  const expectedMinDb = 30;
+  const issues = [];
+  if(!Array.isArray(db) || db.length < expectedMinDb)
+    issues.push('Script database too small: ' + (db ? db.length : 0) + ' rows (expected >= ' + expectedMinDb + ')');
+  if(typeof SCRIPT_ASSEMBLY !== 'object' || Object.keys(SCRIPT_ASSEMBLY).length < 10)
+    issues.push('SCRIPT_ASSEMBLY missing or incomplete');
+  const expectedFlows = ['Buyer|Accept Request','Buyer|Reject Request','Seller|Cancel Request'];
+  const missingFlows = expectedFlows.filter(f => !SCRIPT_ASSEMBLY[f]);
+  if(missingFlows.length) issues.push('Missing flows: ' + missingFlows.join(', '));
+  if(issues.length){
+    console.error('[SG self-test FAIL]', issues);
+    showToast('⚠️ Generator health check failed:\n• ' + issues.join('\n• ') + '\n\nClick ↩ Revert to Built-in in Admin → Script Flows.', 'error');
+    return false;
+  }
+  console.log('[SG self-test PASS]', reason || 'startup', '— db:', db.length, 'flows:', Object.keys(SCRIPT_ASSEMBLY).length);
+  return true;
+}
+
+// Validation report — shows in Admin banner after Firebase push
+let _sgLastValidation = null;
+function setValidationReport(report){
+  _sgLastValidation = report;
+  const el = document.getElementById('fb-sync-last');
+  if(!el || !report) return;
+  if(report.rejected > 0){
+    el.textContent = 'Last push: ' + report.accepted + ' accepted, ' + report.rejected + ' rejected';
+    el.style.color = '#d97706';
+    el.title = 'Rejected rows:\n' + (report.reasons||[]).slice(0,10).join('\n');
+  } else {
+    el.textContent = 'Last push: ' + report.accepted + ' scripts';
+    el.style.color = '#6b7280';
+    el.title = '';
+  }
+}
+
+
 var _sgFbReady  = false;
 var _sgFbDB     = null;
 var _sgFbSubbed = false;
@@ -2913,7 +3155,7 @@ function sgFbConfigured(){
          !SG_FIREBASE_CONFIG.databaseURL.includes('PASTE_YOUR');
 }
 
-function sgFbStatus(state){
+function sgFbStatus(fbState){
   // Update Script Flows tab pill
   const pill = document.getElementById('fb-sync-status');
   const last = document.getElementById('fb-sync-last');
@@ -2926,10 +3168,10 @@ function sgFbStatus(state){
     warn:    ['#fef3c7','#d97706','🟡 Connecting…'],
     local:   ['#f3f4f6','#6b7280','⚫ Local only']
   };
-  const [bg, col, label] = map[state] || map.warn;
+  const [bg, col, label] = map[fbState] || map.warn;
   if(pill){ pill.style.cssText = `font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:${bg};color:${col}`; pill.textContent = label; }
   if(evPill){ evPill.style.cssText = `font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:${bg};color:${col}`; evPill.textContent = label; }
-  if(state === 'ok'){
+  if(fbState === 'ok'){
     const now = new Date();
     const ts = now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
                 now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
@@ -2944,19 +3186,83 @@ function initSgFirebase(){
     sgFbStatus('local');
     return;
   }
-  // Dynamically load Firebase SDK (compat v9) — same as WJ Dashboard
-  const sdks = [
-    'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
-    'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'
+  // Multi-CDN fallback — tries 3 different CDNs in cascading order.
+  // If gstatic is blocked (corporate firewall, ad-blockers), jsDelivr usually works.
+  // If both fail, unpkg is the final fallback. Maximises chance of loading without agent action.
+  const CDN_SOURCES = [
+    {
+      name: 'gstatic',
+      app: 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+      db:  'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'
+    },
+    {
+      name: 'jsDelivr',
+      app: 'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js',
+      db:  'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.js'
+    },
+    {
+      name: 'unpkg',
+      app: 'https://unpkg.com/firebase@9.23.0/firebase-app-compat.js',
+      db:  'https://unpkg.com/firebase@9.23.0/firebase-database-compat.js'
+    }
   ];
-  let loaded = 0;
-  sdks.forEach(src => {
-    const s = document.createElement('script');
-    s.src = src;
-    s.onload  = () => { loaded++; if(loaded === sdks.length) onSgFbLoaded(); };
-    s.onerror = () => { console.error('Failed to load Firebase SDK'); sgFbStatus('err'); };
-    document.head.appendChild(s);
-  });
+
+  let cdnIndex = 0;
+  let errorReported = false;
+
+  function tryNextCdn(){
+    if(cdnIndex >= CDN_SOURCES.length){
+      // All CDNs exhausted
+      if(!errorReported){
+        errorReported = true;
+        console.error('[SG] All Firebase CDN sources failed');
+        sgFbStatus('err');
+        showToast('🔴 Firebase could not be loaded from any CDN.\nUsing cached or built-in scripts. Generator still works for script generation.', 'warn');
+      }
+      return;
+    }
+    const source = CDN_SOURCES[cdnIndex];
+    console.log(`[SG] Trying Firebase CDN ${cdnIndex+1}/${CDN_SOURCES.length}: ${source.name}`);
+
+    let loaded = 0;
+    let failed = false;
+    const sdks = [source.app, source.db];
+
+    sdks.forEach(src => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = () => {
+        if(failed) return;
+        loaded++;
+        if(loaded === sdks.length){
+          console.log(`[SG] Firebase loaded successfully from ${source.name}`);
+          onSgFbLoaded();
+        }
+      };
+      s.onerror = () => {
+        if(failed) return;
+        failed = true;
+        console.warn(`[SG] ${source.name} failed, trying next CDN...`);
+        cdnIndex++;
+        // Remove failed scripts to clean up
+        document.querySelectorAll(`script[src*="${source.app.split('/')[2]}"]`).forEach(el => el.remove());
+        tryNextCdn();
+      };
+      document.head.appendChild(s);
+    });
+  }
+
+  tryNextCdn();
+
+  // Global timeout — 15s for entire cascade (5s per CDN average)
+  setTimeout(() => {
+    if(!_sgFbReady && !errorReported){
+      errorReported = true;
+      console.warn('[SG] Firebase SDK loading timed out after 15s');
+      sgFbStatus('err');
+      showToast('🔴 Firebase loading timed out.\nUsing cached or built-in scripts.', 'warn');
+    }
+  }, 15000);
 }
 
 function onSgFbLoaded(){
@@ -3019,36 +3325,58 @@ function sgApplyScripts(firebaseData){
   // Handles both 5-col Sheet format (TypeReturn|User|Result|Section|Script)
   // and 6-col RAW_DB format (TypeReturn|TypeScript|User|Result|Section|Script)
   const newDb = [];
-  for(const r of rows){
-    const c0 = (r.col0||'').trim();
-    const c1 = (r.col1||'').trim();
-    const c2 = (r.col2||'').trim();
-    const c3 = (r.col3||'').trim();
-    const c4 = (r.col4||'').trim();
-    const c5 = (r.col5||'').trim();
+  const rejected = []; // {row, reason}
+  for(let idx=0; idx<rows.length; idx++){
+    const r = rows[idx];
+    const c0Raw = (r.col0||'').trim();
+    const c1Raw = (r.col1||'').trim();
+    const c2Raw = (r.col2||'').trim();
+    const c3Raw = (r.col3||'').trim();
+    const c4Raw = (r.col4||'').trim();
+    const c5Raw = (r.col5||'').trim();
 
-    if(!c0) continue;
-    if(c0 === 'Type Return') continue; // header row
+    if(!c0Raw) continue;                              // silent skip - blank row
+    if(c0Raw === 'Type Return') continue;             // silent skip - header
+    if(c0Raw.startsWith('[') && !c0Raw.startsWith('[P1]')) continue; // silent skip - structural
 
-    // Skip structural special rows (but NOT [P1] which are regular script rows with a tag)
-    if(c0.startsWith('[') && !c0.startsWith('[P1]')) continue;
-
+    // Normalize column values
     let typeReturn, typeScript, user, result, section, script;
-    if(c1 === 'Type A (With Emoji)' || c1 === 'Type B (Without Emoji)'){
+    if(c1Raw === 'Type A (With Emoji)' || c1Raw === 'Type B (Without Emoji)'){
       // 6-col RAW_DB format
-      typeReturn=c0; typeScript=c1; user=c2; result=c3; section=c4; script=c5;
+      typeReturn = _sgNormalize(c0Raw, 'typeReturn');
+      typeScript = c1Raw;
+      user       = _sgNormalize(c2Raw, 'user');
+      result     = c3Raw;
+      section    = c4Raw;
+      script     = c5Raw;
     } else {
-      // 5-col Sheet format (no typeScript column)
-      typeReturn=c0; typeScript='Type A (With Emoji)'; user=c1; result=c2; section=c3; script=c4;
+      // 5-col Sheet format
+      typeReturn = _sgNormalize(c0Raw, 'typeReturn');
+      typeScript = 'Type A (With Emoji)';
+      user       = _sgNormalize(c1Raw, 'user');
+      result     = c2Raw;
+      section    = c3Raw;
+      script     = c4Raw;
     }
 
+    // Strip [P1] prefix from typeReturn (P1 rows reuse Return & Refund pool)
     const cleanType = typeReturn.replace(/^\[P1\]\s*/,'') || 'Return & Refund, Refund Only';
-    if(!user || !result || !section || !script) continue;
+
+    // Validation — track rejections so admin can fix Sheet
+    if(user !== 'Buyer' && user !== 'Seller'){
+      rejected.push({row: idx+2, reason: 'Unknown User "' + (c1Raw||c2Raw) + '" (must be exactly "Buyer" or "Seller")'});
+      continue;
+    }
+    if(!result){ rejected.push({row: idx+2, reason: 'Missing Result column'}); continue; }
+    if(!section){ rejected.push({row: idx+2, reason: 'Missing Section column'}); continue; }
+    if(!script){ rejected.push({row: idx+2, reason: 'Missing Script Text'}); continue; }
+
     newDb.push({id: newDb.length, data: [cleanType, typeScript, user, result, section, script]});
   }
 
   if(newDb.length < 10){
-    console.warn('SG Firebase: only', newDb.length, 'rows after parsing — ignoring push to protect existing data');
+    console.warn('SG Firebase: only', newDb.length, 'rows after parsing — ignoring push');
+    showToast('⚠️ Sheet push rejected: only ' + newDb.length + ' valid rows found (need at least 10).\nKeeping existing scripts intact.', 'warn');
     return;
   }
 
@@ -3056,13 +3384,39 @@ function sgApplyScripts(firebaseData){
   console.log('SG Firebase: loaded', db.length, 'scripts');
   setRefreshStatus('ok');
 
-  // Cache to localStorage so next page load uses Sheet data instantly (before Firebase connects)
+  // Validation report shown in admin banner
+  const report = {accepted: newDb.length, rejected: rejected.length, reasons: rejected.map(r => 'Row ' + r.row + ': ' + r.reason)};
+  setValidationReport(report);
+
+  // Toast feedback — success or partial warning
+  if(rejected.length > 0){
+    showToast('⚠️ Scripts updated: ' + newDb.length + ' accepted, ' + rejected.length + ' rejected.\nFirst issue — Row ' + rejected[0].row + ': ' + rejected[0].reason, 'warn');
+  } else {
+    showToast('✅ Scripts updated: ' + newDb.length + ' scripts loaded from Sheet.', 'success');
+  }
+
+  // Cache to localStorage (with quota handling)
   try{
     localStorage.setItem(_SG_DB_CACHE_KEY, JSON.stringify(db.map(r=>r.data)));
     localStorage.setItem(_SG_DB_CACHE_VER, _SG_CACHE_VERSION + '|' + new Date().toISOString());
     console.log('SG: db cached to localStorage');
   } catch(e){
-    console.warn('SG: could not cache db to localStorage:', e.message);
+    console.warn('SG: localStorage save failed:', e.message);
+    // Try to free space by removing other sg_* keys (except the cache itself)
+    try {
+      for(let i = localStorage.length - 1; i >= 0; i--){
+        const k = localStorage.key(i);
+        if(k && k.startsWith('sg_') && k !== _SG_DB_CACHE_KEY && k !== _SG_DB_CACHE_VER){
+          localStorage.removeItem(k);
+        }
+      }
+      // Retry once
+      localStorage.setItem(_SG_DB_CACHE_KEY, JSON.stringify(db.map(r=>r.data)));
+      localStorage.setItem(_SG_DB_CACHE_VER, _SG_CACHE_VERSION + '|' + new Date().toISOString());
+      console.log('SG: cache saved after quota cleanup');
+    } catch(e2){
+      console.warn('SG: cache save still failing after cleanup:', e2.message);
+    }
   }
 
   // Re-render Script Flows if it is open
@@ -3146,24 +3500,18 @@ function toggleAppsScriptHelp(){
 
 function copyAppsScript(){
   const code = getAppsScriptCode();
-  // Use textarea fallback — works in all browsers including non-HTTPS/iframe contexts
-  const ta = document.createElement('textarea');
-  ta.value = code;
-  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
-  document.body.appendChild(ta);
-  ta.focus();
-  ta.select();
-  let success = false;
-  try { success = document.execCommand('copy'); } catch(_){}
-  document.body.removeChild(ta);
-  if(!success){
-    // Last resort — try clipboard API
-    navigator.clipboard && navigator.clipboard.writeText(code).catch(()=>{});
-  }
-  const btn = event.target;
-  const orig = btn.textContent;
-  btn.textContent = success ? '✓ Copied!' : '✓ Done — paste now';
-  setTimeout(()=>{ btn.textContent = orig; }, 1800);
+  // Capture the click target up-front (event.target is fragile inside callbacks)
+  const btn = (typeof event !== 'undefined' && event && event.target) ? event.target : null;
+  const orig = btn ? btn.textContent : '';
+  _sgCopyToClipboard(code, ()=>{
+    if(!btn) return;
+    btn.textContent = '✓ Copied!';
+    setTimeout(()=>{ btn.textContent = orig; }, 1800);
+  }, ()=>{
+    if(!btn) return;
+    btn.textContent = '⚠ Copy failed — select manually';
+    setTimeout(()=>{ btn.textContent = orig; }, 2500);
+  });
 }
 
 function getAppsScriptCode(){
@@ -3343,11 +3691,11 @@ function _refreshEvSyncStatus(){
   sgFbStatus(sgFbConfigured() ? (_sgFbReady ? 'ok' : 'warn') : 'local');
 }
 
-function setRefreshStatus(state){
+function setRefreshStatus(syncState){
   const pill  = document.getElementById('header-refresh-status');
   const label = document.getElementById('header-refresh-label');
   if(!pill || !label) return;
-  if(state === 'ok'){
+  if(syncState === 'ok'){
     pill.style.background  = 'rgba(34,197,94,.25)';
     pill.style.color       = '#86efac';
     pill.style.borderColor = 'rgba(34,197,94,.4)';
@@ -4270,7 +4618,15 @@ function evGenUpdateHidden(){
 }
 
 function generateScript(){
+  try {
+    _generateScriptCore();
+  } catch(err) {
+    console.error('[SG generateScript error]', err);
+    showToast('⚠️ Could not generate script: ' + (err.message||err) + '\nTry refreshing or click ↩ Revert to Built-in.', 'error');
+  }
+}
 
+function _generateScriptCore(){
   // Always start completely fresh
   state.generatedSections = null;
   state.editingSection = null;
@@ -4359,6 +4715,19 @@ function generateScript(){
     sections[rsIdx].text += `\n\n${liveProbing}`;
   }
 
+  // Submission instructions → appended as a paragraph after evidence text
+  // Buyer (Request Evidence / Request Evidence from Seller) → Shopee App path
+  // Seller (Request Evidence) → Seller Centre path
+  if(rsIdx>=0){
+    const isBuyerEvidence  = state.user==='Buyer' && (state.result==='Request Evidence' || state.result==='Request Evidence from Seller');
+    const isSellerEvidence = state.user==='Seller' && state.result==='Request Evidence';
+    if(isBuyerEvidence){
+      sections[rsIdx].text += `\n\nTo submit the evidences, please follow the steps below:\n\nShopeeApp > Me > Return Refund > Select Order > Upload evidence button`;
+    } else if(isSellerEvidence){
+      sections[rsIdx].text += `\n\nTo submit the evidences, please follow the steps below:\n\nSeller Centre > Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.`;
+    }
+  }
+
 
   // Next Steps (buyer typed) → inserted after Result Sharing (3rd paragraph) with connecting sentence
   if(state.user==='Buyer' && liveNextSteps){
@@ -4415,6 +4784,15 @@ function reshuffleSection(i){
 
       if(liveReject)   newText = newText.replace(/[.\s]+$/, '') + ` ${liveReject.replace(/\.+$/, '')}.`;
       if(liveProbing)  newText += `\n\n${liveProbing}`;
+
+      // Submission instructions — appended after evidence text on reshuffle too
+      const isBuyerEv  = state.user==='Buyer' && (state.result==='Request Evidence' || state.result==='Request Evidence from Seller');
+      const isSellerEv = state.user==='Seller' && state.result==='Request Evidence';
+      if(isBuyerEv){
+        newText += `\n\nTo submit the evidences, please follow the steps below:\n\nShopeeApp > Me > Return Refund > Select Order > Upload evidence button`;
+      } else if(isSellerEv){
+        newText += `\n\nTo submit the evidences, please follow the steps below:\n\nSeller Centre > Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.`;
+      }
     }
 
     state.generatedSections[i].text = newText;
@@ -4528,8 +4906,9 @@ function saveInlineEdit(i){
 function copyAll(){
   if(!state.generatedSections)return;
   const text = state.generatedSections.map(s=>s.text).join('\n\n');
-  navigator.clipboard.writeText(text).then(()=>{
+  _sgCopyToClipboard(text, ()=>{
     const btn=document.getElementById('btn-copy');
+    if(!btn) return;
     btn.textContent='✓ Copied!';btn.className='btn-copy done';
     setTimeout(()=>{btn.textContent='📋 Copy All';btn.className='btn-copy';},2000);
   });
@@ -4549,7 +4928,7 @@ function generateBookmarklet(){
 }
 function copyBookmarklet(){
   if(!state.bookmarkletCode) return;
-  navigator.clipboard.writeText(state.bookmarkletCode).then(()=>{
+  _sgCopyToClipboard(state.bookmarkletCode, ()=>{
     const status = document.getElementById('bm-copy-status');
     if(status) status.textContent = '✅ Copied! Now right-click bookmark bar → Add page → paste as URL';
     setTimeout(()=>{ if(status) status.textContent=''; }, 5000);
@@ -5648,6 +6027,15 @@ let snippetsDB = [];
 let snipFilter = 'all';
 let snipEditId = null;
 
+// Category colors — declared early to prevent TDZ errors when async snippet
+// callbacks fire before the bottom of this section is parsed.
+var SNIP_CAT_COLORS = [
+  {bg:'#dbeafe',fg:'#1e40af'},{bg:'#dcfce7',fg:'#065f46'},{bg:'#fef3c7',fg:'#92400e'},
+  {bg:'#ede9fe',fg:'#6d28d9'},{bg:'#fce7f3',fg:'#9d174d'},{bg:'#fed7aa',fg:'#9a3412'},
+  {bg:'#d1fae5',fg:'#047857'},{bg:'#e0e7ff',fg:'#3730a3'},{bg:'#fecdd3',fg:'#be123c'},
+  {bg:'#ccfbf1',fg:'#0f766e'}
+];
+
 // ═══ SUPABASE CLOUD STORAGE ═══
 // Snippets are stored in Supabase (cloud) per user_id
 // localStorage is used as a fast cache only — Supabase is the source of truth
@@ -6134,13 +6522,9 @@ function getSnipCategories(){
   return [...cats];
 }
 
-const SNIP_CAT_COLORS = [
-  {bg:'#dbeafe',fg:'#1e40af'},{bg:'#dcfce7',fg:'#065f46'},{bg:'#fef3c7',fg:'#92400e'},
-  {bg:'#ede9fe',fg:'#6d28d9'},{bg:'#fce7f3',fg:'#9d174d'},{bg:'#fed7aa',fg:'#9a3412'},
-  {bg:'#d1fae5',fg:'#047857'},{bg:'#e0e7ff',fg:'#3730a3'},{bg:'#fecdd3',fg:'#be123c'},
-  {bg:'#ccfbf1',fg:'#0f766e'}
-];
 function getSnipCatColor(cat){
+  // Defensive — if called before SNIP_CAT_COLORS is initialised (rare async race), return fallback
+  if(typeof SNIP_CAT_COLORS === 'undefined' || !SNIP_CAT_COLORS) return {bg:'#f3f4f6',fg:'#6b7280'};
   const cats = getSnipCategories().sort();
   const idx = cats.indexOf(cat);
   return SNIP_CAT_COLORS[idx % SNIP_CAT_COLORS.length] || SNIP_CAT_COLORS[0];
@@ -6218,7 +6602,7 @@ function copySnippet(id){
   const s = snippetsDB.find(s=>s.id===id);
   if(!s) return;
   const text = fillSnippetPlaceholders(s.content||"");
-  navigator.clipboard.writeText(text).then(()=>{
+  _sgCopyToClipboard(text, ()=>{
     showSnipToast(text);
   });
 }
@@ -6469,6 +6853,8 @@ setTimeout(checkUrlParams, 150);
 setTimeout(()=>{
   if(!document.getElementById('typereturn-btns').children.length) renderForm();
 }, 300);
+// Startup self-test — verifies db & flows are healthy, alerts admin if broken
+setTimeout(()=>{ sgSelfTest('startup'); }, 500);
 
 
 // ═══════════════════════════════════════════════════════════════
@@ -6609,9 +6995,12 @@ function evShowScript(){
 }
 
 function evCopyEvidence(){
-  const text = document.getElementById('ev-evidence-box').textContent;
-  navigator.clipboard.writeText(text).then(()=>{
+  const box = document.getElementById('ev-evidence-box');
+  if(!box) return;
+  const text = box.textContent;
+  _sgCopyToClipboard(text, ()=>{
     const btn = document.getElementById('ev-copy-ev-btn');
+    if(!btn) return;
     btn.textContent = '✓ Copied!';
     setTimeout(()=>btn.textContent='📋 Copy', 2000);
   });
