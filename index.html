@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v24</title>
+<title>All in One Script Generator - v25</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -205,7 +205,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v24</div>
+        <div class="logo-title">All in One Script Generator - v25</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -935,8 +935,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
     <button id="admin-tab-bookmarklet" onclick="setAdminTab('bookmarklet')" class="admin-sub-btn active">🔗 Bookmarklet</button>
     <button id="admin-tab-versions" onclick="setAdminTab('versions')" class="admin-sub-btn">📝 Version Updates</button>
-    <button id="admin-tab-scripts" onclick="setAdminTab('scripts')" class="admin-sub-btn">📜 Script Flows</button>
-    <button id="admin-tab-evidence" onclick="setAdminTab('evidence')" class="admin-sub-btn">📋 Evidence Collection</button>
+    <button id="admin-tab-gssync" onclick="setAdminTab('gssync')" class="admin-sub-btn">📋 Google Sheet Sync</button>
+    <button id="admin-tab-firebase" onclick="setAdminTab('firebase')" class="admin-sub-btn">🔥 Firebase Sync</button>
     <button id="admin-tab-backend" onclick="setAdminTab('backend')" class="admin-sub-btn">🔧 Backend HTML</button>
     <button id="admin-tab-statistics" onclick="setAdminTab('statistics')" class="admin-sub-btn">📊 Statistics</button>
   </div>
@@ -1063,179 +1063,308 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 
   </div><!-- end admin-section-bookmarklet -->
 
-  <!-- EVIDENCE SECTION -->
-  <div id="admin-section-evidence" class="hidden">
+  <!-- GOOGLE SHEET SYNC SECTION -->
+  <div id="admin-section-gssync" class="hidden">
 
-  <!-- Firebase Sync — Evidence auto-updates when Apps Script pushes to Firebase -->
-  <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:12px;padding:14px 18px;margin-bottom:16px">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:16px">🔥</span>
-        <span style="font-weight:700;font-size:13px;color:#92400e">Firebase Sync — Evidence from Google Sheets</span>
-        <span id="ev-sync-status" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#f3f4f6;color:#6b7280">Connecting…</span>
+  <!-- ── Status header ── -->
+  <div style="background:linear-gradient(135deg,#fff5f3 0%,#fff8f0 100%);border:1.5px solid #fed7aa;border-radius:14px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:20px">📋</span>
+      <div>
+        <div style="font-weight:800;font-size:14px;color:#92400e">Google Sheet Sync</div>
+        <div style="font-size:11px;color:#9a3412">Google Sheet → Apps Script → Firebase → All generators</div>
       </div>
-      <span id="ev-sync-last" style="font-size:11px;color:#6b7280">Last push: —</span>
     </div>
-    <div style="font-size:11px;color:#92400e;line-height:1.5">
-      Evidence updates automatically — no manual action needed. When you push from Google Sheets, all open generators reload within seconds.
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span id="gssync-conn-pill" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:#fef3c7;color:#d97706">Connecting…</span>
+      <span id="gssync-cdn-label" style="font-size:11px;color:#9ca3af"></span>
     </div>
   </div>
 
-  <!-- Evidence Flows Panel -->
-  <div id="admin-evidence-panel">
-    <!-- Evidence Upload/Download Controls -->
-    <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
-      <button onclick="exportEvidenceCSV()" style="padding:7px 16px;border-radius:10px;border:none;background:#2563eb;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Export CSV</button>
-      <button onclick="document.getElementById('ev-import-file').click()" style="padding:7px 16px;border-radius:10px;border:none;background:#059669;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">📤 Import CSV</button>
-      <input type="file" id="ev-import-file" accept=".csv" style="display:none" onchange="importEvidenceCSV(this)">
-      <span style="margin-left:auto;font-size:12px;color:#9ca3af" id="ev-script-count"></span>
-    </div>
-    <!-- Filter -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-      <span style="font-size:12px;font-weight:600;color:#6b7280">Filter:</span>
-      <select id="ev-admin-filter-cat" onchange="renderAdminEvidenceFlows()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
-        <option value="">All Categories</option>
-        <option value="buyer">🛒 Buyer — Evidence</option>
-        <option value="seller">🏪 Seller — Forward Leg</option>
-        <option value="returnLeg">🔄 Seller — Return Leg</option>
-      </select>
-      <select id="ev-admin-filter-reason" onchange="renderAdminEvidenceFlows()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
-        <option value="">All Reasons</option>
-      </select>
-      <span style="margin-left:auto;font-size:12px;font-weight:600;color:#92400e;background:#fef3c7;padding:4px 12px;border-radius:8px" id="ev-filter-count"></span>
-    </div>
-    <!-- Import Mode -->
-    <div id="ev-import-bar" class="hidden" style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      <span style="font-size:13px;color:#92400e;font-weight:600">Import mode:</span>
-      <label style="font-size:13px;color:#374151;cursor:pointer"><input type="radio" name="ev-import-mode" value="replace" checked style="margin-right:4px">Replace all</label>
-      <label style="font-size:13px;color:#374151;cursor:pointer"><input type="radio" name="ev-import-mode" value="add" style="margin-right:4px">Add to existing</label>
-      <button onclick="confirmEvidenceImport()" style="padding:4px 14px;border-radius:7px;border:none;background:#059669;color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">✓ Confirm</button>
-      <button onclick="cancelEvidenceImport()" style="padding:4px 10px;border-radius:7px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">Cancel</button>
-      <span id="ev-import-preview" style="font-size:12px;color:#374151"></span>
-    </div>
-        <div id="admin-evidence-flow-list"></div>
-  </div>
-  </div><!-- end admin-section-evidence -->
-
-  <!-- SCRIPTS SECTION -->
-  <div id="admin-section-scripts" class="hidden">
-
-  <!-- Firebase Live Sync status -->
-  <div id="fb-sync-config" style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:12px;padding:14px 18px;margin-bottom:16px">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px">
-      <div style="display:flex;align-items:center;gap:8px">
-        <span style="font-size:16px">🔥</span>
-        <span style="font-weight:700;font-size:13px;color:#92400e">Firebase Live Sync — Scripts from Google Sheets</span>
-        <span id="fb-sync-status" style="font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#fef3c7;color:#d97706">Connecting…</span>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <span id="fb-sync-last" style="font-size:11px;color:#6b7280">Last push: —</span>
-        <button onclick="revertToRawDb()" id="btn-revert-rawdb" style="padding:6px 12px;border-radius:8px;border:1.5px solid #fca5a5;background:#fff5f5;color:#dc2626;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif" title="Revert to the baked-in scripts — use if a bad Firebase push broke generation">↩ Revert to Built-in</button>
-        <button onclick="toggleAppsScriptHelp()" style="padding:6px 12px;border-radius:8px;border:1.5px solid #fed7aa;background:white;color:#92400e;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">📘 Apps Script Setup</button>
-      </div>
-    </div>
-    <div style="font-size:11px;color:#92400e;line-height:1.5">
-      Updates flow: <strong>Google Sheet → Apps Script (push) → Firebase → all generators auto-update</strong>.
-      No manual pull needed — when you push from Sheets, every open generator reloads the scripts within seconds.
-      <span id="revert-status" style="display:none;margin-left:8px;font-weight:700;color:#dc2626"></span>
-    </div>
+  <!-- ── Action buttons ── -->
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+    <button onclick="gsSyncFromSheet()" id="btn-gs-from" style="padding:8px 18px;border-radius:10px;border:none;background:linear-gradient(90deg,#2563eb,#3b82f6);color:white;font-weight:700;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;box-shadow:0 2px 8px rgba(37,99,235,.25)" title="Re-pull Firebase data, compare against last snapshot, and show exactly what changed.">⬇️ Sync FROM Sheet</button>
+    <button onclick="gsSyncToSheet()" id="btn-gs-to" style="padding:8px 18px;border-radius:10px;border:none;background:linear-gradient(90deg,#059669,#10b981);color:white;font-weight:700;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;box-shadow:0 2px 8px rgba(5,150,105,.25)" title="Send built-in RAW_DB to Firebase for Apps Script to write into your Sheet as a preview tab.">⬆️ Sync TO Sheet</button>
+    <button onclick="toggleAppsScriptHelp()" style="padding:8px 14px;border-radius:10px;border:1.5px solid #fed7aa;background:white;color:#92400e;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">📘 Apps Script Setup</button>
+    <button onclick="revertToRawDb()" style="padding:8px 14px;border-radius:10px;border:1.5px solid #fca5a5;background:#fff5f5;color:#dc2626;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif" title="Emergency: replace Firebase data with baked-in scripts for this session">↩ Revert to Built-in</button>
+    <span id="gs-action-status" style="font-size:11px;color:#6b7280;margin-left:4px"></span>
+    <span id="revert-status" style="display:none;font-size:11px;font-weight:700;color:#dc2626;margin-left:4px"></span>
   </div>
 
-  <!-- Apps Script Setup Instructions (collapsed by default) -->
-  <div id="apps-script-help" class="hidden" style="background:white;border:2px solid #fed7aa;border-radius:12px;padding:18px 20px;margin-bottom:16px">
+  <!-- ── Apps Script Setup panel ── -->
+  <div id="apps-script-help" class="hidden" style="background:white;border:2px solid #fed7aa;border-radius:12px;padding:18px 20px;margin-bottom:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
       <div style="font-weight:800;font-size:14px;color:#92400e">📘 Google Apps Script — One-Time Setup</div>
       <button onclick="toggleAppsScriptHelp()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;padding:0;line-height:1">×</button>
     </div>
-
     <div style="font-size:12.5px;color:#374151;line-height:1.7">
       <div style="font-weight:700;color:#92400e;margin-top:4px">1️⃣ Prepare your Google Sheet</div>
       <ul style="margin:4px 0 10px;padding-left:18px">
         <li>Columns (row 1 = headers): <code style="background:#fff7ed;padding:1px 6px;border-radius:4px">Type Return | User | Result | Section | Script Text</code></li>
         <li>Special row prefixes supported: <code>[FLOW]</code>, <code>[EVIDENCE]</code>, <code>[EVIDENCE_BULLET]</code>, <code>[P1]</code>, <code>[NEXT_STEPS]</code>, <code>[ISSUE_DESC]</code></li>
       </ul>
-
       <div style="font-weight:700;color:#92400e">2️⃣ Open Apps Script in your Sheet</div>
       <ul style="margin:4px 0 10px;padding-left:18px">
         <li>In Google Sheet: <strong>Extensions → Apps Script</strong></li>
         <li>Delete any default code, paste the script below, click <strong>💾 Save</strong></li>
       </ul>
-
       <div style="font-weight:700;color:#92400e">3️⃣ Run once to authorise</div>
       <ul style="margin:4px 0 10px;padding-left:18px">
         <li>Select function <code>pushToFirebase</code> → click <strong>▶ Run</strong> → grant permissions</li>
         <li>A new <strong>🔥 Sync to Firebase</strong> menu will appear in the Sheet toolbar</li>
       </ul>
-
       <div style="font-weight:700;color:#92400e">4️⃣ Daily use</div>
       <ul style="margin:4px 0 10px;padding-left:18px">
         <li>After editing the Sheet: <strong>🔥 Sync to Firebase → Push all rows</strong></li>
         <li>All open generators update automatically within seconds — no action needed by agents</li>
       </ul>
-
       <div style="font-weight:700;color:#92400e;margin-top:14px">📋 The Apps Script code:</div>
       <div style="position:relative;margin-top:6px">
         <button onclick="copyAppsScript()" style="position:absolute;top:8px;right:8px;padding:4px 12px;border-radius:6px;border:none;background:#d97706;color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;z-index:2">📋 Copy</button>
         <pre id="apps-script-code" style="background:#1e293b;color:#e2e8f0;padding:14px 16px;border-radius:10px;font-size:11.5px;line-height:1.55;overflow-x:auto;max-height:380px;overflow-y:auto;font-family:'JetBrains Mono','Fira Code',monospace;margin:0;white-space:pre"></pre>
       </div>
-
       <div style="background:#fff7ed;border:1.5px solid #fed7aa;border-radius:8px;padding:8px 12px;margin-top:12px;font-size:11.5px;color:#92400e;line-height:1.5">
         <strong>🔒 Security:</strong> the script uses your Firebase config — the same project and database URL already in the generator. Only the generator and your Apps Script access it.
       </div>
     </div>
   </div>
 
-  <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-    <button onclick="openImportModal()" style="padding:7px 16px;border-radius:10px;border:none;background:#059669;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">📤 Import Sheet</button>
-    <button onclick="exportScripts()" style="padding:7px 16px;border-radius:10px;border:none;background:#2563eb;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Export CSV</button>
-  </div>
-
-<div id="scripts-section">
-  <!-- Filter Bar -->
-  <div id="filter-bar" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-    <span style="font-size:12px;font-weight:600;color:#6b7280">Filter:</span>
-    <select id="filter-section" onchange="renderAdminPanel()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
-      <option value="">All Sections</option>
-    </select>
-    <select id="filter-user" onchange="renderAdminPanel()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
-      <option value="">All Users</option>
-      <option>Buyer</option>
-      <option>Seller</option>
-    </select>
-    <select id="filter-result" onchange="renderAdminPanel()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
-      <option value="">All Flows</option>
-    </select>
-    <span style="margin-left:auto;font-size:12px;font-weight:600;color:#92400e;background:#fef3c7;padding:4px 12px;border-radius:8px" id="filter-count"></span>
-  </div>
-
-
-    <div id="issue-desc-reference" class="hidden"></div>
-    <div id="next-steps-reference" class="hidden"></div>
-    <div id="admin-scripts-grouped"></div>
-
-    <!-- P1 Cases Collapsibles — Buyer and Seller separate -->
-    <!-- Buyer P1 -->
-    <div id="p1-buyer-collapsible" style="margin-top:16px;border:2px solid #fca5a5;border-radius:12px;overflow:hidden;background:white">
-      <div onclick="document.getElementById('p1-buyer-body').classList.toggle('hidden');this.querySelector('.arrow').style.transform=document.getElementById('p1-buyer-body').classList.contains('hidden')?'':'rotate(90deg)'" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#dc2626,#ef4444);user-select:none">
-        <span class="arrow" style="font-size:11px;color:white;transition:transform .2s">▶</span>
-        <span style="font-size:13px">🔴</span>
-        <span style="font-weight:800;font-size:13px;color:white">Buyer Request › P1 Cases Only</span>
-        <span style="font-size:11px;color:rgba(255,255,255,.75);font-weight:600;margin-left:auto" id="p1-buyer-count"></span>
-      </div>
-      <div id="p1-buyer-body" class="hidden" style="padding:14px 16px"></div>
-    </div>
-    <!-- Seller P1 -->
-    <div id="p1-seller-collapsible" style="margin-top:10px;border:2px solid #93c5fd;border-radius:12px;overflow:hidden;background:white">
-      <div onclick="document.getElementById('p1-seller-body').classList.toggle('hidden');this.querySelector('.arrow').style.transform=document.getElementById('p1-seller-body').classList.contains('hidden')?'':'rotate(90deg)'" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#1d4ed8,#2563eb);user-select:none">
-        <span class="arrow" style="font-size:11px;color:white;transition:transform .2s">▶</span>
-        <span style="font-size:13px">🔵</span>
-        <span style="font-weight:800;font-size:13px;color:white">Seller Dispute › With Buyer › P1 Cases Only</span>
-        <span style="font-size:11px;color:rgba(255,255,255,.75);font-weight:600;margin-left:auto" id="p1-seller-count"></span>
-      </div>
-      <div id="p1-seller-body" class="hidden" style="padding:14px 16px"></div>
+  <!-- ── Diff Dashboard ── -->
+  <div id="gs-diff-empty" style="background:white;border:1.5px dashed #e5e7eb;border-radius:14px;padding:28px 24px;text-align:center;margin-bottom:14px">
+    <div style="font-size:30px;margin-bottom:8px">📊</div>
+    <div style="font-weight:700;color:#374151;margin-bottom:4px;font-size:14px">No sync results yet</div>
+    <div style="font-size:12px;color:#9ca3af;max-width:400px;margin:0 auto">
+      Click <strong>⬇️ Sync FROM Sheet</strong> to pull Firebase data and see exactly what's changed vs the previous snapshot.<br>
+      Snapshots persist for 30 days in localStorage.
     </div>
   </div>
-  </div><!-- end admin-section-scripts -->
+  <div id="gs-diff-dashboard" class="hidden" style="margin-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px">
+      <div style="font-size:12px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em">📊 Last Sync Results</div>
+      <div id="gs-diff-timestamp" style="font-size:11px;color:#9ca3af"></div>
+    </div>
+    <!-- Scripts collapsible diff -->
+    <div id="gs-diff-scripts-card" style="background:white;border-radius:12px;border:1.5px solid #f3f4f6;margin-bottom:8px;overflow:hidden">
+      <button onclick="gsDiffToggle('scripts')" id="gs-diff-scripts-hdr" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:12px">
+        <span style="font-size:14px">📜</span>
+        <span style="font-weight:700;font-size:13px;color:#374151;flex:1">Scripts</span>
+        <span id="gs-diff-scripts-badges" style="display:flex;gap:5px"></span>
+        <span id="gs-diff-scripts-arrow" style="color:#9ca3af;font-size:11px;transition:transform .2s">▼</span>
+      </button>
+      <div id="gs-diff-scripts-body" class="hidden" style="border-top:1.5px solid #f3f4f6;padding:14px 16px">
+        <div id="gs-diff-scripts-stats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <div id="gs-diff-scripts-tabs" style="display:flex;gap:6px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid #f3f4f6"></div>
+        <div id="gs-diff-scripts-rows" style="max-height:260px;overflow-y:auto"></div>
+      </div>
+    </div>
+    <!-- Evidence collapsible diff -->
+    <div id="gs-diff-evidence-card" style="background:white;border-radius:12px;border:1.5px solid #f3f4f6;margin-bottom:8px;overflow:hidden">
+      <button onclick="gsDiffToggle('evidence')" id="gs-diff-evidence-hdr" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;gap:10px;border-radius:12px">
+        <span style="font-size:14px">📋</span>
+        <span style="font-weight:700;font-size:13px;color:#374151;flex:1">Evidence Collection</span>
+        <span id="gs-diff-evidence-badges" style="display:flex;gap:5px"></span>
+        <span id="gs-diff-evidence-arrow" style="color:#9ca3af;font-size:11px;transition:transform .2s">▼</span>
+      </button>
+      <div id="gs-diff-evidence-body" class="hidden" style="border-top:1.5px solid #f3f4f6;padding:14px 16px">
+        <div id="gs-diff-evidence-stats" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+        <div id="gs-diff-evidence-rows" style="max-height:180px;overflow-y:auto"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Activity Log ── -->
+  <div style="background:white;border-radius:12px;border:1.5px solid #f3f4f6;margin-bottom:14px;overflow:hidden">
+    <button onclick="gsLogToggle()" id="gs-log-hdr" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;gap:8px;border-radius:12px">
+      <span style="font-weight:700;font-size:13px;color:#374151;flex:1">📜 Activity Log</span>
+      <span style="font-size:11px;color:#9ca3af">last <span id="gs-log-count">0</span> events · 30 days</span>
+      <button onclick="event.stopPropagation();gsLogClear()" style="font-size:11px;padding:3px 10px;border-radius:6px;border:1px solid #e5e7eb;background:white;color:#9ca3af;cursor:pointer;font-family:'Sora',sans-serif;margin-right:4px">🧹 Clear</button>
+      <span id="gs-log-arrow" style="color:#9ca3af;font-size:11px">▼</span>
+    </button>
+    <div id="gs-log-body" class="hidden" style="border-top:1.5px solid #f3f4f6;padding:10px 12px;max-height:300px;overflow-y:auto">
+      <div id="gs-log-list" style="font-size:0"></div>
+    </div>
+  </div>
+
+  <!-- ── Scripts section (collapsible) ── -->
+  <div style="background:white;border-radius:12px;border:1.5px solid #f3f4f6;margin-bottom:8px;overflow:hidden">
+    <button onclick="gsToggleCollapsible('gs-scripts-body','gs-scripts-arrow')" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;gap:8px;border-radius:12px">
+      <span style="font-size:14px">📜</span>
+      <span style="font-weight:700;font-size:13px;color:#374151;flex:1">Script Flows</span>
+      <span style="font-size:11px;color:#9ca3af" id="gs-scripts-count-label"></span>
+      <span id="gs-scripts-arrow" style="color:#9ca3af;font-size:11px;transition:transform .2s">▼</span>
+    </button>
+    <div id="gs-scripts-body" class="hidden" style="border-top:1.5px solid #f3f4f6;padding:14px 16px">
+      <!-- Filter Bar -->
+      <div id="filter-bar" style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:600;color:#6b7280">Filter:</span>
+        <select id="filter-section" onchange="renderAdminPanel()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
+          <option value="">All Sections</option>
+        </select>
+        <select id="filter-user" onchange="renderAdminPanel()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
+          <option value="">All Users</option>
+          <option>Buyer</option>
+          <option>Seller</option>
+        </select>
+        <select id="filter-result" onchange="renderAdminPanel()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
+          <option value="">All Flows</option>
+        </select>
+        <span style="margin-left:auto;font-size:12px;font-weight:600;color:#92400e;background:#fef3c7;padding:4px 12px;border-radius:8px" id="filter-count"></span>
+      </div>
+      <div id="issue-desc-reference" class="hidden"></div>
+      <div id="next-steps-reference" class="hidden"></div>
+      <div id="admin-scripts-grouped"></div>
+      <!-- P1 Buyer -->
+      <div id="p1-buyer-collapsible" style="margin-top:16px;border:2px solid #fca5a5;border-radius:12px;overflow:hidden;background:white">
+        <div onclick="document.getElementById('p1-buyer-body').classList.toggle('hidden');this.querySelector('.arrow').style.transform=document.getElementById('p1-buyer-body').classList.contains('hidden')?'':'rotate(90deg)'" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#dc2626,#ef4444);user-select:none">
+          <span class="arrow" style="font-size:11px;color:white;transition:transform .2s">▶</span>
+          <span style="font-size:13px">🔴</span>
+          <span style="font-weight:800;font-size:13px;color:white">Buyer Request › P1 Cases Only</span>
+          <span style="font-size:11px;color:rgba(255,255,255,.75);font-weight:600;margin-left:auto" id="p1-buyer-count"></span>
+        </div>
+        <div id="p1-buyer-body" class="hidden" style="padding:14px 16px"></div>
+      </div>
+      <!-- P1 Seller -->
+      <div id="p1-seller-collapsible" style="margin-top:10px;border:2px solid #93c5fd;border-radius:12px;overflow:hidden;background:white">
+        <div onclick="document.getElementById('p1-seller-body').classList.toggle('hidden');this.querySelector('.arrow').style.transform=document.getElementById('p1-seller-body').classList.contains('hidden')?'':'rotate(90deg)'" style="padding:12px 16px;cursor:pointer;display:flex;align-items:center;gap:10px;background:linear-gradient(90deg,#1d4ed8,#2563eb);user-select:none">
+          <span class="arrow" style="font-size:11px;color:white;transition:transform .2s">▶</span>
+          <span style="font-size:13px">🔵</span>
+          <span style="font-weight:800;font-size:13px;color:white">Seller Dispute › With Buyer › P1 Cases Only</span>
+          <span style="font-size:11px;color:rgba(255,255,255,.75);font-weight:600;margin-left:auto" id="p1-seller-count"></span>
+        </div>
+        <div id="p1-seller-body" class="hidden" style="padding:14px 16px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Evidence section (collapsible) ── -->
+  <div style="background:white;border-radius:12px;border:1.5px solid #f3f4f6;overflow:hidden">
+    <button onclick="gsToggleCollapsible('gs-evidence-body','gs-evidence-arrow');if(!document.getElementById('gs-evidence-body').classList.contains('hidden'))renderAdminEvidenceFlows();" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:12px 16px;display:flex;align-items:center;gap:8px;border-radius:12px">
+      <span style="font-size:14px">📋</span>
+      <span style="font-weight:700;font-size:13px;color:#374151;flex:1">Evidence Collection</span>
+      <span style="font-size:11px;color:#9ca3af" id="gs-evidence-count-label"></span>
+      <span id="gs-evidence-arrow" style="color:#9ca3af;font-size:11px;transition:transform .2s">▼</span>
+    </button>
+    <div id="gs-evidence-body" class="hidden" style="border-top:1.5px solid #f3f4f6;padding:14px 16px">
+      <div id="admin-evidence-panel">
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+          <button onclick="exportEvidenceCSV()" style="padding:7px 16px;border-radius:10px;border:none;background:#2563eb;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Export CSV</button>
+          <button onclick="document.getElementById('ev-import-file').click()" style="padding:7px 16px;border-radius:10px;border:none;background:#059669;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">📤 Import CSV</button>
+          <input type="file" id="ev-import-file" accept=".csv" style="display:none" onchange="importEvidenceCSV(this)">
+          <span style="margin-left:auto;font-size:12px;color:#9ca3af" id="ev-script-count"></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+          <span style="font-size:12px;font-weight:600;color:#6b7280">Filter:</span>
+          <select id="ev-admin-filter-cat" onchange="renderAdminEvidenceFlows()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
+            <option value="">All Categories</option>
+            <option value="buyer">🛒 Buyer — Evidence</option>
+            <option value="seller">🏪 Seller — Forward Leg</option>
+            <option value="returnLeg">🔄 Seller — Return Leg</option>
+          </select>
+          <select id="ev-admin-filter-reason" onchange="renderAdminEvidenceFlows()" style="font-size:12px;padding:5px 8px;border-radius:8px;border:1.5px solid #e5e7eb;font-family:'Sora',sans-serif;outline:none;cursor:pointer">
+            <option value="">All Reasons</option>
+          </select>
+          <span style="margin-left:auto;font-size:12px;font-weight:600;color:#92400e;background:#fef3c7;padding:4px 12px;border-radius:8px" id="ev-filter-count"></span>
+        </div>
+        <div id="ev-import-bar" class="hidden" style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span style="font-size:13px;color:#92400e;font-weight:600">Import mode:</span>
+          <label style="font-size:13px;color:#374151;cursor:pointer"><input type="radio" name="ev-import-mode" value="replace" checked style="margin-right:4px">Replace all</label>
+          <label style="font-size:13px;color:#374151;cursor:pointer"><input type="radio" name="ev-import-mode" value="add" style="margin-right:4px">Add to existing</label>
+          <button onclick="confirmEvidenceImport()" style="padding:4px 14px;border-radius:7px;border:none;background:#059669;color:white;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">✓ Confirm</button>
+          <button onclick="cancelEvidenceImport()" style="padding:4px 10px;border-radius:7px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">Cancel</button>
+          <span id="ev-import-preview" style="font-size:12px;color:#374151"></span>
+        </div>
+        <div id="admin-evidence-flow-list"></div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end admin-section-gssync -->
+
+  <!-- FIREBASE SYNC SECTION (kept for deep diagnostics) -->
+  <div id="admin-section-firebase" class="hidden">
+
+    <!-- Status overview card -->
+    <div style="background:linear-gradient(135deg,#fff5f3 0%,#fff8f0 100%);border:1.5px solid #fed7aa;border-radius:14px;padding:20px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px">🔥</span>
+          <div>
+            <div style="font-weight:800;font-size:15px;color:#92400e">Firebase Sync Dashboard</div>
+            <div style="font-size:11px;color:#9a3412">All sync activity, errors, and health checks in one place</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <button onclick="fbDashRunSelfTest()" style="padding:7px 14px;border-radius:8px;border:1.5px solid #fed7aa;background:white;color:#92400e;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif" title="Re-run startup self-test (db size, flow count, key flows)">🩺 Run Self-Test</button>
+          <button onclick="fbDashClearLog()" style="padding:7px 14px;border-radius:8px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif" title="Clear the event log below">🧹 Clear Log</button>
+          <button onclick="revertToRawDb()" style="padding:7px 14px;border-radius:8px;border:1.5px solid #fca5a5;background:#fff5f5;color:#dc2626;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif" title="Revert to built-in scripts if a bad push broke generation">↩ Revert to Built-in</button>
+        </div>
+      </div>
+
+      <!-- 4-cell status grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px">
+        <!-- Connection -->
+        <div style="background:white;border-radius:10px;padding:12px 14px;border:1px solid #f3f4f6">
+          <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Connection</div>
+          <div id="fbdash-conn" style="font-size:13px;font-weight:700;color:#374151">Connecting…</div>
+          <div id="fbdash-conn-sub" style="font-size:11px;color:#9ca3af;margin-top:2px">Initialising Firebase</div>
+        </div>
+        <!-- CDN -->
+        <div style="background:white;border-radius:10px;padding:12px 14px;border:1px solid #f3f4f6">
+          <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">SDK Source</div>
+          <div id="fbdash-cdn" style="font-size:13px;font-weight:700;color:#374151">—</div>
+          <div id="fbdash-cdn-sub" style="font-size:11px;color:#9ca3af;margin-top:2px">Awaiting load</div>
+        </div>
+        <!-- Last push -->
+        <div style="background:white;border-radius:10px;padding:12px 14px;border:1px solid #f3f4f6">
+          <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Last Push</div>
+          <div id="fbdash-push" style="font-size:13px;font-weight:700;color:#374151">—</div>
+          <div id="fbdash-push-sub" style="font-size:11px;color:#9ca3af;margin-top:2px">No pushes yet this session</div>
+        </div>
+        <!-- Health -->
+        <div style="background:white;border-radius:10px;padding:12px 14px;border:1px solid #f3f4f6">
+          <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Generator Health</div>
+          <div id="fbdash-health" style="font-size:13px;font-weight:700;color:#374151">—</div>
+          <div id="fbdash-health-sub" style="font-size:11px;color:#9ca3af;margin-top:2px">Awaiting self-test</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Validation report card (shows after each push) -->
+    <div id="fbdash-validation" style="display:none;background:white;border-radius:12px;border:1.5px solid #f3f4f6;padding:16px 18px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:700;font-size:13px;color:#374151">📋 Latest Push Validation</div>
+        <div id="fbdash-val-summary" style="font-size:12px;color:#6b7280"></div>
+      </div>
+      <div id="fbdash-val-body" style="font-size:12px;color:#374151;line-height:1.6"></div>
+    </div>
+
+    <!-- Event log -->
+    <div style="background:white;border-radius:12px;border:1.5px solid #f3f4f6;padding:16px 18px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:700;font-size:13px;color:#374151">📜 Event Log</div>
+        <div style="font-size:11px;color:#9ca3af">Most recent first · last <span id="fbdash-log-count">0</span> events</div>
+      </div>
+      <div id="fbdash-log" style="max-height:340px;overflow-y:auto;background:#fafafa;border-radius:8px;padding:8px;border:1px solid #f3f4f6">
+        <div style="text-align:center;color:#9ca3af;font-size:12px;padding:20px">No events yet — sync activity will appear here.</div>
+      </div>
+    </div>
+
+    <!-- Quick actions card -->
+    <div style="background:white;border-radius:12px;border:1.5px solid #f3f4f6;padding:16px 18px;margin-bottom:16px">
+      <div style="font-weight:700;font-size:13px;color:#374151;margin-bottom:10px">⚙️ Quick Actions &amp; Setup</div>
+      <div style="font-size:12px;color:#6b7280;line-height:1.6;margin-bottom:10px">
+        <strong>Updates flow:</strong> Google Sheet → Apps Script (push) → Firebase → all generators auto-update.<br>
+        No manual pull needed — when you push from Sheets, every open generator reloads within seconds.
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button onclick="toggleAppsScriptHelp(); setAdminTab('gssync');" style="padding:8px 14px;border-radius:8px;border:1.5px solid #fed7aa;background:white;color:#92400e;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif">📘 Apps Script Setup</button>
+        <button onclick="fbDashForceReinit()" style="padding:8px 14px;border-radius:8px;border:1.5px solid #fed7aa;background:white;color:#92400e;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif" title="Force-reload Firebase SDK from CDNs (rare — only if connection seems stuck)">🔄 Re-initialise Firebase</button>
+      </div>
+    </div>
+
+  </div><!-- end admin-section-firebase -->
+
+  <!-- Scripts content is now inside admin-section-gssync above -->
 
   <!-- BACKEND HTML SECTION -->
   <div id="admin-section-backend" class="hidden">
@@ -1257,7 +1386,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="docs-sidebar-logo">
       <span class="ds-badge">Shopee Return & Refund</span>
       <h2>All in One Script Generator</h2>
-      <p>Technical Documentation — v24</p>
+      <p>Technical Documentation — v25</p>
     </div>
 
     <div class="docs-nav-group">
@@ -2043,7 +2172,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v24')" id="vnav-v24"><span class="ddot" style="background:#ee4d2d"></span>v24 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v25')" id="vnav-v25"><span class="ddot" style="background:#ee4d2d"></span>v25 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v24')" id="vnav-v24"><span class="ddot" style="background:#6b7280"></span>v24</a>
     <a class="docs-nav-item" onclick="scrollToVer('v23')" id="vnav-v23"><span class="ddot" style="background:#6b7280"></span>v23</a>
     <a class="docs-nav-item" onclick="scrollToVer('v22')" id="vnav-v22"><span class="ddot" style="background:#6b7280"></span>v22</a>
     <a class="docs-nav-item" onclick="scrollToVer('v21')" id="vnav-v21"><span class="ddot" style="background:#6b7280"></span>v21</a>
@@ -2070,11 +2200,51 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
+      <!-- v25 -->
+      <div id="vsec-v25" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v25 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">18 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>🔥 Firebase Sync — new unified Admin tab</strong> — consolidates everything that was previously scattered across the Script Flows and Evidence Collection banners into one diagnostic dashboard. Shows at a glance whether sync is healthy, where the SDK loaded from, when the last push arrived, and what (if anything) went wrong.
+              <ul style="margin-top:6px;padding-left:18px;font-size:12.5px;color:#4b5563">
+                <li><strong>4-cell status grid</strong> — <em>Connection</em> (Live / Connecting / Not connected / Local only), <em>SDK Source</em> (gstatic / jsDelivr / unpkg / All failed), <em>Last Push</em> (count + timestamp + kind), <em>Generator Health</em> (db rows + flow count from self-test).</li>
+                <li><strong>Latest Push Validation card</strong> — shows accepted/rejected breakdown after every Sheet push. Lists up to 20 rejection reasons in a monospace block so the admin can see exactly which rows failed and why (e.g. "Row 47: Unknown User 'buyr'"). Appears even when 0 rows passed (the case where v24 just silently kept the existing scripts).</li>
+                <li><strong>📜 Event Log</strong> — chronological feed of every sync-related event: CDN attempts, successes, failures, pushes, rejections, self-test runs, uncaught errors, promise rejections. Up to 50 events kept, most recent first, colour-coded by severity. This is the single source of truth for "what just happened" — no more digging through DevTools console.</li>
+                <li><strong>🩺 Run Self-Test button</strong> — re-runs the startup health check on demand. Result is logged into the Event Log so you can prove the generator is healthy at any point.</li>
+                <li><strong>🔄 Re-initialise Firebase button</strong> — force-reloads the SDK from the CDN cascade if the connection seems stuck. Useful when a transient network blip leaves the page in "Connecting…" longer than it should.</li>
+                <li><strong>↩ Revert to Built-in button</strong> — same as before, just relocated to the new tab. Use if a bad push broke generation.</li>
+              </ul>
+            </li>
+            <li><strong>Old per-tab banners removed</strong> — the orange "🔥 Firebase Live Sync" banner used to appear at the top of <em>both</em> Script Flows <em>and</em> Evidence Collection. Both are replaced with a single thin pointer line that links to the new tab, freeing up vertical real estate for the actual content of those tabs.</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><code>_sgLogEvent(type, msg, extra?)</code> — central log function. <code>type</code> is one of <code>info</code> / <code>success</code> / <code>warn</code> / <code>error</code>. Pushes to <code>_sgFbLog</code> ring buffer (capped at 50) and auto-refreshes the dashboard if the Firebase Sync tab is open.</li>
+            <li><code>_sgFbCdnSource</code> tracks which CDN won the cascade: <code>'gstatic'</code>, <code>'jsDelivr'</code>, <code>'unpkg'</code>, or <code>'failed'</code>. Set inside the CDN cascade <code>onload</code> / <code>onerror</code> handlers.</li>
+            <li><code>_sgFbLastPush</code> records <code>{time, kind, accepted, rejected}</code> for the most recent push (Scripts or Evidence). Powers the Last Push card.</li>
+            <li><code>sgApplyScripts</code> now writes the validation report to <code>_sgLastValidation</code> even on rejected pushes (when fewer than 10 rows passed) so the dashboard can show <em>why</em> the push was rejected — not just <em>that</em> it was rejected.</li>
+            <li>Hook points: CDN cascade (loaded / failed / timeout), <code>sgApplyScripts</code> (accept / partial / reject), <code>sgApplyEvidence</code> (success), <code>sgSelfTest</code> (pass / fail), global <code>error</code> handler, <code>unhandledrejection</code> handler, manual user actions (Run Self-Test, Clear Log, Re-initialise). All route through <code>_sgLogEvent</code>.</li>
+            <li>Existing <code>sgFbStatus()</code> still null-safely handles the removed pills — so the original code paths are intact, just no-op for the deleted elements. Reduces risk of regressions.</li>
+            <li><code>fbDashRefresh()</code> / <code>fbDashRenderStatus()</code> / <code>fbDashRenderValidation()</code> / <code>fbDashRenderLog()</code> — render functions. Status grid, validation card, and event log render independently so updates from different code paths don't trigger a full re-render.</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
       <!-- v24 -->
       <div id="vsec-v24" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v24 — Current</div>
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v24</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">18 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -3077,8 +3247,14 @@ function _sgCopyToClipboard(text, onSuccess, onFailure){
 
 // Global error handler — catches uncaught JS errors so the page doesn't silently die
 window.addEventListener('error', function(e){
+  // 'Script error.' with no file/line is a sanitised cross-origin error (e.g. a CDN script
+  // that failed to load). It carries no actionable information — suppress it silently.
+  if(!e.message || e.message === 'Script error.' || e.message === 'Script error') return;
   console.error('[SG global error]', e.message, e.filename + ':' + e.lineno);
-  try { showToast('⚠️ Error: ' + (e.message||'Unknown error') + '\nIf scripts stop working, click ↩ Revert to Built-in in Admin → Script Flows.', 'error'); } catch(_){}
+  try {
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('error', 'Uncaught error: ' + (e.message||'Unknown') + ' (' + (e.filename||'').split('/').pop() + ':' + e.lineno + ')');
+  } catch(_){}
+  try { showToast('⚠️ Error: ' + (e.message||'Unknown error') + '\nIf scripts stop working, click ↩ Revert to Built-in in Admin → Firebase Sync.', 'error'); } catch(_){}
 });
 
 // Catch failed promises (Firebase, fetch, etc.)
@@ -3087,6 +3263,9 @@ window.addEventListener('unhandledrejection', function(e){
   console.error('[SG promise rejection]', reason);
   // Only show toast for real errors, not abort/cancel signals
   if(!/abort|cancel/i.test(reason)){
+    try {
+      if(typeof _sgLogEvent === 'function') _sgLogEvent('warn', 'Background task failed: ' + reason);
+    } catch(_){}
     try { showToast('⚠️ Background task failed: ' + reason, 'warn'); } catch(_){}
   }
 });
@@ -3128,28 +3307,21 @@ function sgSelfTest(reason){
   if(missingFlows.length) issues.push('Missing flows: ' + missingFlows.join(', '));
   if(issues.length){
     console.error('[SG self-test FAIL]', issues);
-    showToast('⚠️ Generator health check failed:\n• ' + issues.join('\n• ') + '\n\nClick ↩ Revert to Built-in in Admin → Script Flows.', 'error');
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('error', 'Self-test FAILED (' + (reason||'startup') + '): ' + issues.join('; '));
+    showToast('⚠️ Generator health check failed:\n• ' + issues.join('\n• ') + '\n\nClick ↩ Revert to Built-in in Admin → Firebase Sync.', 'error');
     return false;
   }
   console.log('[SG self-test PASS]', reason || 'startup', '— db:', db.length, 'flows:', Object.keys(SCRIPT_ASSEMBLY).length);
+  if(typeof _sgLogEvent === 'function') _sgLogEvent('success', 'Self-test passed (' + (reason||'startup') + ') — db: ' + db.length + ' rows, flows: ' + Object.keys(SCRIPT_ASSEMBLY).length);
   return true;
 }
 
-// Validation report — shows in Admin banner after Firebase push
+// Validation report — stored in _sgLastValidation; rendered by the Firebase Sync dashboard
 let _sgLastValidation = null;
 function setValidationReport(report){
   _sgLastValidation = report;
-  const el = document.getElementById('fb-sync-last');
-  if(!el || !report) return;
-  if(report.rejected > 0){
-    el.textContent = 'Last push: ' + report.accepted + ' accepted, ' + report.rejected + ' rejected';
-    el.style.color = '#d97706';
-    el.title = 'Rejected rows:\n' + (report.reasons||[]).slice(0,10).join('\n');
-  } else {
-    el.textContent = 'Last push: ' + report.accepted + ' scripts';
-    el.style.color = '#6b7280';
-    el.title = '';
-  }
+  // Render in the unified Firebase Sync dashboard
+  if(typeof fbDashRenderValidation === 'function') fbDashRenderValidation();
 }
 
 
@@ -3162,34 +3334,20 @@ function sgFbConfigured(){
          !SG_FIREBASE_CONFIG.databaseURL.includes('PASTE_YOUR');
 }
 
+// Connection state — the unified Firebase Sync dashboard is the only renderer
+var _sgFbStateNow = 'warn';
 function sgFbStatus(fbState){
-  // Update Script Flows tab pill
-  const pill = document.getElementById('fb-sync-status');
-  const last = document.getElementById('fb-sync-last');
-  // Update Evidence tab pill
-  const evPill = document.getElementById('ev-sync-status');
-  const evLast = document.getElementById('ev-sync-last');
-  const map = {
-    ok:      ['#d1fae5','#065f46','🟢 Live'],
-    err:     ['#fee2e2','#991b1b','🔴 Not connected'],
-    warn:    ['#fef3c7','#d97706','🟡 Connecting…'],
-    local:   ['#f3f4f6','#6b7280','⚫ Local only']
-  };
-  const [bg, col, label] = map[fbState] || map.warn;
-  if(pill){ pill.style.cssText = `font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:${bg};color:${col}`; pill.textContent = label; }
-  if(evPill){ evPill.style.cssText = `font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:${bg};color:${col}`; evPill.textContent = label; }
-  if(fbState === 'ok'){
-    const now = new Date();
-    const ts = now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
-                now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-    if(last) last.textContent = 'Last push: ' + ts;
-    if(evLast) evLast.textContent = 'Last push: ' + ts;
-  }
+  _sgFbStateNow = fbState || 'warn';
+  // Render via the unified Firebase Sync dashboard
+  if(typeof fbDashRenderStatus === 'function') fbDashRenderStatus();
+  // Also update the GS Sync tab connection pill
+  if(typeof gsRefreshConnPill === 'function') gsRefreshConnPill();
 }
 
 function initSgFirebase(){
   if(!sgFbConfigured()){
     console.warn('SG Firebase not configured — using baked-in RAW_DB.');
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('warn', 'Firebase not configured — running on baked-in RAW_DB only');
     sgFbStatus('local');
     return;
   }
@@ -3223,13 +3381,17 @@ function initSgFirebase(){
       if(!errorReported){
         errorReported = true;
         console.error('[SG] All Firebase CDN sources failed');
+        _sgFbCdnSource = 'failed';
+        if(typeof _sgLogEvent === 'function') _sgLogEvent('error', 'All Firebase CDNs failed (gstatic, jsDelivr, unpkg) — running on baked-in scripts');
         sgFbStatus('err');
+        if(typeof fbDashRefresh === 'function') fbDashRefresh();
         showToast('🔴 Firebase could not be loaded from any CDN.\nUsing cached or built-in scripts. Generator still works for script generation.', 'warn');
       }
       return;
     }
     const source = CDN_SOURCES[cdnIndex];
     console.log(`[SG] Trying Firebase CDN ${cdnIndex+1}/${CDN_SOURCES.length}: ${source.name}`);
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Trying Firebase CDN ' + (cdnIndex+1) + '/' + CDN_SOURCES.length + ': ' + source.name);
 
     let loaded = 0;
     let failed = false;
@@ -3243,6 +3405,9 @@ function initSgFirebase(){
         loaded++;
         if(loaded === sdks.length){
           console.log(`[SG] Firebase loaded successfully from ${source.name}`);
+          _sgFbCdnSource = source.name;
+          if(typeof _sgLogEvent === 'function') _sgLogEvent('success', 'Firebase SDK loaded from ' + source.name);
+          if(typeof fbDashRefresh === 'function') fbDashRefresh();
           onSgFbLoaded();
         }
       };
@@ -3250,9 +3415,23 @@ function initSgFirebase(){
         if(failed) return;
         failed = true;
         console.warn(`[SG] ${source.name} failed, trying next CDN...`);
+        if(typeof _sgLogEvent === 'function') _sgLogEvent('warn', source.name + ' CDN unreachable — trying next');
         cdnIndex++;
-        // Remove failed scripts to clean up
+        // Remove failed script tags from the DOM
         document.querySelectorAll(`script[src*="${source.app.split('/')[2]}"]`).forEach(el => el.remove());
+        // If the firebase-app SDK partially executed before the database SDK failed,
+        // the 'firebase' global may exist but be incomplete (.database not registered).
+        // Delete it so the next CDN initialises a completely fresh firebase object.
+        try {
+          if(typeof firebase !== 'undefined' && typeof firebase.database === 'undefined'){
+            // Database module never registered — wipe the global so next CDN starts clean
+            if(firebase.apps && firebase.apps.length){
+              firebase.apps.slice().forEach(app => { try{ app.delete(); }catch(_){} });
+            }
+            // Remove the global reference so the next CDN's script re-creates it
+            if(typeof window !== 'undefined') delete window.firebase;
+          }
+        } catch(_){}
         tryNextCdn();
       };
       document.head.appendChild(s);
@@ -3266,7 +3445,10 @@ function initSgFirebase(){
     if(!_sgFbReady && !errorReported){
       errorReported = true;
       console.warn('[SG] Firebase SDK loading timed out after 15s');
+      _sgFbCdnSource = 'failed';
+      if(typeof _sgLogEvent === 'function') _sgLogEvent('error', 'Firebase SDK loading timed out after 15 seconds');
       sgFbStatus('err');
+      if(typeof fbDashRefresh === 'function') fbDashRefresh();
       showToast('🔴 Firebase loading timed out.\nUsing cached or built-in scripts.', 'warn');
     }
   }, 15000);
@@ -3274,10 +3456,24 @@ function initSgFirebase(){
 
 function onSgFbLoaded(){
   try{
-    // Reuse existing firebase app if WJ Dashboard already initialised it on the same page,
-    // otherwise initialise a new named app so they don't conflict.
+    // Guard: if firebase loaded but .database isn't registered (partial load from a failed CDN),
+    // treat this the same as a first-time init rather than trying to reuse the broken app.
+    const dbAvailable = typeof firebase !== 'undefined' &&
+                        typeof firebase.database === 'function';
+
+    if(!dbAvailable){
+      console.warn('[SG] Firebase SDK loaded but .database() unavailable — SDK may be incomplete. Waiting for retry.');
+      // Don't mark as failed — the timeout will clean up if no CDN succeeds
+      return;
+    }
+
+    // Reuse existing 'sg' named app if it's healthy (e.g. WJ Dashboard already initialised it),
+    // otherwise initialise a fresh named app so they don't conflict.
     try{
-      _sgFbDB = firebase.app('sg').database();
+      const existing = firebase.app('sg');
+      // Verify the existing app actually has database support before trusting it
+      if(typeof existing.database !== 'function') throw new Error('no .database on existing app');
+      _sgFbDB = existing.database();
     } catch(_){
       firebase.initializeApp(SG_FIREBASE_CONFIG, 'sg');
       _sgFbDB = firebase.app('sg').database();
@@ -3287,6 +3483,7 @@ function onSgFbLoaded(){
     sgFbLoadAndSubscribe();
   }catch(e){
     console.error('SG Firebase init error:', e);
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('error', 'Firebase init failed: ' + (e && e.message));
     sgFbStatus('err');
   }
 }
@@ -3307,17 +3504,19 @@ function sgFbLoadAndSubscribe(){
       _sgFbDB.ref('sg/evidence').on('value', s => {
         if(s.val()) sgApplyEvidence(s.val());
       });
-      // Last-push timestamp
+      // Last-push timestamp — Apps Script writes sg/lastSync after each push.
+      // sgApplyScripts/sgApplyEvidence already update _sgFbLastPush, but this is a
+      // safety net so the timestamp reflects even pushes that produced no data deltas.
       _sgFbDB.ref('sg/lastSync').on('value', s => {
         if(!s.val()) return;
-        const el1 = document.getElementById('fb-sync-last');
-        const el2 = document.getElementById('ev-sync-last');
         try{
-          const d = new Date(s.val());
-          const ts = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
-                     d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-          if(el1) el1.textContent = 'Last push: ' + ts;
-          if(el2) el2.textContent = 'Last push: ' + ts;
+          const t = new Date(s.val()).getTime();
+          if(!_sgFbLastPush || t > _sgFbLastPush.time){
+            _sgFbLastPush = _sgFbLastPush
+              ? Object.assign({}, _sgFbLastPush, {time: t})
+              : {time: t, kind: 'unknown', accepted: 0, rejected: 0};
+            if(typeof fbDashRenderStatus === 'function') fbDashRenderStatus();
+          }
         }catch(_){}
       });
     }
@@ -3383,7 +3582,15 @@ function sgApplyScripts(firebaseData){
 
   if(newDb.length < 10){
     console.warn('SG Firebase: only', newDb.length, 'rows after parsing — ignoring push');
-    showToast('⚠️ Sheet push rejected: only ' + newDb.length + ' valid rows found (need at least 10).\nKeeping existing scripts intact.', 'warn');
+    if(typeof _sgLogEvent === 'function'){
+      const first = rejected[0] ? ' First issue — Row ' + rejected[0].row + ': ' + rejected[0].reason : '';
+      _sgLogEvent('error', 'Sheet push rejected — only ' + newDb.length + ' valid rows (need ≥10). ' + rejected.length + ' rejected.' + first);
+    }
+    // Surface the rejected rows in the dashboard (no toast — visible in Firebase Sync / GS Sync tabs)
+    if(rejected.length > 0){
+      _sgLastValidation = {accepted: 0, rejected: rejected.length, reasons: rejected.map(r => 'Row ' + r.row + ': ' + r.reason)};
+      if(typeof fbDashRenderValidation === 'function') fbDashRenderValidation();
+    }
     return;
   }
 
@@ -3394,6 +3601,29 @@ function sgApplyScripts(firebaseData){
   // Validation report shown in admin banner
   const report = {accepted: newDb.length, rejected: rejected.length, reasons: rejected.map(r => 'Row ' + r.row + ': ' + r.reason)};
   setValidationReport(report);
+  // Record into Firebase Sync dashboard
+  _sgFbLastPush = {time: Date.now(), kind: 'scripts', accepted: newDb.length, rejected: rejected.length};
+  if(typeof _sgLogEvent === 'function'){
+    if(rejected.length === 0){
+      _sgLogEvent('success', 'Scripts push applied — ' + newDb.length + ' rows accepted');
+    } else {
+      _sgLogEvent('warn', 'Scripts push partial — ' + newDb.length + ' accepted, ' + rejected.length + ' rejected');
+    }
+  }
+  if(typeof fbDashRefresh === 'function') fbDashRefresh();
+  // Log to GS Sync activity log + refresh count labels
+  if(typeof gsLogAdd === 'function'){
+    if(rejected.length === 0){
+      gsLogAdd('success', 'Scripts push applied — ' + newDb.length + ' rows accepted, 0 rejected.');
+    } else {
+      gsLogAdd('warn', 'Scripts push partial — ' + newDb.length + ' accepted, ' + rejected.length + ' rejected. First: Row ' + rejected[0].row + ': ' + rejected[0].reason);
+    }
+    if(typeof gsUpdateCountLabels === 'function') gsUpdateCountLabels();
+  }
+  // Save snapshot for future diffs
+  if(typeof gsSaveSnapshot === 'function' && typeof gsSnapshotScripts === 'function'){
+    gsSaveSnapshot(gsSnapshotScripts(), typeof gsSnapshotEvidence === 'function' ? gsSnapshotEvidence() : {total:0,cats:{}});
+  }
 
   // Toast feedback — success or partial warning
   if(rejected.length > 0){
@@ -3427,7 +3657,7 @@ function sgApplyScripts(firebaseData){
   }
 
   // Re-render Script Flows if it is open
-  if(state && state.view === 'admin' && state.adminTab === 'scripts'){
+  if(state && state.view === 'admin' && state.adminTab === 'gssync'){
     renderAdminPanel();
   }
 }
@@ -3483,8 +3713,21 @@ function sgApplyEvidence(firebaseData){
   }
 
   console.log('SG Firebase: evidence updated —', scriptRows.length, 'scripts,', bulletRows.length, 'bullets');
+  // Record into Firebase Sync dashboard
+  _sgFbLastPush = {time: Date.now(), kind: 'evidence', accepted: scriptRows.length + bulletRows.length, rejected: 0};
+  if(typeof _sgLogEvent === 'function') _sgLogEvent('success', 'Evidence push applied — ' + scriptRows.length + ' scripts, ' + bulletRows.length + ' bullets');
+  if(typeof fbDashRefresh === 'function') fbDashRefresh();
+  // Log to GS Sync activity log
+  if(typeof gsLogAdd === 'function'){
+    gsLogAdd('success', 'Evidence push applied — ' + scriptRows.length + ' scripts, ' + bulletRows.length + ' bullets (total: ' + (scriptRows.length + bulletRows.length) + ').');
+    if(typeof gsUpdateCountLabels === 'function') gsUpdateCountLabels();
+  }
+  // Save updated snapshot
+  if(typeof gsSaveSnapshot === 'function' && typeof gsSnapshotScripts === 'function'){
+    gsSaveSnapshot(gsSnapshotScripts(), typeof gsSnapshotEvidence === 'function' ? gsSnapshotEvidence() : {total:0,cats:{}});
+  }
   // Re-render Evidence admin if it's open
-  if(state && state.view === 'admin' && state.adminTab === 'evidence'){
+  if(state && state.view === 'admin' && state.adminTab === 'gssync'){
     renderAdminEvidenceFlows();
   }
 }
@@ -3663,40 +3906,562 @@ function revertToRawDb(){
     statusEl.style.display = 'inline';
     statusEl.textContent = '⚠️ Using built-in scripts — re-push from Sheets to restore Firebase data';
   }
-  // Update the sync pill to show reverted state
-  const pill = document.getElementById('fb-sync-status');
-  if(pill){
-    pill.style.cssText = 'font-size:11px;font-weight:600;padding:2px 10px;border-radius:6px;background:#fee2e2;color:#dc2626';
-    pill.textContent = '⚠️ Reverted to built-in';
-  }
-  // Re-render admin panel if open
-  if(state && state.view === 'admin' && state.adminTab === 'scripts') renderAdminPanel();
+  // Log into Firebase Sync dashboard and refresh
+  if(typeof _sgLogEvent === 'function') _sgLogEvent('warn', 'Reverted to built-in RAW_DB (' + db.length + ' scripts) — user action');
+  if(typeof fbDashRefresh === 'function') fbDashRefresh();
+  // Re-render admin panel if open on the Script Flows tab
+  if(state && state.view === 'admin' && state.adminTab === 'gssync') renderAdminPanel();
   console.log('SG: reverted to RAW_DB —', db.length, 'scripts');
 }
 
-// Refresh Script Flows tab pill on open
+// Refresh sync state — called when Script Flows tab is opened
 function initGSheetUI(){
   sgFbStatus(sgFbConfigured() ? (_sgFbReady ? 'ok' : 'warn') : 'local');
-  // Show cache info in last-push label if Firebase not yet connected
+  // If serving from cache, log it once for visibility in the Firebase Sync dashboard
   if(!_sgFbReady){
-    const cacheVer = localStorage.getItem(_SG_DB_CACHE_VER);
-    const lastEl = document.getElementById('fb-sync-last');
-    if(lastEl && cacheVer){
-      try{
-        // Format: "v22r1|2026-05-15T04:38:00.000Z"
+    try{
+      const cacheVer = localStorage.getItem(_SG_DB_CACHE_VER);
+      if(cacheVer && !initGSheetUI._loggedCache){
+        initGSheetUI._loggedCache = true;
         const rawTs = cacheVer.includes('|') ? cacheVer.split('|')[1] : cacheVer;
         const d = new Date(rawTs);
-        const displayTs = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
-                   d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-        lastEl.textContent = 'Cached: ' + displayTs + ' · ' + db.length + ' scripts';
-      } catch(_){}
-    }
+        if(typeof _sgLogEvent === 'function'){
+          _sgLogEvent('info', 'Serving from local cache (' + db.length + ' scripts, cached ' + d.toLocaleString() + ') while Firebase loads');
+        }
+      }
+    } catch(_){}
   }
 }
 
 function _refreshEvSyncStatus(){
   sgFbStatus(sgFbConfigured() ? (_sgFbReady ? 'ok' : 'warn') : 'local');
 }
+
+// ═══════════════════════════════════════════════════════════════
+// GOOGLE SHEET SYNC DASHBOARD
+// Snapshot + diff engine, activity log (30-day localStorage),
+// Sync FROM / TO Sheet buttons, collapsible Scripts + Evidence.
+// ═══════════════════════════════════════════════════════════════
+
+var _GS_SNAPSHOT_KEY  = 'sg_gssync_snapshot';   // localStorage
+var _GS_LOG_KEY       = 'sg_gssync_log';
+var _GS_LOG_MAX       = 100;
+var _GS_LOG_TTL_MS    = 30 * 24 * 60 * 60 * 1000; // 30 days
+var _gsDiffOpen       = {};   // { scripts: bool, evidence: bool }
+var _gsDiffTab        = {};   // { scripts: 'added'|'deleted'|'changed', evidence: '' }
+var _gsLogOpen        = false;
+
+// ── Snapshot helpers ──────────────────────────────────────────
+function gsSnapshotScripts(){
+  // Return a plain key→script map for diffing. Key = "typeReturn|user|result|section|scriptText"
+  if(!Array.isArray(db)) return {};
+  const map = {};
+  db.forEach(r => {
+    const key = [r.data[0]||'', r.data[2]||'', r.data[3]||'', r.data[4]||'', (r.data[5]||'').trim()].join('|||');
+    map[key] = { typeReturn: r.data[0], user: r.data[2], result: r.data[3], section: r.data[4], script: (r.data[5]||'').trim() };
+  });
+  return map;
+}
+
+function gsSnapshotEvidence(){
+  // Flatten EVIDENCE_DB into a count + category summary for diffing
+  let total = 0;
+  const cats = {};
+  ['seller','buyer','returnLeg'].forEach(cat => {
+    if(!EVIDENCE_DB[cat]) return;
+    let c = 0;
+    Object.values(EVIDENCE_DB[cat]).forEach(reasonObj => {
+      Object.values(reasonObj).forEach(() => c++);
+    });
+    cats[cat] = c;
+    total += c;
+  });
+  return { total, cats, ts: Date.now() };
+}
+
+function gsSaveSnapshot(scriptsMap, evidenceSummary){
+  try {
+    const payload = { scripts: scriptsMap, evidence: evidenceSummary, savedAt: Date.now() };
+    localStorage.setItem(_GS_SNAPSHOT_KEY, JSON.stringify(payload));
+  } catch(e){ console.warn('[GS] snapshot save failed:', e.message); }
+}
+
+function gsLoadSnapshot(){
+  try {
+    const raw = localStorage.getItem(_GS_SNAPSHOT_KEY);
+    if(!raw) return null;
+    const p = JSON.parse(raw);
+    // Expire if older than 30 days
+    if(Date.now() - (p.savedAt||0) > _GS_LOG_TTL_MS){ localStorage.removeItem(_GS_SNAPSHOT_KEY); return null; }
+    return p;
+  } catch(e){ return null; }
+}
+
+// ── Diff engine ───────────────────────────────────────────────
+function gsComputeScriptDiff(oldMap, newMap){
+  const added = [], deleted = [], changed = [];
+  // Track which old keys were matched (as "changed"), to avoid counting them as deleted
+  const matchedOldKeys = new Set();
+
+  // Pass 1: iterate new keys — find added and changed
+  Object.keys(newMap).forEach(k => {
+    if(!oldMap[k]){
+      // Key not in old map — could be a script-text change or genuinely new
+      const n = newMap[k];
+      const matchKey = Object.keys(oldMap).find(ok => {
+        const o = oldMap[ok];
+        return o.typeReturn===n.typeReturn && o.user===n.user && o.result===n.result && o.section===n.section;
+      });
+      if(matchKey){
+        changed.push({ ...n, before: oldMap[matchKey].script, after: n.script });
+        matchedOldKeys.add(matchKey);  // mark as matched so it's not also counted as deleted
+      } else {
+        added.push(n);
+      }
+    }
+  });
+
+  // Pass 2: iterate old keys — find deleted (skip matched-as-changed and unchanged)
+  Object.keys(oldMap).forEach(k => {
+    if(!newMap[k] && !matchedOldKeys.has(k)){
+      // Not in new map and not matched as a changed row — truly deleted
+      const sameCoords = Object.keys(newMap).find(nk => {
+        const nv = newMap[nk];
+        return nv.typeReturn===oldMap[k].typeReturn && nv.user===oldMap[k].user &&
+               nv.result===oldMap[k].result && nv.section===oldMap[k].section;
+      });
+      if(!sameCoords) deleted.push(oldMap[k]);
+    }
+  });
+
+  const oldTotal = Object.keys(oldMap).length;
+  const newTotal = Object.keys(newMap).length;
+  // Unchanged = keys identical in both maps (same coordinates AND same script text)
+  const unchanged = Object.keys(newMap).filter(k => !!oldMap[k]).length;
+  return { added, deleted, changed, unchanged, total: newTotal, previousTotal: oldTotal };
+}
+
+function gsComputeEvidenceDiff(oldEv, newEv){
+  const added=[], deleted=[], changed=[];
+  // Compare category totals
+  ['seller','buyer','returnLeg'].forEach(cat => {
+    const o = (oldEv && oldEv.cats && oldEv.cats[cat]) || 0;
+    const n = (newEv && newEv.cats && newEv.cats[cat]) || 0;
+    if(n > o) added.push({ section: cat, count: n - o, label: `${cat}: +${n-o} entries (was ${o}, now ${n})` });
+    if(n < o) deleted.push({ section: cat, count: o - n, label: `${cat}: -${o-n} entries (was ${o}, now ${n})` });
+  });
+  return { added, deleted, changed, unchanged: newEv ? newEv.total : 0, total: newEv ? newEv.total : 0, previousTotal: oldEv ? oldEv.total : 0 };
+}
+
+// ── Diff saved state ──────────────────────────────────────────
+var _gsLastDiff = null;
+
+function gsDiffLoadSaved(){
+  try {
+    const raw = localStorage.getItem('sg_gssync_diff');
+    if(!raw) return null;
+    const p = JSON.parse(raw);
+    if(Date.now() - (p.savedAt||0) > _GS_LOG_TTL_MS){ localStorage.removeItem('sg_gssync_diff'); return null; }
+    return p;
+  } catch(e){ return null; }
+}
+
+function gsDiffSave(diff){
+  try { localStorage.setItem('sg_gssync_diff', JSON.stringify({ ...diff, savedAt: Date.now() })); } catch(e){}
+}
+
+// ── Activity Log ──────────────────────────────────────────────
+var _gsLog = (function(){
+  try {
+    const raw = localStorage.getItem(_GS_LOG_KEY);
+    if(!raw) return [];
+    const arr = JSON.parse(raw);
+    const cutoff = Date.now() - _GS_LOG_TTL_MS;
+    return arr.filter(e => e.ts > cutoff);
+  } catch(e){ return []; }
+})();
+
+function gsLogAdd(type, msg){
+  _gsLog.unshift({ ts: Date.now(), type, msg });
+  if(_gsLog.length > _GS_LOG_MAX) _gsLog.length = _GS_LOG_MAX;
+  try { localStorage.setItem(_GS_LOG_KEY, JSON.stringify(_gsLog)); } catch(e){}
+  gsRenderLog();
+  // Also push to Firebase dashboard log
+  if(typeof _sgLogEvent === 'function') _sgLogEvent(type, msg);
+}
+
+function gsLogClear(){
+  _gsLog = [];
+  try { localStorage.removeItem(_GS_LOG_KEY); } catch(e){}
+  gsRenderLog();
+}
+
+function gsLogToggle(){
+  _gsLogOpen = !_gsLogOpen;
+  const body = document.getElementById('gs-log-body');
+  const arrow = document.getElementById('gs-log-arrow');
+  if(body) body.classList.toggle('hidden', !_gsLogOpen);
+  if(arrow) arrow.textContent = _gsLogOpen ? '▲' : '▼';
+}
+
+function gsRenderLog(){
+  const list = document.getElementById('gs-log-list');
+  const cnt  = document.getElementById('gs-log-count');
+  if(cnt) cnt.textContent = _gsLog.length;
+  if(!list) return;
+  if(_gsLog.length === 0){
+    list.innerHTML = '<div style="font-size:12px;color:#9ca3af;text-align:center;padding:16px">No activity yet.</div>';
+    return;
+  }
+  const colors = {
+    success: {bg:'#ecfdf5',border:'#6ee7b7',fg:'#065f46',icon:'✅'},
+    info:    {bg:'#f9fafb',border:'#e5e7eb',fg:'#374151',icon:'ℹ️'},
+    warn:    {bg:'#fffbeb',border:'#fcd34d',fg:'#92400e',icon:'⚠️'},
+    error:   {bg:'#fef2f2',border:'#fca5a5',fg:'#991b1b',icon:'🔴'},
+    upload:  {bg:'#eff6ff',border:'#93c5fd',fg:'#1e40af',icon:'⬆️'},
+  };
+  list.innerHTML = _gsLog.map(e => {
+    const c = colors[e.type] || colors.info;
+    const d = new Date(e.ts);
+    const ts = d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
+               d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    return `<div style="display:flex;gap:8px;padding:7px 10px;border-radius:8px;background:${c.bg};border:1px solid ${c.border};margin-bottom:4px;align-items:flex-start">
+      <span style="font-size:13px;flex-shrink:0">${c.icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;color:${c.fg};line-height:1.5;word-break:break-word">${esc(e.msg)}</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:2px">${ts}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Connection pill ───────────────────────────────────────────
+function gsRefreshConnPill(){
+  const pill = document.getElementById('gssync-conn-pill');
+  const cdn  = document.getElementById('gssync-cdn-label');
+  if(!pill) return;
+  const map = {
+    ok:    {bg:'#d1fae5',color:'#065f46',label:'🟢 Live'},
+    err:   {bg:'#fee2e2',color:'#991b1b',label:'🔴 Not connected'},
+    warn:  {bg:'#fef3c7',color:'#d97706',label:'🟡 Connecting…'},
+    local: {bg:'#f3f4f6',color:'#6b7280',label:'⚫ Local only'},
+  };
+  const s = map[_sgFbStateNow] || map.warn;
+  pill.style.background = s.bg;
+  pill.style.color      = s.color;
+  pill.textContent      = s.label;
+  if(cdn) cdn.textContent = _sgFbCdnSource && _sgFbCdnSource !== 'failed' ? 'SDK: ' + _sgFbCdnSource : '';
+}
+
+// ── Count labels (Scripts / Evidence collapsible headers) ─────
+function gsUpdateCountLabels(){
+  const sc = document.getElementById('gs-scripts-count-label');
+  const ec = document.getElementById('gs-evidence-count-label');
+  if(sc) sc.textContent = Array.isArray(db) ? db.length + ' scripts' : '';
+  if(ec){
+    let total = 0;
+    if(typeof EVIDENCE_DB === 'object'){
+      ['seller','buyer','returnLeg'].forEach(cat => {
+        if(EVIDENCE_DB[cat]) Object.values(EVIDENCE_DB[cat]).forEach(r => { Object.values(r).forEach(() => total++); });
+      });
+    }
+    ec.textContent = total ? total + ' entries' : '';
+  }
+}
+
+// ── Diff rendering ────────────────────────────────────────────
+function gsShowEmpty(){
+  const empty = document.getElementById('gs-diff-empty');
+  const dash  = document.getElementById('gs-diff-dashboard');
+  if(empty) empty.classList.remove('hidden');
+  if(dash)  dash.classList.add('hidden');
+}
+
+function gsRenderDiff(diff){
+  _gsLastDiff = diff;
+  const empty = document.getElementById('gs-diff-empty');
+  const dash  = document.getElementById('gs-diff-dashboard');
+  if(empty) empty.classList.add('hidden');
+  if(dash)  dash.classList.remove('hidden');
+  const ts = document.getElementById('gs-diff-timestamp');
+  if(ts) ts.textContent = diff.timestamp || '';
+
+  _gsRenderSectionDiff('scripts', diff.scripts);
+  _gsRenderSectionDiff('evidence', diff.evidence);
+}
+
+function _gsRenderSectionDiff(kind, d){
+  if(!d) return;
+  const hasChanges = d.added.length > 0 || d.deleted.length > 0 || d.changed.length > 0;
+
+  // Badges
+  const badges = document.getElementById('gs-diff-' + kind + '-badges');
+  if(badges){
+    let html = '';
+    if(d.added.length)   html += `<span style="background:#dcfce7;color:#166534;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">+${d.added.length} added</span>`;
+    if(d.deleted.length) html += `<span style="background:#fee2e2;color:#991b1b;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">-${d.deleted.length} deleted</span>`;
+    if(d.changed.length) html += `<span style="background:#fef3c7;color:#92400e;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px">~${d.changed.length} changed</span>`;
+    if(!hasChanges)      html += `<span style="background:#f3f4f6;color:#6b7280;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px">No changes</span>`;
+    badges.innerHTML = html;
+  }
+
+  // Stats row
+  const stats = document.getElementById('gs-diff-' + kind + '-stats');
+  if(stats){
+    const cards = [
+      {label:'Total',     value:d.total,     color: d.total !== d.previousTotal ? '#d97706' : '#374151', sub:`was ${d.previousTotal}`},
+      {label:'Added',     value:d.added.length,   color: d.added.length   > 0 ? '#059669' : '#9ca3af', sub:'new rows'},
+      {label:'Deleted',   value:d.deleted.length, color: d.deleted.length > 0 ? '#dc2626' : '#9ca3af', sub:'removed'},
+      {label:'Changed',   value:d.changed.length, color: d.changed.length > 0 ? '#d97706' : '#9ca3af', sub:'modified'},
+      {label:'Unchanged', value:d.unchanged,      color:'#6b7280',                                       sub:'rows'},
+    ];
+    stats.innerHTML = cards.map(c =>
+      `<div style="background:#f9fafb;border-radius:10px;padding:10px 14px;border:1px solid #f3f4f6;flex:1 1 100px">
+        <div style="font-size:10px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">${c.label}</div>
+        <div style="font-size:20px;font-weight:800;color:${c.color}">${c.value}</div>
+        <div style="font-size:10px;color:#9ca3af;margin-top:2px">${c.sub}</div>
+      </div>`
+    ).join('');
+  }
+
+  if(!hasChanges) return;
+
+  // Tabs (scripts only has added/deleted/changed tabs; evidence uses simple list)
+  if(kind === 'scripts'){
+    const tabsEl = document.getElementById('gs-diff-scripts-tabs');
+    if(tabsEl){
+      const activeDiffTab = _gsDiffTab[kind] || (d.added.length ? 'added' : d.deleted.length ? 'deleted' : 'changed');
+      _gsDiffTab[kind] = activeDiffTab;
+      let html = '';
+      if(d.added.length)   html += `<button onclick="gsSetDiffTab('${kind}','added')"   style="padding:5px 14px;border-radius:8px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;background:${activeDiffTab==='added'   ?'#059669':'#f9fafb'};color:${activeDiffTab==='added'   ?'white':'#6b7280'}">➕ Added (${d.added.length})</button>`;
+      if(d.deleted.length) html += `<button onclick="gsSetDiffTab('${kind}','deleted')" style="padding:5px 14px;border-radius:8px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;background:${activeDiffTab==='deleted' ?'#dc2626':'#f9fafb'};color:${activeDiffTab==='deleted' ?'white':'#6b7280'}">➖ Deleted (${d.deleted.length})</button>`;
+      if(d.changed.length) html += `<button onclick="gsSetDiffTab('${kind}','changed')" style="padding:5px 14px;border-radius:8px;border:none;cursor:pointer;font-family:'Sora',sans-serif;font-size:12px;font-weight:700;background:${activeDiffTab==='changed' ?'#d97706':'#f9fafb'};color:${activeDiffTab==='changed' ?'white':'#6b7280'}">✏️ Changed (${d.changed.length})</button>`;
+      tabsEl.innerHTML = html;
+    }
+    _gsRenderDiffRows(kind, d);
+  } else {
+    // Evidence: just list the changes
+    const rowsEl = document.getElementById('gs-diff-evidence-rows');
+    if(rowsEl){
+      let html = '';
+      d.added.forEach(r   => { html += `<div style="padding:7px 10px;background:#f0fdf4;border-radius:7px;border-left:3px solid #22c55e;margin-bottom:4px;font-size:12px;color:#065f46">➕ ${esc(r.label)}</div>`; });
+      d.deleted.forEach(r => { html += `<div style="padding:7px 10px;background:#fef2f2;border-radius:7px;border-left:3px solid #ef4444;margin-bottom:4px;font-size:12px;color:#991b1b">➖ ${esc(r.label)}</div>`; });
+      rowsEl.innerHTML = html || '<div style="font-size:12px;color:#9ca3af;text-align:center;padding:12px">No changes</div>';
+    }
+  }
+}
+
+function gsSetDiffTab(kind, tab){
+  _gsDiffTab[kind] = tab;
+  if(_gsLastDiff) _gsRenderSectionDiff(kind, _gsLastDiff[kind]);
+}
+
+function _gsRenderDiffRows(kind, d){
+  const rowsEl = document.getElementById('gs-diff-' + kind + '-rows');
+  if(!rowsEl) return;
+  const tab = _gsDiffTab[kind] || 'added';
+  const rows = d[tab] || [];
+
+  if(rows.length === 0){ rowsEl.innerHTML = '<div style="font-size:12px;color:#9ca3af;text-align:center;padding:12px">No ' + tab + ' rows.</div>'; return; }
+
+  const styles = {
+    added:   {bg:'#f0fdf4',border:'#22c55e',meta:'#166534',text:'#374151'},
+    deleted: {bg:'#fef2f2',border:'#ef4444',meta:'#991b1b',text:'#7f1d1d'},
+    changed: {bg:'#fffbeb',border:'#f59e0b',meta:'#92400e',text:'#374151'},
+  };
+  const s = styles[tab];
+
+  rowsEl.innerHTML = rows.map(r => {
+    const preview = r.script || r.after || r.before || '';
+    const short   = preview.length > 90 ? preview.slice(0,90) + '…' : preview;
+    const meta = `<span style="font-size:10px;font-weight:700;color:#9ca3af;margin-right:4px">${esc(r.typeReturn||'')} ·</span>`
+               + `<span style="font-size:11px;background:${s.bg};color:${s.meta};padding:1px 6px;border-radius:4px;margin-right:4px">${esc(r.user||'')}</span>`
+               + `<span style="font-size:11px;font-weight:600;color:#374151;margin-right:4px">${esc(r.result||'')}</span>`
+               + `<span style="font-size:11px;color:#6b7280">· ${esc(r.section||'')}</span>`;
+
+    if(tab === 'changed'){
+      return `<div style="padding:8px 10px;background:${s.bg};border-radius:8px;border-left:3px solid ${s.border};margin-bottom:6px">
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px">${meta}</div>
+        <div style="font-size:11px;margin-bottom:3px"><span style="font-weight:700;color:#dc2626">BEFORE: </span><span style="color:#7f1d1d;text-decoration:line-through">"${esc(r.before||'')}"</span></div>
+        <div style="font-size:11px"><span style="font-weight:700;color:#059669">AFTER: </span><span style="color:#065f46">"${esc(r.after||'')}"</span></div>
+      </div>`;
+    }
+    return `<div style="padding:8px 10px;background:${s.bg};border-radius:8px;border-left:3px solid ${s.border};margin-bottom:5px">
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px">${meta}</div>
+      <div style="font-size:12px;color:${s.text};font-style:italic;opacity:.85">"${esc(short)}"</div>
+    </div>`;
+  }).join('');
+}
+
+function gsDiffToggle(kind){
+  _gsDiffOpen[kind] = !_gsDiffOpen[kind];
+  const body  = document.getElementById('gs-diff-' + kind + '-body');
+  const arrow = document.getElementById('gs-diff-' + kind + '-arrow');
+  const hdr   = document.getElementById('gs-diff-' + kind + '-hdr');
+  if(body)  body.classList.toggle('hidden', !_gsDiffOpen[kind]);
+  if(arrow) arrow.textContent = _gsDiffOpen[kind] ? '▲' : '▼';
+  if(hdr)   hdr.style.borderRadius = _gsDiffOpen[kind] ? '12px 12px 0 0' : '12px';
+  if(_gsDiffOpen[kind] && _gsLastDiff){
+    _gsRenderSectionDiff(kind, _gsLastDiff[kind]);
+  }
+}
+
+// ── Collapsible toggles ───────────────────────────────────────
+function gsToggleCollapsible(bodyId, arrowId){
+  const body  = document.getElementById(bodyId);
+  const arrow = document.getElementById(arrowId);
+  if(!body) return;
+  const open = body.classList.toggle('hidden') ? false : true;
+  if(arrow) arrow.textContent = open ? '▲' : '▼';
+}
+
+// ── Sync FROM Sheet ───────────────────────────────────────────
+function gsSyncFromSheet(){
+  const btn = document.getElementById('btn-gs-from');
+  const st  = document.getElementById('gs-action-status');
+  const setS = (msg, col) => { if(st){ st.textContent = msg; st.style.color = col||'#6b7280'; } };
+
+  if(!sgFbConfigured()){
+    showToast('❌ Firebase not configured — cannot re-pull.', 'error');
+    return;
+  }
+  if(!_sgFbReady || !_sgFbDB){
+    showToast('⚠️ Firebase is still connecting. Please wait a few seconds and try again.', 'warn');
+    return;
+  }
+
+  if(btn){ btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'wait'; }
+  setS('⏳ Pulling from Firebase…', '#d97706');
+  gsLogAdd('info', 'Sync FROM Sheet — re-pulling sg/scripts and sg/evidence…');
+
+  // Snapshot current state BEFORE re-pull (this becomes the "before" in the diff)
+  const prevSnapshot = gsLoadSnapshot();
+  const prevScripts  = prevSnapshot ? prevSnapshot.scripts  : gsSnapshotScripts();
+  const prevEvidence = prevSnapshot ? prevSnapshot.evidence : gsSnapshotEvidence();
+
+  // Re-pull sg/scripts
+  _sgFbDB.ref('sg/scripts').once('value').then(snap => {
+    if(snap.val()) sgApplyScripts(snap.val());
+
+    // Re-pull sg/evidence
+    return _sgFbDB.ref('sg/evidence').once('value');
+  }).then(snap => {
+    if(snap.val()) sgApplyEvidence(snap.val());
+
+    // Now compute diff — new state vs previous snapshot
+    const newScripts  = gsSnapshotScripts();
+    const newEvidence = gsSnapshotEvidence();
+
+    const scriptsDiff  = gsComputeScriptDiff(prevScripts, newScripts);
+    const evidenceDiff = gsComputeEvidenceDiff(prevEvidence, newEvidence);
+
+    // Save new snapshot
+    gsSaveSnapshot(newScripts, newEvidence);
+
+    const now = new Date();
+    const ts  = now.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
+                now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+
+    const diff = { scripts: scriptsDiff, evidence: evidenceDiff, timestamp: ts };
+    gsDiffSave(diff);
+    gsRenderDiff(diff);
+    gsUpdateCountLabels();
+
+    // Summary log entry
+    const sa = scriptsDiff.added.length, sd = scriptsDiff.deleted.length, sc = scriptsDiff.changed.length;
+    const eChg = evidenceDiff.added.length + evidenceDiff.deleted.length;
+    const scriptsSummary = sa || sd || sc
+      ? `+${sa} added, ${sd} deleted, ~${sc} changed`
+      : 'no changes';
+    const evidenceSummary = eChg ? `${eChg} changes` : 'no changes';
+
+    gsLogAdd('success', `Sync FROM Sheet complete — Scripts: ${scriptsSummary} (total: ${scriptsDiff.total}). Evidence: ${evidenceSummary} (total: ${evidenceDiff.total}).`);
+    setS('✅ Done · ' + ts, '#059669');
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
+
+  }).catch(err => {
+    const reason = (err && err.message) || String(err);
+    gsLogAdd('error', 'Sync FROM Sheet failed: ' + reason);
+    setS('❌ Failed: ' + reason, '#dc2626');
+    showToast('❌ Sync FROM Sheet failed:\n' + reason, 'error');
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
+  });
+}
+
+// ── Sync TO Sheet ─────────────────────────────────────────────
+function gsSyncToSheet(){
+  const btn = document.getElementById('btn-gs-to');
+  const st  = document.getElementById('gs-action-status');
+  const setS = (msg, col) => { if(st){ st.textContent = msg; st.style.color = col||'#6b7280'; } };
+
+  if(!sgFbConfigured()){
+    showToast('❌ Firebase not configured. The Sheet sync needs Firebase to deliver the data.', 'error');
+    return;
+  }
+  if(!_sgFbReady || !_sgFbDB){
+    showToast('⚠️ Firebase is still connecting. Please wait and try again.', 'warn');
+    return;
+  }
+  if(!Array.isArray(RAW_DB) || RAW_DB.length === 0){
+    showToast('❌ RAW_DB is empty — nothing to sync.', 'error');
+    return;
+  }
+
+  const p1Values = new Set(P1_CASES.map(p => p.value));
+  const rows = [{ col0:'Type Return', col1:'User', col2:'Result', col3:'Section', col4:'Script Text' }];
+  RAW_DB.forEach(r => {
+    const isP1 = p1Values.has(r[3]);
+    const cleanedType = String(r[0]||'').replace(/^\[P1\]\s*/,'');
+    rows.push({ col0:(isP1?'[P1] ':'')+cleanedType, col1:r[2]||'', col2:r[3]||'', col3:(r[4]||'').trim(), col4:r[5]||'' });
+  });
+  NEXT_STEPS_CONNECTORS.forEach(c => rows.push({col0:'[NEXT_STEPS]',col1:'System',col2:'Connector',col3:'Next Steps',col4:c}));
+  rows.push({col0:'[NEXT_STEPS]',col1:'System',col2:'Return & Refund',col3:'Next Steps',col4:NEXT_STEPS_RETURN});
+  rows.push({col0:'[NEXT_STEPS]',col1:'System',col2:'Refund Only',    col3:'Next Steps',col4:NEXT_STEPS_REFUND_ONLY});
+  Object.entries(BUYER_REASONS).forEach(([reason,phrases])=>phrases.forEach(p=>rows.push({col0:'[ISSUE_DESC]',col1:'Buyer',col2:reason,col3:'{issue_description}',col4:p})));
+  Object.entries(SELLER_REASONS).forEach(([reason,phrases])=>phrases.forEach(p=>rows.push({col0:'[ISSUE_DESC]',col1:'Seller',col2:reason,col3:'{issue_description}',col4:p})));
+
+  const totalRows = rows.length - 1;
+  const p1Count   = RAW_DB.filter(r=>p1Values.has(r[3])).length;
+  const msg = `📊 Send built-in scripts to your Google Sheet?\n\n`
+    + `This will write ${totalRows} rows to a NEW preview tab.\n`
+    + `   • ${RAW_DB.length} scripts (${p1Count} tagged [P1])\n`
+    + `   • ${NEXT_STEPS_CONNECTORS.length + 2} [NEXT_STEPS] entries\n`
+    + `   • ${Object.values(BUYER_REASONS).flat().length + Object.values(SELLER_REASONS).flat().length} [ISSUE_DESC] phrases\n\n`
+    + `Your live "Scripts" tab will NOT be touched.\n`
+    + `Apps Script will create a new tab "Scripts_Restored_<timestamp>".\n\nProceed?`;
+  if(!confirm(msg)) return;
+
+  if(btn){ btn.disabled = true; btn.style.opacity = '.6'; btn.style.cursor = 'wait'; }
+  setS('⏳ Sending ' + totalRows + ' rows…', '#d97706');
+  gsLogAdd('upload', `Sync TO Sheet — queuing ${totalRows} rows to Firebase (sg/sheetRestore)…`);
+
+  _sgFbDB.ref('sg/sheetRestore').set({
+    rows, requestedAt: new Date().toISOString(), requestedBy: 'generator-v25', totalRows, status: 'pending'
+  }).then(() => {
+    gsLogAdd('success', `Sync TO Sheet queued — ${totalRows} rows in sg/sheetRestore. Run "Restore from Generator (preview)" in Sheet → Sync to Firebase menu.`);
+    setS('✅ Sent — run Apps Script "Restore from Generator" in your Sheet', '#059669');
+    showToast(`✅ Data sent!\n\nNow: Google Sheet → Sync to Firebase menu → "Restore from Generator (preview)".\nA new tab will appear with all ${totalRows} rows.`, 'success');
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
+  }).catch(err => {
+    const reason = (err && err.message) || String(err);
+    gsLogAdd('error', 'Sync TO Sheet failed: ' + reason);
+    setS('❌ Failed: ' + reason, '#dc2626');
+    showToast('❌ Failed to send data:\n' + reason, 'error');
+    if(btn){ btn.disabled = false; btn.style.opacity = ''; btn.style.cursor = ''; }
+  });
+}
+
+// ── Boot: take initial snapshot after Firebase loads (for future diffs) ──
+function gsBootSnapshot(){
+  // Save a snapshot the first time Firebase data lands, if we don't have one yet
+  if(!gsLoadSnapshot() && Array.isArray(db) && db.length > 0){
+    gsSaveSnapshot(gsSnapshotScripts(), gsSnapshotEvidence());
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Initial snapshot saved — ' + db.length + ' scripts, ' + gsSnapshotEvidence().total + ' evidence entries');
+  }
+}
+
+// Hook into sgApplyScripts to log to activity log
+var _gsOrigApplyScripts = null; // patched below after fn is defined
 
 function setRefreshStatus(syncState){
   const pill  = document.getElementById('header-refresh-status');
@@ -3712,6 +4477,201 @@ function setRefreshStatus(syncState){
     pill.style.color       = '#fca5a5';
     pill.style.borderColor = 'rgba(239,68,68,.4)';
     label.textContent = 'Need Refresh';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FIREBASE SYNC DASHBOARD — unified diagnostic tab
+// Consolidates Script Flows + Evidence Collection sync indicators.
+// All sync activity routes through _sgLogEvent() so the Event Log
+// is the single source of truth for what's happening.
+// ═══════════════════════════════════════════════════════════════
+
+var _sgFbLog = [];                 // ring buffer of {time, type, msg}
+var _SG_FB_LOG_MAX = 50;
+var _sgFbCdnSource = null;         // 'gstatic' | 'jsDelivr' | 'unpkg' | 'failed'
+var _sgFbLastPush = null;          // {time, kind:'scripts'|'evidence', accepted, rejected}
+
+function _sgLogEvent(type, msg, extra){
+  // type: 'info' | 'success' | 'warn' | 'error'
+  _sgFbLog.unshift({time: Date.now(), type: type||'info', msg: String(msg||''), extra: extra||null});
+  if(_sgFbLog.length > _SG_FB_LOG_MAX) _sgFbLog.length = _SG_FB_LOG_MAX;
+  // Re-render dashboard if it's open
+  if(state && state.view === 'admin' && state.adminTab === 'firebase'){
+    fbDashRenderLog();
+  }
+}
+
+function _fmtTimeShort(ms){
+  const d = new Date(ms);
+  const pad = n => String(n).padStart(2,'0');
+  return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
+function _fmtDateTime(ms){
+  const d = new Date(ms);
+  return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' +
+         d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+}
+
+function fbDashRefresh(){
+  fbDashRenderStatus();
+  fbDashRenderValidation();
+  fbDashRenderLog();
+}
+
+function fbDashRenderStatus(){
+  // Connection
+  const conn    = document.getElementById('fbdash-conn');
+  const connSub = document.getElementById('fbdash-conn-sub');
+  if(conn){
+    if(!sgFbConfigured()){
+      conn.textContent = '⚫ Local only';   conn.style.color = '#6b7280';
+      if(connSub) connSub.textContent = 'Firebase not configured — using baked-in scripts';
+    } else if(_sgFbReady){
+      conn.textContent = '🟢 Live';         conn.style.color = '#059669';
+      if(connSub) connSub.textContent = 'Subscribed to sg/scripts and sg/evidence';
+    } else if(_sgFbCdnSource === 'failed'){
+      conn.textContent = '🔴 Not connected'; conn.style.color = '#dc2626';
+      if(connSub) connSub.textContent = 'All CDNs blocked — running on baked-in scripts';
+    } else {
+      conn.textContent = '🟡 Connecting…';  conn.style.color = '#d97706';
+      if(connSub) connSub.textContent = 'Loading Firebase SDK…';
+    }
+  }
+
+  // SDK source / CDN
+  const cdn    = document.getElementById('fbdash-cdn');
+  const cdnSub = document.getElementById('fbdash-cdn-sub');
+  if(cdn){
+    if(_sgFbCdnSource && _sgFbCdnSource !== 'failed'){
+      cdn.textContent = _sgFbCdnSource;       cdn.style.color = '#059669';
+      if(cdnSub){
+        const labels = {
+          gstatic:  "Google's CDN (preferred)",
+          jsDelivr: 'jsDelivr CDN (fallback 1)',
+          unpkg:    'unpkg CDN (fallback 2)'
+        };
+        cdnSub.textContent = labels[_sgFbCdnSource] || '';
+      }
+    } else if(_sgFbCdnSource === 'failed'){
+      cdn.textContent = 'All failed';          cdn.style.color = '#dc2626';
+      if(cdnSub) cdnSub.textContent = 'gstatic, jsDelivr and unpkg all unreachable';
+    } else if(!sgFbConfigured()){
+      cdn.textContent = 'n/a';                 cdn.style.color = '#9ca3af';
+      if(cdnSub) cdnSub.textContent = 'Firebase not configured';
+    } else {
+      cdn.textContent = 'Loading…';            cdn.style.color = '#d97706';
+      if(cdnSub) cdnSub.textContent = 'Trying CDNs in cascade';
+    }
+  }
+
+  // Last push
+  const push    = document.getElementById('fbdash-push');
+  const pushSub = document.getElementById('fbdash-push-sub');
+  if(push){
+    if(_sgFbLastPush){
+      const lp = _sgFbLastPush;
+      const ok = lp.rejected === 0;
+      push.textContent = lp.accepted + (lp.rejected ? ' / ' + (lp.accepted+lp.rejected) : '') + ' rows';
+      push.style.color = ok ? '#059669' : '#d97706';
+      if(pushSub){
+        const kindLabel = lp.kind === 'evidence' ? 'Evidence' : 'Scripts';
+        pushSub.textContent = kindLabel + ' · ' + _fmtDateTime(lp.time) + (lp.rejected ? ' · ' + lp.rejected + ' rejected' : '');
+      }
+    } else {
+      push.textContent = '—';
+      push.style.color = '#9ca3af';
+      if(pushSub) pushSub.textContent = 'No pushes yet this session';
+    }
+  }
+
+  // Health
+  const health    = document.getElementById('fbdash-health');
+  const healthSub = document.getElementById('fbdash-health-sub');
+  if(health){
+    const dbSize  = Array.isArray(db) ? db.length : 0;
+    const flowCnt = (typeof SCRIPT_ASSEMBLY === 'object' && SCRIPT_ASSEMBLY) ? Object.keys(SCRIPT_ASSEMBLY).length : 0;
+    const minDb   = 30, minFlows = 10;
+    const ok      = dbSize >= minDb && flowCnt >= minFlows;
+    health.textContent = ok ? '✅ Healthy' : '⚠️ Check';
+    health.style.color = ok ? '#059669' : '#d97706';
+    if(healthSub) healthSub.textContent = dbSize + ' scripts · ' + flowCnt + ' flows';
+  }
+}
+
+function fbDashRenderValidation(){
+  const card    = document.getElementById('fbdash-validation');
+  const summary = document.getElementById('fbdash-val-summary');
+  const body    = document.getElementById('fbdash-val-body');
+  if(!card || !summary || !body) return;
+  const v = _sgLastValidation;
+  if(!v){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  const total = v.accepted + v.rejected;
+  summary.textContent = v.accepted + ' accepted · ' + v.rejected + ' rejected · ' + total + ' total';
+  summary.style.color = v.rejected === 0 ? '#059669' : '#d97706';
+  if(v.rejected === 0){
+    body.innerHTML = '<span style="color:#059669">✅ All rows passed validation.</span>';
+  } else {
+    const reasons = (v.reasons||[]).slice(0, 20);
+    const more = (v.reasons||[]).length > 20 ? '<div style="margin-top:6px;color:#9ca3af;font-size:11px">…and ' + ((v.reasons||[]).length - 20) + ' more</div>' : '';
+    body.innerHTML = '<div style="font-weight:600;color:#d97706;margin-bottom:6px">Rejected rows:</div>' +
+      '<div style="background:#fef3c7;border-radius:6px;padding:8px 10px;font-family:Menlo,Consolas,monospace;font-size:11.5px;line-height:1.6">' +
+      reasons.map(r => '<div>• ' + esc(r) + '</div>').join('') +
+      more + '</div>';
+  }
+}
+
+function fbDashRenderLog(){
+  const container = document.getElementById('fbdash-log');
+  const counter   = document.getElementById('fbdash-log-count');
+  if(counter) counter.textContent = _sgFbLog.length;
+  if(!container) return;
+  if(_sgFbLog.length === 0){
+    container.innerHTML = '<div style="text-align:center;color:#9ca3af;font-size:12px;padding:20px">No events yet — sync activity will appear here.</div>';
+    return;
+  }
+  const colors = {
+    info:    {bg:'#eff6ff', fg:'#1e40af', icon:'ℹ️'},
+    success: {bg:'#ecfdf5', fg:'#065f46', icon:'✅'},
+    warn:    {bg:'#fffbeb', fg:'#92400e', icon:'⚠️'},
+    error:   {bg:'#fef2f2', fg:'#991b1b', icon:'🔴'}
+  };
+  container.innerHTML = _sgFbLog.map(e => {
+    const c = colors[e.type] || colors.info;
+    return '<div style="display:flex;gap:8px;padding:6px 10px;border-radius:6px;background:' + c.bg + ';margin-bottom:4px;align-items:flex-start">' +
+      '<div style="font-size:12px;flex-shrink:0">' + c.icon + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-size:12px;color:' + c.fg + ';line-height:1.5;word-break:break-word">' + esc(e.msg) + '</div>' +
+        '<div style="font-size:10px;color:#9ca3af;margin-top:2px">' + _fmtTimeShort(e.time) + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function fbDashRunSelfTest(){
+  const ok = sgSelfTest('manual');
+  _sgLogEvent(ok ? 'success' : 'error',
+    ok ? 'Self-test passed — db: ' + db.length + ', flows: ' + Object.keys(SCRIPT_ASSEMBLY).length
+       : 'Self-test FAILED — see console for details');
+  fbDashRenderStatus();
+}
+
+function fbDashClearLog(){
+  _sgFbLog = [];
+  _sgLogEvent('info', 'Event log cleared by user');
+}
+
+function fbDashForceReinit(){
+  _sgLogEvent('info', 'Re-initialising Firebase (user requested)');
+  _sgFbReady = false;
+  _sgFbSubbed = false;
+  _sgFbCdnSource = null;
+  fbDashRenderStatus();
+  try {
+    initSgFirebase();
+  } catch(e){
+    _sgLogEvent('error', 'Re-initialise threw: ' + (e && e.message));
   }
 }
 
@@ -5472,6 +6432,8 @@ function renderAdminPanel(){
 
   container.innerHTML = html;
   renderP1FlowsPanel();
+  // Update Script Flows collapsible header count in Google Sheet Sync tab
+  if(typeof gsUpdateCountLabels === 'function') gsUpdateCountLabels();
 }
 
 function renderP1FlowsPanel(){
@@ -5542,24 +6504,31 @@ function renderP1FlowsPanel(){
 }
 
 function setAdminTab(item){state.adminTab=item;renderAdminPanel();
-  const tabs=['bookmarklet','scripts','evidence','backend','versions','statistics'];
+  const tabs=['bookmarklet','gssync','firebase','backend','versions','statistics'];
   tabs.forEach(t=>{
     const btn=document.getElementById('admin-tab-'+t);
     const sec=document.getElementById('admin-section-'+t);
     if(btn){btn.classList.toggle('active',t===item);}
     if(sec){sec.classList.toggle('hidden',t!==item);}
   });
-  if(item==='evidence'){ renderAdminEvidenceFlows(); _refreshEvSyncStatus(); }
-  if(item==='scripts'){
-    // Reset filters to All when opening Script Flows tab
-    const sf = document.getElementById('filter-section');
-    const uf = document.getElementById('filter-user');
-    const ff = document.getElementById('filter-result');
-    if(sf) sf.value = '';
-    if(uf) uf.value = '';
-    if(ff) ff.value = '';
-    renderAdminPanel(); initGSheetUI();
+  if(item==='gssync'){
+    // Reset script filters, refresh conn pill, update counts
+    const sf=document.getElementById('filter-section');
+    const uf=document.getElementById('filter-user');
+    const ff=document.getElementById('filter-result');
+    if(sf) sf.value='';
+    if(uf) uf.value='';
+    if(ff) ff.value='';
+    renderAdminPanel();
+    initGSheetUI();
+    gsRefreshConnPill();
+    gsUpdateCountLabels();
+    gsRenderLog();
+    // Restore diff if snapshot exists
+    const saved = gsDiffLoadSaved();
+    if(saved){ gsRenderDiff(saved); } else { gsShowEmpty(); }
   }
+  if(item==='firebase'){ fbDashRefresh(); }
   if(item==='statistics'){ renderStatsPanel(); }
 }
 
@@ -6866,7 +7835,7 @@ setTimeout(()=>{
   if(!document.getElementById('typereturn-btns').children.length) renderForm();
 }, 300);
 // Startup self-test — verifies db & flows are healthy, alerts admin if broken
-setTimeout(()=>{ sgSelfTest('startup'); }, 500);
+setTimeout(()=>{ sgSelfTest('startup'); gsBootSnapshot(); }, 500);
 
 
 // ═══════════════════════════════════════════════════════════════
