@@ -2081,6 +2081,13 @@ setTimeout(function(){
         <div style="margin-bottom:16px">
           <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
           <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Request Evidence submission path corrected for "Request Evidence from Seller"</strong> — v23 routed all Buyer-Request flows to the Shopee App path, including <em>Request Evidence from Seller</em>. But in that flow the <em>seller</em> is the one uploading, not the buyer, so the Shopee App instructions don't apply. Routing is now by <strong>who actually uploads</strong>, not who initiated the case:
+              <ul style="margin-top:6px;padding-left:18px;font-size:12.5px;color:#4b5563">
+                <li><strong>Buyer → Request Evidence</strong> (buyer uploads): <code>ShopeeApp &gt; Me &gt; Return Refund &gt; Select Order &gt; Upload evidence button</code></li>
+                <li><strong>Buyer → Request Evidence from Seller</strong> (seller uploads): <code>Seller Centre &gt; Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.</code></li>
+                <li><strong>Seller → Request Evidence</strong> (seller uploads): <code>Seller Centre &gt; Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.</code></li>
+              </ul>
+              Fix applied in both <code>_generateScriptCore</code> and <code>reshuffleSection</code>, so reshuffles inherit the corrected path. Old routing variables (<code>isBuyerEvidence</code> / <code>isSellerEvidence</code>) renamed to <code>buyerUploadsViaApp</code> / <code>sellerUploadsViaCentre</code> to make the intent unambiguous in future edits.</li>
             <li><strong>Silent copy failure fixed</strong> — <code>copyAll()</code>, <code>copyBookmarklet()</code>, <code>copySnippet()</code>, and <code>evCopyEvidence()</code> previously called <code>navigator.clipboard.writeText(...).then(...)</code> with no <code>.catch()</code>. When the Clipboard API was unavailable (insecure context, sandboxed iframe, blocked permission) the copy silently failed and the button never updated. All four now route through a single <code>_sgCopyToClipboard()</code> helper that tries <code>document.execCommand('copy')</code> first (works everywhere including <code>file://</code> and iframes), then falls back to the Clipboard API. If both fail, a clear toast tells the user to copy manually with Ctrl+C / Cmd+C.</li>
             <li><strong>copyAppsScript() unified with new helper</strong> — same logic centralised in one place; also fixed the brittle <code>event.target</code> reference (would have thrown if invoked outside a click handler).</li>
             <li><strong>Null guards added to copy callers</strong> — <code>copyAll</code> / <code>copyBookmarklet</code> / <code>copySnippet</code> / <code>evCopyEvidence</code> now check for missing DOM nodes before assigning to <code>btn.textContent</code>, preventing crashes if the UI is mid-render.</li>
@@ -4716,14 +4723,17 @@ function _generateScriptCore(){
   }
 
   // Submission instructions → appended as a paragraph after evidence text
-  // Buyer (Request Evidence / Request Evidence from Seller) → Shopee App path
-  // Seller (Request Evidence) → Seller Centre path
+  // Routing by who actually uploads the evidence:
+  //   Buyer → Request Evidence              → Buyer uploads via Shopee App
+  //   Buyer → Request Evidence from Seller  → Seller uploads via Seller Centre
+  //   Seller → Request Evidence             → Seller uploads via Seller Centre
   if(rsIdx>=0){
-    const isBuyerEvidence  = state.user==='Buyer' && (state.result==='Request Evidence' || state.result==='Request Evidence from Seller');
-    const isSellerEvidence = state.user==='Seller' && state.result==='Request Evidence';
-    if(isBuyerEvidence){
+    const buyerUploadsViaApp     = state.user==='Buyer'  && state.result==='Request Evidence';
+    const sellerUploadsViaCentre = (state.user==='Buyer'  && state.result==='Request Evidence from Seller')
+                                || (state.user==='Seller' && state.result==='Request Evidence');
+    if(buyerUploadsViaApp){
       sections[rsIdx].text += `\n\nTo submit the evidences, please follow the steps below:\n\nShopeeApp > Me > Return Refund > Select Order > Upload evidence button`;
-    } else if(isSellerEvidence){
+    } else if(sellerUploadsViaCentre){
       sections[rsIdx].text += `\n\nTo submit the evidences, please follow the steps below:\n\nSeller Centre > Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.`;
     }
   }
@@ -4785,12 +4795,14 @@ function reshuffleSection(i){
       if(liveReject)   newText = newText.replace(/[.\s]+$/, '') + ` ${liveReject.replace(/\.+$/, '')}.`;
       if(liveProbing)  newText += `\n\n${liveProbing}`;
 
-      // Submission instructions — appended after evidence text on reshuffle too
-      const isBuyerEv  = state.user==='Buyer' && (state.result==='Request Evidence' || state.result==='Request Evidence from Seller');
-      const isSellerEv = state.user==='Seller' && state.result==='Request Evidence';
-      if(isBuyerEv){
+      // Submission instructions — appended after evidence text on reshuffle too.
+      // Routes by who uploads (see _generateScriptCore for full matrix).
+      const buyerUploadsViaApp     = state.user==='Buyer'  && state.result==='Request Evidence';
+      const sellerUploadsViaCentre = (state.user==='Buyer'  && state.result==='Request Evidence from Seller')
+                                  || (state.user==='Seller' && state.result==='Request Evidence');
+      if(buyerUploadsViaApp){
         newText += `\n\nTo submit the evidences, please follow the steps below:\n\nShopeeApp > Me > Return Refund > Select Order > Upload evidence button`;
-      } else if(isSellerEv){
+      } else if(sellerUploadsViaCentre){
         newText += `\n\nTo submit the evidences, please follow the steps below:\n\nSeller Centre > Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.`;
       }
     }
