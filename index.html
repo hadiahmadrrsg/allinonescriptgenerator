@@ -4993,7 +4993,7 @@ function renderForm(){
   // Result buttons
   const allSellerFlows = Object.keys(SCRIPT_ASSEMBLY).filter(k=>k.startsWith('Seller|')).map(k=>k.split('|')[1]);
   // Without Buyer: Approve Compensation, Reject (Compensation), Request Evidence only
-  const sellerWithoutBuyer = allSellerFlows.filter(r=>['Approve Compensation Request','Request Evidence'].includes(r));
+  const sellerWithoutBuyer = allSellerFlows.filter(r=>['Approve Compensation Request','Reject Request','Request Evidence'].includes(r));
   // With Buyer: exclude Without-Buyer-only flows AND P1-only flows (those go in the dropdown)
   const sellerWithBuyer = allSellerFlows.filter(r=>!['Approve Compensation Request','Reject Request'].includes(r) && !SELLER_P1_CASES.some(p=>p.value===r));
   const sellerResults = state.seller_sub_type==='Without Buyer' ? sellerWithoutBuyer : sellerWithBuyer;
@@ -5001,9 +5001,9 @@ function renderForm(){
   const results = state.user==='Buyer'?buyerRegularResults:sellerResults;
   const isP1Result = P1_CASES.some(p=>p.value===state.result) || SELLER_P1_CASES.some(p=>p.value===state.result);
   if(state.result !== '' && !results.includes(state.result) && !isP1Result) state.result=results[0];
-  const resultLabel = r => r==='Accept Request' ? (state.user==='Seller' && state.seller_sub_type==='With Buyer' ? 'Accept Buyer Request' : 'Accept Request') : r==='Reject Request' ? 'Reject Request' : r;
+  const resultLabel = r => r==='Accept Request' ? (state.user==='Seller' && state.seller_sub_type==='With Buyer' ? 'Accept Buyer Request' : 'Accept Request') : r==='Reject Request' ? (state.user==='Seller' && state.seller_sub_type==='Without Buyer' ? 'Reject Compensation Request' : 'Reject Request') : r;
   // Determine which buttons should be full-width
-  const isFullWidth = r => (_FLOW_META[state.user+'|'+r]||{}).fullWidth || r==='Reject Compensation Request' || (state.seller_sub_type==='Without Buyer'&&r==='Request Evidence');
+  const isFullWidth = r => (_FLOW_META[state.user+'|'+r]||{}).fullWidth || r==='Reject Compensation Request' || (state.seller_sub_type==='Without Buyer'&&r==='Request Evidence') || (state.seller_sub_type==='Without Buyer'&&r==='Reject Request');
   // Sort: regular 2-col buttons first, full-width buttons at the end (prevents orphan single buttons in 2-col grid)
   const sortedResults = [...results.filter(r=>!isFullWidth(r)), ...results.filter(r=>isFullWidth(r))];
   document.getElementById('result-btns').innerHTML = sortedResults.map(r=>`<button class="grid-btn${r===state.result?' active':''}" data-value="${esc(r)}" onclick="setResult('${esc(r)}')" style="${isFullWidth(r)?'grid-column:1/-1;':''}">${esc(resultLabel(r))}</button>`).join('');
