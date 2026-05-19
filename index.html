@@ -4993,7 +4993,7 @@ function renderForm(){
   // Result buttons
   const allSellerFlows = Object.keys(SCRIPT_ASSEMBLY).filter(k=>k.startsWith('Seller|')).map(k=>k.split('|')[1]);
   // Without Buyer: Approve Compensation, Reject (Compensation), Request Evidence only
-  const sellerWithoutBuyer = allSellerFlows.filter(r=>['Approve Compensation Request','Reject Request','Request Evidence'].includes(r));
+  const sellerWithoutBuyer = allSellerFlows.filter(r=>['Approve Compensation Request','Request Evidence'].includes(r));
   // With Buyer: exclude Without-Buyer-only flows AND P1-only flows (those go in the dropdown)
   const sellerWithBuyer = allSellerFlows.filter(r=>!['Approve Compensation Request','Reject Request'].includes(r) && !SELLER_P1_CASES.some(p=>p.value===r));
   const sellerResults = state.seller_sub_type==='Without Buyer' ? sellerWithoutBuyer : sellerWithBuyer;
