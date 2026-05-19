@@ -1656,7 +1656,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <tr><th>Field</th><th>Who sees it</th><th>Injected into</th><th>How</th></tr>
       <tr><td>Refund Amount</td><td>Buyer + Accept Request</td><td>Result Sharing</td><td>Appended: <em>"The refund amount of $X will be credited..."</em></td></tr>
       <tr><td>SLA Wallet Return</td><td>Seller + Approve Compensation</td><td>Result Sharing</td><td>Inserted between <code>"within\n"</code> → <code>"within [value]\n"</code></td></tr>
-      <tr><td>SLA Wallet Return</td><td>Seller + other flows</td><td>Result Sharing</td><td>Appended: <em>"The SLA wallet return amount will be X"</em></td></tr>
+      <tr><td>SLA Wallet Return</td><td>Seller + other flows</td><td>Result Sharing</td><td>Appended: <em>"The compensation will be credited into your Seller Wallet within X"</em></td></tr>
       <tr><td>Root Cause</td><td>Reject flows</td><td>Result Sharing</td><td>Appended to complete the connector sentence</td></tr>
       <tr><td>Request Evidence</td><td>Request Evidence flow</td><td>Result Sharing</td><td>Added as new paragraph</td></tr>
       <tr><td>Next Steps</td><td>Buyer + Accept/Close</td><td>After Result Sharing</td><td>Inserted as new section with random connector</td></tr>
@@ -5663,7 +5663,7 @@ function _generateScriptCore(){
       // Insert SLA value between "within " and the newline/appreciation line
       sections[rsIdx].text = sections[rsIdx].text.replace('within\n', `within ${liveSla}.\n`);
     } else {
-      sections[rsIdx].text += ` The SLA wallet return amount will be ${liveSla}.`;
+      sections[rsIdx].text += ` The compensation will be credited into your Seller Wallet within ${liveSla}.`;
     }
   }
 
@@ -5744,7 +5744,7 @@ function reshuffleSection(i){
         if(state.result==='Accept Request'||state.result==='Approve Compensation Request'){
           newText = newText.replace('within\n', `within ${liveSla}.\n`);
         } else {
-          newText += ` The SLA wallet return amount will be ${liveSla}.`;
+          newText += ` The compensation will be credited into your Seller Wallet within ${liveSla}.`;
         }
       }
 
