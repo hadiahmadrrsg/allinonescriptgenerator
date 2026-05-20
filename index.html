@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>All in One Script Generator - v25</title>
+<title>All in One Script Generator - v26</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -138,6 +138,15 @@ textarea{resize:vertical}
 /* Snippet Expand Toast */
 .snip-toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-20px);background:#059669;color:white;padding:18px 36px;border-radius:14px;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;box-shadow:0 8px 30px rgba(5,150,105,.35);z-index:9999;opacity:0;transition:all .3s ease;pointer-events:none;max-width:600px;text-align:left;line-height:1.5}
 .snip-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+/* Version update toast — persistent, bottom-right, separate from the top-centre toasts */
+#sg-version-toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:white;padding:16px 20px;border-radius:14px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.35);z-index:9998;opacity:0;transform:translateY(20px);transition:all .35s ease;pointer-events:none;max-width:340px;line-height:1.5}
+#sg-version-toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
+#sg-version-toast .vt-msg{margin-bottom:12px;color:#e2e8f0}
+#sg-version-toast .vt-btns{display:flex;gap:8px}
+#sg-version-toast .vt-refresh{flex:1;padding:7px 0;border-radius:8px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:background .15s}
+#sg-version-toast .vt-refresh:hover{background:#dc2626}
+#sg-version-toast .vt-later{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:transparent;color:#94a3b8;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
+#sg-version-toast .vt-later:hover{background:rgba(255,255,255,.08);color:#e2e8f0}
 @media(max-width:768px){
   .gen-grid{grid-template-columns:1fr}
   .add-form-grid{grid-template-columns:1fr 1fr}
@@ -205,7 +214,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v25</div>
+        <div class="logo-title">All in One Script Generator - v26</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -309,14 +318,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
           <span class="lbl">Product Name <span style="font-weight:400;color:#9ca3af;font-size:11px">(display only)</span></span>
           <input type="text" id="inp-product" placeholder="Auto-filled by DMS bookmarklet" oninput="setState('product_name',this.value)" style="color:#6b7280">
         </div>
-        <!-- BUYER ONLY: Refund Amount — hidden for Request Evidence and Close Request -->
-        <div id="field-amount-refund" class="field-gap hidden">
-          <span class="lbl">Refund Amount</span>
-          <div style="display:flex;align-items:center;border:1.5px solid #e5e7eb;border-radius:10px;overflow:hidden;background:white;transition:border-color .2s" onfocusin="this.style.borderColor='#ee4d2d'" onfocusout="this.style.borderColor='#e5e7eb'">
-            <span style="padding:0 10px;font-size:13px;font-weight:600;color:#6b7280;background:#f9fafb;border-right:1.5px solid #e5e7eb;height:100%;display:flex;align-items:center;align-self:stretch">$</span>
-            <input type="text" id="inp-refund" placeholder="e.g. 15.90" oninput="setState('refund_amount',this.value)" style="border:none;border-radius:0;flex:1;padding:8px 10px;font-size:13px;outline:none;font-family:'Sora',sans-serif;color:#1a1a1a;background:transparent">
-          </div>
-        </div>
+        <!-- BUYER ONLY: Refund Amount field removed — value still scraped by DMS bookmarklet -->
       </div>
 
       <!-- Return / Dispute Reason -->
@@ -1383,7 +1385,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="docs-sidebar-logo">
       <span class="ds-badge">Shopee Return & Refund</span>
       <h2>All in One Script Generator</h2>
-      <p>Technical Documentation — v25</p>
+      <p>Technical Documentation — v26</p>
     </div>
 
     <div class="docs-nav-group">
@@ -2169,7 +2171,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v25')" id="vnav-v25"><span class="ddot" style="background:#ee4d2d"></span>v25 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v26')" id="vnav-v26"><span class="ddot" style="background:#ee4d2d"></span>v26 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v25')" id="vnav-v25"><span class="ddot" style="background:#6b7280"></span>v25</a>
     <a class="docs-nav-item" onclick="scrollToVer('v24')" id="vnav-v24"><span class="ddot" style="background:#6b7280"></span>v24</a>
     <a class="docs-nav-item" onclick="scrollToVer('v23')" id="vnav-v23"><span class="ddot" style="background:#6b7280"></span>v23</a>
     <a class="docs-nav-item" onclick="scrollToVer('v22')" id="vnav-v22"><span class="ddot" style="background:#6b7280"></span>v22</a>
@@ -2197,11 +2200,45 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
+      <!-- v26 -->
+      <div id="vsec-v26" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v26 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">20 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Version update toast</strong> — when a new version is uploaded to GitHub, all open generators detect the change via Firebase (<code>sg/appVersion</code>) and show a persistent bottom-right toast: <em>"🔄 A new version is available — please refresh."</em> Two buttons: <strong>Refresh Now</strong> (reloads immediately) and <strong>Later</strong> (snoozes 30 minutes via localStorage, re-appears after snooze expires). Apps Script <code>pushToFirebase</code>, <code>pushScriptsOnly</code>, and <code>pushEvidenceOnly</code> all write <code>sg/appVersion</code> automatically on every push — no manual step needed.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🗑️ Removed</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Refund Amount UI field</strong> — hidden from Case Details. Value still scraped by DMS bookmarklet and stored in state, but no longer shown in the form or appended to generated scripts ("The refund amount of $X will be credited to your account." sentence removed from Buyer → Accept Request → Result Sharing).</li>
+            <li><strong>{product_name} from generated scripts</strong> — removed from all 206 RAW_DB Empathy scripts and from <code>fill()</code>/<code>fillSnippetPlaceholders()</code>. Product Name field kept in Case Details as display-only, still auto-filled by DMS bookmarklet.</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Reject Compensation Request</strong> (Seller → Without Buyer) restored and renamed — now full-width, matching Approve Compensation Request size.</li>
+            <li><strong>SLA wallet sentence</strong> — updated to "The compensation will be credited into your Seller Wallet within X".</li>
+            <li><strong>Firebase partial-load crash</strong> — gstatic partial SDK load no longer causes <code>database is not a function</code> on the next CDN attempt. Leftover <code>window.firebase</code> global is now cleaned up before retry.</li>
+            <li><strong>"Script error." noise suppressed</strong> — cross-origin CDN errors filtered at the global error handler.</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
       <!-- v25 -->
       <div id="vsec-v25" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v25 — Current</div>
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v25</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">18 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -3191,7 +3228,71 @@ function showToast(msg, type){
   toast._timer = setTimeout(()=>toast.classList.remove('show'), 4500);
 }
 
-// Robust clipboard copy — works in insecure contexts, sandboxed iframes, and when
+// ── Version update toast ─────────────────────────────────────────────────────
+// Shown when Firebase sg/appVersion changes to a value different from what
+// was present when this page first loaded. Persists until user acts.
+// "Later" snoozes for 30 minutes (localStorage), re-shows after snooze expires.
+
+var _sgAppVersion      = 'v26';          // version baked into this build
+var _sgLoadedVersion   = null;           // the sg/appVersion value at first load
+var _SG_VER_SNOOZE_KEY = 'sg_ver_snooze';
+var _sgVerSnoozeTimer  = null;
+
+function _sgVersionChanged(newVer){
+  if(!newVer || _sgLoadedVersion === null || newVer === _sgLoadedVersion) return; // null = first load, not set yet
+  // Check snooze
+  try {
+    const snoozeUntil = parseInt(localStorage.getItem(_SG_VER_SNOOZE_KEY) || '0', 10);
+    if(Date.now() < snoozeUntil) {
+      // Still in snooze window — schedule a re-check when snooze expires
+      const remaining = snoozeUntil - Date.now();
+      clearTimeout(_sgVerSnoozeTimer);
+      _sgVerSnoozeTimer = setTimeout(() => _sgVersionChanged(newVer), remaining + 1000);
+      return;
+    }
+  } catch(_){}
+  _sgShowVersionToast(newVer);
+}
+
+function _sgShowVersionToast(newVer){
+  let toast = document.getElementById('sg-version-toast');
+  if(!toast){
+    toast = document.createElement('div');
+    toast.id = 'sg-version-toast';
+    document.body.appendChild(toast);
+  }
+  toast.innerHTML =
+    '<div class="vt-msg">🔄 A new version (<strong>' + esc(newVer) + '</strong>) is available.<br>' +
+    'Please refresh to get the latest updates.</div>' +
+    '<div class="vt-btns">' +
+    '<button class="vt-refresh" onclick="_sgVersionRefreshNow()">Refresh Now</button>' +
+    '<button class="vt-later"   onclick="_sgVersionSnooze(\'' + newVer + '\')">Remind in 30 min</button>' +
+    '</div>';
+  // Force reflow before adding .show so the CSS transition plays
+  toast.classList.remove('show');
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+  if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version update available: ' + newVer + ' (current: ' + _sgAppVersion + ')');
+  if(typeof gsLogAdd === 'function') gsLogAdd('info', 'Version update available: ' + newVer + ' — toast shown to user');
+}
+
+function _sgVersionRefreshNow(){
+  try { localStorage.removeItem(_SG_VER_SNOOZE_KEY); } catch(_){}
+  location.reload();
+}
+
+function _sgVersionSnooze(newVer){
+  try {
+    const snoozeUntil = Date.now() + 30 * 60 * 1000; // 30 minutes
+    localStorage.setItem(_SG_VER_SNOOZE_KEY, String(snoozeUntil));
+  } catch(_){}
+  const toast = document.getElementById('sg-version-toast');
+  if(toast) toast.classList.remove('show');
+  if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version toast snoozed 30 min');
+  // Re-check after 30 minutes + 5 seconds
+  clearTimeout(_sgVerSnoozeTimer);
+  _sgVerSnoozeTimer = setTimeout(() => _sgVersionChanged(newVer), 30 * 60 * 1000 + 5000);
+}
+// ─────────────────────────────────────────────────────────────────────────────, sandboxed iframes, and when
 // navigator.clipboard is blocked. Tries execCommand('copy') first via hidden textarea
 // (works everywhere), falls back to Clipboard API. Returns true if either succeeded.
 // onSuccess/onFailure are optional callbacks.
@@ -3516,6 +3617,18 @@ function sgFbLoadAndSubscribe(){
           }
         }catch(_){}
       });
+      // App version — detect when a new build is deployed to GitHub Pages.
+      // First read stores the baseline. Subsequent changes trigger the refresh toast.
+      _sgFbDB.ref('sg/appVersion').on('value', s => {
+        const ver = s.val();
+        if(!ver) return;
+        if(_sgLoadedVersion === null){
+          _sgLoadedVersion = ver;
+          console.log('[SG] appVersion at load:', ver);
+        } else {
+          _sgVersionChanged(ver);
+        }
+      });
     }
   }, () => { sgFbStatus('err'); });
 }
@@ -3781,6 +3894,8 @@ function getAppsScriptCode(){
     "var SCRIPTS_PATH     = 'sg/scripts';",
     "var EVIDENCE_PATH    = 'sg/evidence';",
     "var SYNC_PATH        = 'sg/lastSync';",
+    "var VERSION_PATH     = 'sg/appVersion';",
+    "var APP_VERSION      = 'v26';",
     "var SCRIPTS_SHEET    = 'Scripts';",
     "var EVIDENCE_SHEET   = 'Evidence';",
     '',
@@ -3857,7 +3972,8 @@ function getAppsScriptCode(){
     '  try{',
     '    _fbRequest(SCRIPTS_PATH,  "put", sRows);',
     '    if(eRows.length>0) _fbRequest(EVIDENCE_PATH,"put",eRows);',
-    '    _fbRequest(SYNC_PATH, "put", new Date().toISOString());',
+    '    _fbRequest(SYNC_PATH,    "put", new Date().toISOString());',
+    '    _fbRequest(VERSION_PATH, "put", APP_VERSION);',
     '  }catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
     '  ui.alert("Pushed OK!" + " Scripts: " + sRows.length + " / Evidence: " + eRows.length + ". All open generators will update within seconds.");',
     '}',
@@ -3865,7 +3981,7 @@ function getAppsScriptCode(){
     'function pushScriptsOnly(){',
     '  var ui = SpreadsheetApp.getUi(), rows;',
     '  try{ rows=_readScriptRows(); }catch(e){ ui.alert("Scripts read failed: "+e.message); return; }',
-    '  try{ _fbRequest(SCRIPTS_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); }',
+    '  try{ _fbRequest(SCRIPTS_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); _fbRequest(VERSION_PATH,"put",APP_VERSION); }',
     '  catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
     '  ui.alert("Pushed "+rows.length+" scripts.");',
     '}',
@@ -3874,7 +3990,7 @@ function getAppsScriptCode(){
     '  var ui = SpreadsheetApp.getUi(), rows;',
     '  try{ rows=_readEvidenceRows(); }catch(e){ ui.alert("Evidence read failed: "+e.message); return; }',
     '  if(!rows.length){ ui.alert("No evidence rows found. Check the Evidence tab name."); return; }',
-    '  try{ _fbRequest(EVIDENCE_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); }',
+    '  try{ _fbRequest(EVIDENCE_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); _fbRequest(VERSION_PATH,"put",APP_VERSION); }',
     '  catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
     '  ui.alert("Pushed "+rows.length+" evidence rows.");',
     '}',
@@ -4433,7 +4549,7 @@ function gsSyncToSheet(){
   gsLogAdd('upload', `Sync TO Sheet — queuing ${totalRows} rows to Firebase (sg/sheetRestore)…`);
 
   _sgFbDB.ref('sg/sheetRestore').set({
-    rows, requestedAt: new Date().toISOString(), requestedBy: 'generator-v25', totalRows, status: 'pending'
+    rows, requestedAt: new Date().toISOString(), requestedBy: 'generator-v26', totalRows, status: 'pending'
   }).then(() => {
     gsLogAdd('success', `Sync TO Sheet queued — ${totalRows} rows in sg/sheetRestore. Run "Restore from Generator (preview)" in Sheet → Sync to Firebase menu.`);
     setS('✅ Sent — run Apps Script "Restore from Generator" in your Sheet', '#059669');
@@ -5052,7 +5168,6 @@ function renderForm(){
 
   // Amount Refund — buyer only, and only for Accept Request
   const showRefund = isBuyer && isAccept;
-  document.getElementById('field-amount-refund').classList.toggle('hidden', !showRefund);
   // SLA Wallet — seller only
   const isSellerApprove = !isBuyer && res==='Approve Compensation Request';
   document.getElementById('field-sla-wallet').classList.toggle('hidden', !isSellerApprove);
@@ -5083,7 +5198,6 @@ function setResult(r){
   document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
   document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
   if(isProbing) evGenInit();
-  document.getElementById('field-amount-refund').classList.toggle('hidden', !(isBuyer && isAccept));
   const isSellerApprove = !isBuyer && r==='Approve Compensation Request';
   document.getElementById('field-sla-wallet').classList.toggle('hidden', !isSellerApprove);
   const anyDetail = isReject || isProbing || (isBuyer && (isAccept || r==='Close Request'));
@@ -5116,7 +5230,6 @@ function setP1Result(val){
   const isBuyer = state.user==='Buyer';
   document.getElementById('field-reject-cause').classList.add('hidden');
   document.getElementById('field-need-probing').classList.add('hidden');
-  document.getElementById('field-amount-refund').classList.toggle('hidden', !isBuyer);
   document.getElementById('field-sla-wallet').classList.add('hidden');
   document.getElementById('section-detail').classList.toggle('hidden', true);
   renderOutput();
@@ -5642,7 +5755,6 @@ function _generateScriptCore(){
 
   // ── Read case-detail values live from DOM — only if field is visible ────
   const fieldVisible = id => !document.getElementById(id)?.classList.contains('hidden');
-  const liveRefund    = fieldVisible('field-amount-refund') ? (document.getElementById('inp-refund')?.value||'').trim() : '';
   const liveSla       = fieldVisible('field-sla-wallet')    ? (document.getElementById('inp-sla')?.value||'').trim()    : '';
   const liveReject    = fieldVisible('field-reject-cause')  ? (document.getElementById('inp-reject-cause')?.value||'').trim().replace(/\.+$/, '')  : '';
   const liveProbing   = fieldVisible('field-need-probing')  ? (document.getElementById('inp-need-probing')?.value||'').trim()  : '';
@@ -5651,11 +5763,6 @@ function _generateScriptCore(){
   // ── Integrate all case details directly into the script sentences ──
   const sections = state.generatedSections;
   const rsIdx = sections.findIndex(s=>s.item==='Result Sharing + Root Cause');
-
-  // Amount Refund → woven into Result Sharing sentence
-  if(state.user==='Buyer' && liveRefund && rsIdx>=0){
-    sections[rsIdx].text += ` The refund amount of $${liveRefund} will be credited to your account.`;
-  }
 
   // SLA Wallet → woven into Result Sharing sentence
   if(state.user==='Seller' && liveSla && rsIdx>=0){
@@ -5735,11 +5842,9 @@ function reshuffleSection(i){
     // Re-append refund amount / SLA wallet to Result Sharing after reshuffle
     if(sec.item==='Result Sharing + Root Cause'){
       const fv = id => !document.getElementById(id)?.classList.contains('hidden');
-      const liveRefund  = fv('field-amount-refund') ? (document.getElementById('inp-refund')?.value||'').trim()       : '';
       const liveSla     = fv('field-sla-wallet')    ? (document.getElementById('inp-sla')?.value||'').trim()          : '';
       const liveReject  = fv('field-reject-cause')  ? (document.getElementById('inp-reject-cause')?.value||'').trim().replace(/\.+$/, '') : '';
       const liveProbing = fv('field-need-probing')  ? (document.getElementById('inp-need-probing')?.value||'').trim() : '';
-      if(state.user==='Buyer' && liveRefund)  newText += ` The refund amount of $${liveRefund} will be credited to your account.`;
       if(state.user==='Seller' && liveSla){
         if(state.result==='Accept Request'||state.result==='Approve Compensation Request'){
           newText = newText.replace('within\n', `within ${liveSla}.\n`);
