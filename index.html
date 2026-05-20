@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>All in One Script Generator - v26</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -3142,7 +3145,7 @@ let state = {
 // Priority: 1) localStorage cached Sheet data  2) baked-in RAW_DB
 const _SG_DB_CACHE_KEY = 'sg_cached_db';
 const _SG_DB_CACHE_VER = 'sg_cached_db_ver';
-const _SG_CACHE_VERSION = 'v22r1'; // bump this when db structure changes to auto-invalidate old caches
+const _SG_CACHE_VERSION = 'v26r1'; // bump this when db structure changes to auto-invalidate old caches
 let db = (()=>{
   try{
     const cached    = localStorage.getItem(_SG_DB_CACHE_KEY);
@@ -3670,15 +3673,28 @@ function sgFbLoadAndSubscribe(){
         }catch(_){}
       });
       // App version — detect when a new build is deployed to GitHub Pages.
-      // First read stores the baseline. Subsequent changes trigger the refresh toast.
+      // Two scenarios:
+      // A) Agent loads page AFTER you pushed → sg/appVersion = 'v27', _sgAppVersion = 'v26'
+      //    → file is stale, show toast immediately on first read
+      // B) Agent loads page BEFORE you push → appVersion = 'v26' = _sgAppVersion → no toast
+      //    → later Firebase fires with 'v27' → show toast then
       _sgFbDB.ref('sg/appVersion').on('value', s => {
         const ver = s.val();
         if(!ver) return;
         if(_sgLoadedVersion === null){
+          // First read — store as baseline
           _sgLoadedVersion = ver;
           console.log('[SG] appVersion at load:', ver);
+          // Scenario A: file is older than what Firebase knows about → show toast now
+          if(ver !== _sgAppVersion){
+            // Get notes for this version if available
+            const notesEntry = Array.isArray(_sgUpdateNotes)
+              ? _sgUpdateNotes.find(n => n.version === ver)
+              : null;
+            _sgShowVersionToast(ver, notesEntry ? notesEntry.message : '', notesEntry ? notesEntry.status : '');
+          }
         } else {
-          // Pull notes/status for this version if available
+          // Scenario B: version changed while page is open
           const notesEntry = Array.isArray(_sgUpdateNotes)
             ? _sgUpdateNotes.find(n => n.version === ver)
             : null;
