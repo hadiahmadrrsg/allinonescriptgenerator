@@ -136,17 +136,20 @@ textarea{resize:vertical}
 .snip-ac-code{font-family:monospace;font-size:11px;color:#059669;background:#f0fdf4;padding:1px 5px;border-radius:4px;margin-left:6px}
 .snip-ac-preview{font-size:11px;color:#9ca3af;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Snippet Expand Toast */
-.snip-toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-20px);background:#059669;color:white;padding:18px 36px;border-radius:14px;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;box-shadow:0 8px 30px rgba(5,150,105,.35);z-index:9999;opacity:0;transition:all .3s ease;pointer-events:none;max-width:600px;text-align:left;line-height:1.5}
-.snip-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-/* Version update toast — persistent, bottom-right, separate from the top-centre toasts */
-#sg-version-toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:white;padding:16px 20px;border-radius:14px;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.35);z-index:9998;opacity:0;transform:translateY(20px);transition:all .35s ease;pointer-events:none;max-width:340px;line-height:1.5}
-#sg-version-toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
-#sg-version-toast .vt-msg{margin-bottom:12px;color:#e2e8f0}
-#sg-version-toast .vt-btns{display:flex;gap:8px}
-#sg-version-toast .vt-refresh{flex:1;padding:7px 0;border-radius:8px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:background .15s}
-#sg-version-toast .vt-refresh:hover{background:#dc2626}
-#sg-version-toast .vt-later{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:transparent;color:#94a3b8;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
-#sg-version-toast .vt-later:hover{background:rgba(255,255,255,.08);color:#e2e8f0}
+/* ── Unified toast — top-centre, colour-coded left border ── */
+#sg-toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-24px);background:#1e293b;color:#f1f5f9;padding:14px 22px;border-radius:12px;font-family:'Sora',sans-serif;font-size:13.5px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.32);z-index:9999;opacity:0;transition:opacity .28s ease,transform .28s ease;pointer-events:none;max-width:560px;width:max-content;text-align:left;line-height:1.55;border-left:4px solid #6b7280}
+#sg-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+#sg-toast.t-success{border-left-color:#22c55e}
+#sg-toast.t-warn{border-left-color:#f59e0b}
+#sg-toast.t-error{border-left-color:#ef4444}
+#sg-toast.t-info{border-left-color:#3b82f6}
+#sg-toast.t-version{border-left-color:#ee4d2d;padding-bottom:14px}
+#sg-toast .vt-msg{margin-bottom:12px;color:#f1f5f9}
+#sg-toast .vt-btns{display:flex;gap:8px;margin-top:12px}
+#sg-toast .vt-refresh{flex:1;padding:7px 0;border-radius:8px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:background .15s}
+#sg-toast .vt-refresh:hover{background:#dc2626}
+#sg-toast .vt-later{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#94a3b8;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
+#sg-toast .vt-later:hover{background:rgba(255,255,255,.08);color:#f1f5f9}
 @media(max-width:768px){
   .gen-grid{grid-template-columns:1fr}
   .add-form-grid{grid-template-columns:1fr 1fr}
@@ -2200,6 +2203,16 @@ setTimeout(function(){
   <div class="docs-content" style="padding:32px 36px;overflow-y:auto;max-height:80vh">
     <div class="ddiv" id="vsec-top"></div>
 
+    <!-- LIVE UPDATE NOTES — pulled from Firebase sg/updateNotes (pushed from Google Sheet Updates tab) -->
+    <div id="sg-live-update-notes" class="hidden" style="margin-bottom:28px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <span style="font-size:16px">📡</span>
+        <span style="font-weight:800;font-size:15px;color:#c2410c">Live Updates from Sheet</span>
+        <span style="font-size:11px;color:#9ca3af;margin-left:4px">pushed via Apps Script → Firebase</span>
+      </div>
+      <!-- Cards injected by sgRenderUpdateNotes() -->
+    </div>
+
       <!-- v26 -->
       <div id="vsec-v26" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
@@ -3210,22 +3223,17 @@ function showToast(msg, type){
   if(!toast){
     toast = document.createElement('div');
     toast.id = 'sg-toast';
-    toast.className = 'snip-toast';
     document.body.appendChild(toast);
   }
-  const colors = {
-    info:    {bg:'#2563eb', shadow:'rgba(37,99,235,.35)'},
-    success: {bg:'#059669', shadow:'rgba(5,150,105,.35)'},
-    warn:    {bg:'#d97706', shadow:'rgba(217,119,6,.35)'},
-    error:   {bg:'#dc2626', shadow:'rgba(220,38,38,.35)'}
-  };
-  const c = colors[type] || colors.info;
-  toast.style.background = c.bg;
-  toast.style.boxShadow = '0 8px 30px ' + c.shadow;
+  // Clear version-toast state if it was showing
+  toast.classList.remove('t-success','t-warn','t-error','t-info','t-version');
+  toast.classList.add('t-' + type);
   toast.innerHTML = '<div style="white-space:pre-wrap">' + (msg||'').toString().replace(/</g,'&lt;') + '</div>';
   toast.classList.add('show');
   clearTimeout(toast._timer);
-  toast._timer = setTimeout(()=>toast.classList.remove('show'), 4500);
+  toast._timer = setTimeout(()=>{
+    toast.classList.remove('show');
+  }, 4500);
 }
 
 // ── Version update toast ─────────────────────────────────────────────────────
@@ -3237,42 +3245,86 @@ var _sgAppVersion      = 'v26';          // version baked into this build
 var _sgLoadedVersion   = null;           // the sg/appVersion value at first load
 var _SG_VER_SNOOZE_KEY = 'sg_ver_snooze';
 var _sgVerSnoozeTimer  = null;
+var _sgUpdateNotes     = [];             // [{version, date, message, status}] from Firebase sg/updateNotes
 
-function _sgVersionChanged(newVer){
+// Render live update notes into the Version Updates admin tab
+function sgRenderUpdateNotes(){
+  const container = document.getElementById('sg-live-update-notes');
+  if(!container) return;
+  if(!_sgUpdateNotes || !_sgUpdateNotes.length){
+    container.innerHTML = '';
+    container.classList.add('hidden');
+    return;
+  }
+  container.classList.remove('hidden');
+  // Sort descending by version string
+  const sorted = [..._sgUpdateNotes].sort((a,b) => String(b.version||'').localeCompare(String(a.version||''), undefined, {numeric:true}));
+  container.innerHTML = sorted.map(n => {
+    const bullets = String(n.message||'').split('\n').map(l=>l.trim()).filter(Boolean);
+    const statusBadge = n.status ? `<span style="font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;margin-left:8px">${esc(n.status)}</span>` : '';
+    return `<div style="padding:14px 18px;border-radius:12px;border:1.5px solid #fed7aa;background:#fff8f0;margin-bottom:10px">
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:${bullets.length?'10px':'0'}">
+        <span style="font-weight:800;font-size:14px;color:#c2410c">${esc(n.version||'')}</span>
+        ${n.date ? `<span style="font-size:11px;color:#9ca3af">· ${esc(n.date)}</span>` : ''}
+        ${statusBadge}
+      </div>
+      ${bullets.length ? `<ul style="margin:0;padding-left:18px;font-size:13px;color:#374151;line-height:2">${bullets.map(b=>`<li>${esc(b)}</li>`).join('')}</ul>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function _sgVersionChanged(newVer, notes, status){
   if(!newVer || _sgLoadedVersion === null || newVer === _sgLoadedVersion) return; // null = first load, not set yet
   // Check snooze
   try {
     const snoozeUntil = parseInt(localStorage.getItem(_SG_VER_SNOOZE_KEY) || '0', 10);
     if(Date.now() < snoozeUntil) {
-      // Still in snooze window — schedule a re-check when snooze expires
       const remaining = snoozeUntil - Date.now();
       clearTimeout(_sgVerSnoozeTimer);
-      _sgVerSnoozeTimer = setTimeout(() => _sgVersionChanged(newVer), remaining + 1000);
+      _sgVerSnoozeTimer = setTimeout(() => _sgVersionChanged(newVer, notes, status), remaining + 1000);
       return;
     }
   } catch(_){}
-  _sgShowVersionToast(newVer);
+  _sgShowVersionToast(newVer, notes, status);
 }
 
-function _sgShowVersionToast(newVer){
-  let toast = document.getElementById('sg-version-toast');
+function _sgShowVersionToast(newVer, notes, status){
+  let toast = document.getElementById('sg-toast');
   if(!toast){
     toast = document.createElement('div');
-    toast.id = 'sg-version-toast';
+    toast.id = 'sg-toast';
     document.body.appendChild(toast);
   }
-  toast.innerHTML =
-    '<div class="vt-msg">🔄 A new version (<strong>' + esc(newVer) + '</strong>) is available.<br>' +
-    'Please refresh to get the latest updates.</div>' +
-    '<div class="vt-btns">' +
-    '<button class="vt-refresh" onclick="_sgVersionRefreshNow()">Refresh Now</button>' +
-    '<button class="vt-later"   onclick="_sgVersionSnooze(\'' + newVer + '\')">Remind in 30 min</button>' +
-    '</div>';
-  // Force reflow before adding .show so the CSS transition plays
+  // Cancel any pending auto-dismiss from a regular toast
+  clearTimeout(toast._timer);
+  toast._timer = null;
+
+  // Build message
+  const verLabel = esc(newVer);
+  const statusBadge = status ? ' <span style="font-size:11px;font-weight:700;opacity:.85">' + esc(status) + '</span>' : '';
+  let html = '<div class="vt-msg">';
+  html += '🔄 <strong>' + verLabel + '</strong> is now available' + statusBadge + '<br>';
+  if(notes && notes.trim()){
+    const bullets = notes.split('\n').map(l => l.trim()).filter(Boolean);
+    if(bullets.length){
+      html += '<div style="margin-top:8px;font-size:12px;font-weight:400;opacity:.9;line-height:1.7">';
+      bullets.forEach(b => { html += '• ' + esc(b) + '<br>'; });
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  html += '<div class="vt-btns">';
+  html += '<button class="vt-refresh" onclick="_sgVersionRefreshNow()">Refresh Now</button>';
+  html += '<button class="vt-later" onclick="_sgVersionSnooze(\'' + verLabel + '\')">Remind in 30 min</button>';
+  html += '</div>';
+
+  toast.classList.remove('t-success','t-warn','t-error','t-info','t-version');
+  toast.classList.add('t-version');
+  toast.innerHTML = html;
   toast.classList.remove('show');
   requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
-  if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version update available: ' + newVer + ' (current: ' + _sgAppVersion + ')');
-  if(typeof gsLogAdd === 'function') gsLogAdd('info', 'Version update available: ' + newVer + ' — toast shown to user');
+  if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version update available: ' + newVer);
+  if(typeof gsLogAdd === 'function') gsLogAdd('info', 'Version update available: ' + newVer + ' — toast shown');
 }
 
 function _sgVersionRefreshNow(){
@@ -3285,7 +3337,7 @@ function _sgVersionSnooze(newVer){
     const snoozeUntil = Date.now() + 30 * 60 * 1000; // 30 minutes
     localStorage.setItem(_SG_VER_SNOOZE_KEY, String(snoozeUntil));
   } catch(_){}
-  const toast = document.getElementById('sg-version-toast');
+  const toast = document.getElementById('sg-toast');
   if(toast) toast.classList.remove('show');
   if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version toast snoozed 30 min');
   // Re-check after 30 minutes + 5 seconds
@@ -3626,8 +3678,18 @@ function sgFbLoadAndSubscribe(){
           _sgLoadedVersion = ver;
           console.log('[SG] appVersion at load:', ver);
         } else {
-          _sgVersionChanged(ver);
+          // Pull notes/status for this version if available
+          const notesEntry = Array.isArray(_sgUpdateNotes)
+            ? _sgUpdateNotes.find(n => n.version === ver)
+            : null;
+          _sgVersionChanged(ver, notesEntry ? notesEntry.message : '', notesEntry ? notesEntry.status : '');
         }
+      });
+      // Update notes — pushed from Apps Script alongside appVersion
+      _sgFbDB.ref('sg/updateNotes').on('value', s => {
+        const val = s.val();
+        _sgUpdateNotes = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+        if(typeof sgRenderUpdateNotes === 'function') sgRenderUpdateNotes();
       });
     }
   }, () => { sgFbStatus('err'); });
@@ -3895,9 +3957,11 @@ function getAppsScriptCode(){
     "var EVIDENCE_PATH    = 'sg/evidence';",
     "var SYNC_PATH        = 'sg/lastSync';",
     "var VERSION_PATH     = 'sg/appVersion';",
+    "var UPDATES_PATH     = 'sg/updateNotes';",
     "var APP_VERSION      = 'v26';",
     "var SCRIPTS_SHEET    = 'Scripts';",
     "var EVIDENCE_SHEET   = 'Evidence';",
+    "var UPDATES_SHEET    = 'Updates';",
     '',
     'function onOpen(){',
     '  SpreadsheetApp.getUi()',
@@ -3964,24 +4028,46 @@ function getAppsScriptCode(){
     '  return rows;',
     '}',
     '',
+    'function _readUpdateRows(){',
+    '  // Columns: Version | Date | Message | Status',
+    '  var ss = SpreadsheetApp.getActiveSpreadsheet();',
+    '  var sh = ss.getSheetByName(UPDATES_SHEET);',
+    '  if(!sh) return [];   // Updates tab is optional — silently skip if missing',
+    '  var values = sh.getDataRange().getValues();',
+    '  if(values.length < 2) return [];',
+    '  var rows = [];',
+    '  for(var i = 1; i < values.length; i++){',
+    '    var r       = values[i];',
+    '    var version = String(r[0]||"").trim();',
+    '    var date    = String(r[1]||"").trim();',
+    '    var message = String(r[2]||"").trim();',
+    '    var status  = String(r[3]||"").trim();',
+    '    if(!version && !message) continue;',
+    '    rows.push({version:version, date:date, message:message, status:status});',
+    '  }',
+    '  return rows;',
+    '}',
+    '',
     'function pushToFirebase(){',
     '  var ui = SpreadsheetApp.getUi();',
-    '  var sRows, eRows;',
+    '  var sRows, eRows, uRows;',
     '  try{ sRows = _readScriptRows();  }catch(e){ ui.alert("Scripts read failed: "+e.message); return; }',
     '  try{ eRows = _readEvidenceRows();}catch(e){ ui.alert("Evidence read failed: "+e.message); return; }',
+    '  try{ uRows = _readUpdateRows();  }catch(e){ uRows = []; }',
     '  try{',
     '    _fbRequest(SCRIPTS_PATH,  "put", sRows);',
     '    if(eRows.length>0) _fbRequest(EVIDENCE_PATH,"put",eRows);',
+    '    if(uRows.length>0) _fbRequest(UPDATES_PATH, "put",uRows);',
     '    _fbRequest(SYNC_PATH,    "put", new Date().toISOString());',
     '    _fbRequest(VERSION_PATH, "put", APP_VERSION);',
     '  }catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
-    '  ui.alert("Pushed OK!" + " Scripts: " + sRows.length + " / Evidence: " + eRows.length + ". All open generators will update within seconds.");',
+    '  ui.alert("Pushed OK!" + " Scripts: " + sRows.length + " / Evidence: " + eRows.length + (uRows.length?" / Updates: "+uRows.length:"") + ". All open generators will update within seconds.");',
     '}',
     '',
     'function pushScriptsOnly(){',
     '  var ui = SpreadsheetApp.getUi(), rows;',
     '  try{ rows=_readScriptRows(); }catch(e){ ui.alert("Scripts read failed: "+e.message); return; }',
-    '  try{ _fbRequest(SCRIPTS_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); _fbRequest(VERSION_PATH,"put",APP_VERSION); }',
+    '  try{ _fbRequest(SCRIPTS_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); _fbRequest(VERSION_PATH,"put",APP_VERSION); try{var u=_readUpdateRows();if(u.length)_fbRequest(UPDATES_PATH,"put",u);}catch(_){} }',
     '  catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
     '  ui.alert("Pushed "+rows.length+" scripts.");',
     '}',
@@ -3990,7 +4076,7 @@ function getAppsScriptCode(){
     '  var ui = SpreadsheetApp.getUi(), rows;',
     '  try{ rows=_readEvidenceRows(); }catch(e){ ui.alert("Evidence read failed: "+e.message); return; }',
     '  if(!rows.length){ ui.alert("No evidence rows found. Check the Evidence tab name."); return; }',
-    '  try{ _fbRequest(EVIDENCE_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); _fbRequest(VERSION_PATH,"put",APP_VERSION); }',
+    '  try{ _fbRequest(EVIDENCE_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); _fbRequest(VERSION_PATH,"put",APP_VERSION); try{var u=_readUpdateRows();if(u.length)_fbRequest(UPDATES_PATH,"put",u);}catch(_){} }',
     '  catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
     '  ui.alert("Pushed "+rows.length+" evidence rows.");',
     '}',
@@ -6134,7 +6220,6 @@ function autoFillFromDMS(data){
     const suEl=document.getElementById('inp-seller-username'); if(suEl) suEl.value=(state.seller_username||'');
     const oEl=document.getElementById('inp-ordersn');  if(oEl) oEl.value=orderSN;
     const pEl=document.getElementById('inp-product');  if(pEl) pEl.value=productName;
-    const rEl=document.getElementById('inp-refund');   if(rEl&&refundAmt) rEl.value=refundAmt;
     const sEl=document.getElementById('inp-sla');      if(sEl&&slaWallet) sEl.value=slaWallet;
 
     // Set reason dropdown
@@ -6630,6 +6715,7 @@ function setAdminTab(item){state.adminTab=item;renderAdminPanel();
     if(saved){ gsRenderDiff(saved); } else { gsShowEmpty(); }
   }
   if(item==='firebase'){ fbDashRefresh(); }
+  if(item==='versions'){ if(typeof sgRenderUpdateNotes === 'function') sgRenderUpdateNotes(); }
   if(item==='statistics'){ renderStatsPanel(); }
 }
 
@@ -7293,11 +7379,14 @@ let snipAcIndex = -1; // active autocomplete index
 let snipAcMatches = []; // current autocomplete matches
 
 function showSnipToast(snippet){
-  const toast = document.getElementById('snip-toast');
-  const preview = (snippet||'').length > 120 ? (snippet||'').substring(0, 120) + '…' : (snippet||'');
-  toast.innerHTML = '<div style="font-weight:800;margin-bottom:4px">Snippet Pasted:</div><div style="font-weight:400;opacity:.9;white-space:pre-wrap">' + esc(preview) + '</div>';
-  toast.classList.add('show');
-  setTimeout(()=>toast.classList.remove('show'), 3500);
+  // For plain feedback messages (e.g. "Synced 5 snippets"), route through showToast
+  if(!snippet || snippet.length < 60 || !snippet.includes('\n')){
+    showToast(snippet || 'Done', 'success');
+    return;
+  }
+  // For longer snippet previews, show with a "Copied:" header
+  const preview = snippet.length > 120 ? snippet.substring(0, 120) + '…' : snippet;
+  showToast('Snippet Copied:\n' + preview, 'success');
 }
 
 function getSnippetByShortcut(code){
@@ -8497,6 +8586,6 @@ function updateEvScriptCount(){
     </div>
   </div>
 </div>
-<div id="snip-toast" class="snip-toast"></div>
+
 </body>
 </html>
