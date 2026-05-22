@@ -146,13 +146,15 @@ textarea{resize:vertical}
 #sg-toast.t-warn{border-left-color:#f59e0b}
 #sg-toast.t-error{border-left-color:#ef4444}
 #sg-toast.t-info{border-left-color:#3b82f6}
-#sg-toast.t-version{border-left-color:#ee4d2d;padding-bottom:14px}
+#sg-toast.t-version{border-left-color:#ee4d2d;padding-bottom:14px;position:relative}
 #sg-toast .vt-msg{margin-bottom:12px;color:#f1f5f9}
 #sg-toast .vt-btns{display:flex;gap:8px;margin-top:12px}
 #sg-toast .vt-refresh{flex:1;padding:7px 0;border-radius:8px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:background .15s}
 #sg-toast .vt-refresh:hover{background:#dc2626}
 #sg-toast .vt-later{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#94a3b8;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
 #sg-toast .vt-later:hover{background:rgba(255,255,255,.08);color:#f1f5f9}
+#sg-toast .vt-close{position:absolute;top:8px;right:10px;background:none;border:none;color:#64748b;font-size:16px;cursor:pointer;line-height:1;padding:2px 4px;border-radius:4px;transition:color .15s}
+#sg-toast .vt-close:hover{color:#f1f5f9}
 @media(max-width:768px){
   .gen-grid{grid-template-columns:1fr}
   .add-form-grid{grid-template-columns:1fr 1fr}
@@ -3246,7 +3248,8 @@ function showToast(msg, type){
 
 var _sgAppVersion      = 'v27';          // version baked into this build
 var _sgLoadedVersion   = null;           // the sg/appVersion value at first load
-var _SG_VER_SNOOZE_KEY = 'sg_ver_snooze';
+var _SG_VER_SNOOZE_KEY  = 'sg_ver_snooze';
+var _SG_VER_DISMISS_KEY = 'sg_ver_dismiss'; // stores version string permanently dismissed
 var _sgVerSnoozeTimer  = null;
 var _sgUpdateNotes     = [];             // [{version, date, message, status}] from Firebase sg/updateNotes
 
@@ -3278,6 +3281,10 @@ function sgRenderUpdateNotes(){
 
 function _sgVersionChanged(newVer, notes, status){
   if(!newVer || _sgLoadedVersion === null || newVer === _sgLoadedVersion) return; // null = first load, not set yet
+  // Check permanent dismiss — if this exact version was dismissed, don't show again
+  try { if(localStorage.getItem(_SG_VER_DISMISS_KEY) === newVer) return; } catch(_){}
+  // Clear any dismiss from a previous version so the new one always shows at least once
+  try { const d = localStorage.getItem(_SG_VER_DISMISS_KEY); if(d && d !== newVer) localStorage.removeItem(_SG_VER_DISMISS_KEY); } catch(_){}
   // Check snooze
   try {
     const snoozeUntil = parseInt(localStorage.getItem(_SG_VER_SNOOZE_KEY) || '0', 10);
@@ -3320,6 +3327,7 @@ function _sgShowVersionToast(newVer, notes, status){
   html += '<button class="vt-refresh" onclick="_sgVersionRefreshNow()">Refresh Now</button>';
   html += '<button class="vt-later" onclick="_sgVersionSnooze(\'' + verLabel + '\')">Remind in 30 min</button>';
   html += '</div>';
+  html += '<button class="vt-close" onclick="_sgVersionDismiss(\'' + verLabel + '\')" title="Dismiss permanently">✕</button>';
 
   toast.classList.remove('t-success','t-warn','t-error','t-info','t-version');
   toast.classList.add('t-version');
@@ -3346,6 +3354,14 @@ function _sgVersionSnooze(newVer){
   // Re-check after 30 minutes + 5 seconds
   clearTimeout(_sgVerSnoozeTimer);
   _sgVerSnoozeTimer = setTimeout(() => _sgVersionChanged(newVer), 30 * 60 * 1000 + 5000);
+}
+
+function _sgVersionDismiss(ver){
+  // Permanently hides toast for this version — clears on next version change
+  try { localStorage.setItem(_SG_VER_DISMISS_KEY, ver); } catch(_){}
+  const toast = document.getElementById('sg-toast');
+  if(toast) toast.classList.remove('show');
+  if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version toast dismissed for ' + ver);
 }
 // ─────────────────────────────────────────────────────────────────────────────, sandboxed iframes, and when
 // navigator.clipboard is blocked. Tries execCommand('copy') first via hidden textarea
