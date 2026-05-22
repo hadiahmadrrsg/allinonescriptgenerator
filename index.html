@@ -146,15 +146,7 @@ textarea{resize:vertical}
 #sg-toast.t-warn{border-left-color:#f59e0b}
 #sg-toast.t-error{border-left-color:#ef4444}
 #sg-toast.t-info{border-left-color:#3b82f6}
-#sg-toast.t-version{border-left-color:#ee4d2d;padding-bottom:14px;position:relative}
-#sg-toast .vt-msg{margin-bottom:12px;color:#f1f5f9}
-#sg-toast .vt-btns{display:flex;gap:8px;margin-top:12px}
-#sg-toast .vt-refresh{flex:1;padding:7px 0;border-radius:8px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:background .15s}
-#sg-toast .vt-refresh:hover{background:#dc2626}
-#sg-toast .vt-later{padding:7px 14px;border-radius:8px;border:1px solid rgba(255,255,255,.18);background:transparent;color:#94a3b8;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
-#sg-toast .vt-later:hover{background:rgba(255,255,255,.08);color:#f1f5f9}
-#sg-toast .vt-close{position:absolute;top:8px;right:10px;background:none;border:none;color:#64748b;font-size:16px;cursor:pointer;line-height:1;padding:2px 4px;border-radius:4px;transition:color .15s}
-#sg-toast .vt-close:hover{color:#f1f5f9}
+#sg-toast.t-version{border-left-color:#ee4d2d}
 @media(max-width:768px){
   .gen-grid{grid-template-columns:1fr}
   .add-form-grid{grid-template-columns:1fr 1fr}
@@ -3095,6 +3087,11 @@ const BUYER_REASONS = {"Missing part of the order": ["item(s) missing from the o
 
 const SELLER_REASONS = {"Buyer's claim is incorrect": ["the buyer's claim cannot be accepted", "the claim submitted by the buyer is invalid", "buyer's reported issue is not accurate", "seller sent correct item", "buyer's claim invalid"], "Buyer has been refunded wrong amount": ["the buyer received an incorrect refund", "refund issued to the buyer was inaccurate", "buyer's refund amount was not correct", "incorrect refund processed for the buyer", "buyer has been reimbursed with the wrong amount"], "Buyer claim is correct, but I have other concerns": ["the buyer's claim is valid; however, other issues need attention", "claim by buyer is accurate, though additional concerns exist", "buyer's claim is correct, yet i have further observations", "the issue raised by buyer is valid; still, i have other notes", "buyer's claim checks out, but there are other matters to address"], "Did not receive the return product": ["the returned product was not received", "return item has not been delivered", "the product meant for return is missing", "did not obtain the item returned by buyer", "return shipment has not been received"], "Received return products with physical damage": ["returned item(s) arrived damaged", "products returned have physical defects", "received returns are in damaged condition", "return items show signs of damage", "products returned were physically compromised"], "Received incomplete return products (missing quantity/accessories)": ["returned items are incomplete", "products returned are missing parts or accessories", "the return shipment lacks certain items", "some items/accessories are missing from the returned products", "return package is not complete"], "Received wrong return product": ["the returned product is incorrect", "wrong item was returned", "returned goods do not match the original product", "buyer sent back an incorrect item", "product returned is not the one originally sent"], "Received return products, but buyer's claim is incorrect": ["returned items received, but the claim is invalid", "items returned, yet the buyer's issue is unfounded", "received return, but claim does not hold", "products returned, though claim is inaccurate", "return items received, but the claim cannot be accepted"], "Received return item(s), but item is used": ["returned item(s) received, but appear used", "the returned products show signs of use", "items returned are not in new condition", "returned goods have been previously used", "received items are used, not in original condition"]};
 
+// Fixed Empathy + Issue Statement per return reason — overrides random pool selection
+const PINNED_EMPATHY = {
+  "I want to return item in original/ sealed condition": "Hi {username}, \n\nWe've received your concern about order {order_sn}, which {issue_description}."
+};
+
 let SCRIPT_ASSEMBLY = {
   "Buyer|Accept Request":[{qR:"Accept Request, Close Request",item:"Empathy + Issue Statement "},{qR:"Accept Request",item:"Result Sharing + Root Cause"},{qR:"Accept Request, Close Request",item:"CSAT Pitching"},{qR:"Accept Request, Close Request",item:"Magic Word / Closing"}],
   "Buyer|Reject Request":[{qR:"Reject Request",item:"Empathy + Issue Statement "},{qR:"Reject Request",item:"Result Sharing + Root Cause"},{qR:"Reject Request",item:"Offering Help Reject"}],
@@ -3248,9 +3245,6 @@ function showToast(msg, type){
 
 var _sgAppVersion      = 'v27';          // version baked into this build
 var _sgLoadedVersion   = null;           // the sg/appVersion value at first load
-var _SG_VER_SNOOZE_KEY  = 'sg_ver_snooze';
-var _SG_VER_DISMISS_KEY = 'sg_ver_dismiss'; // stores version string permanently dismissed
-var _sgVerSnoozeTimer  = null;
 var _sgUpdateNotes     = [];             // [{version, date, message, status}] from Firebase sg/updateNotes
 
 // Render live update notes into the Version Updates admin tab
@@ -3279,90 +3273,6 @@ function sgRenderUpdateNotes(){
   }).join('');
 }
 
-function _sgVersionChanged(newVer, notes, status){
-  if(!newVer || _sgLoadedVersion === null || newVer === _sgLoadedVersion) return; // null = first load, not set yet
-  // Check permanent dismiss — if this exact version was dismissed, don't show again
-  try { if(localStorage.getItem(_SG_VER_DISMISS_KEY) === newVer) return; } catch(_){}
-  // Clear any dismiss from a previous version so the new one always shows at least once
-  try { const d = localStorage.getItem(_SG_VER_DISMISS_KEY); if(d && d !== newVer) localStorage.removeItem(_SG_VER_DISMISS_KEY); } catch(_){}
-  // Check snooze
-  try {
-    const snoozeUntil = parseInt(localStorage.getItem(_SG_VER_SNOOZE_KEY) || '0', 10);
-    if(Date.now() < snoozeUntil) {
-      const remaining = snoozeUntil - Date.now();
-      clearTimeout(_sgVerSnoozeTimer);
-      _sgVerSnoozeTimer = setTimeout(() => _sgVersionChanged(newVer, notes, status), remaining + 1000);
-      return;
-    }
-  } catch(_){}
-  _sgShowVersionToast(newVer, notes, status);
-}
-
-function _sgShowVersionToast(newVer, notes, status){
-  let toast = document.getElementById('sg-toast');
-  if(!toast){
-    toast = document.createElement('div');
-    toast.id = 'sg-toast';
-    document.body.appendChild(toast);
-  }
-  // Cancel any pending auto-dismiss from a regular toast
-  clearTimeout(toast._timer);
-  toast._timer = null;
-
-  // Build message
-  const verLabel = esc(newVer);
-  const statusBadge = status ? ' <span style="font-size:11px;font-weight:700;opacity:.85">' + esc(status) + '</span>' : '';
-  let html = '<div class="vt-msg">';
-  html += '🔄 <strong>' + verLabel + '</strong> is now available' + statusBadge + '<br>';
-  if(notes && notes.trim()){
-    const bullets = notes.split('\n').map(l => l.trim()).filter(Boolean);
-    if(bullets.length){
-      html += '<div style="margin-top:8px;font-size:12px;font-weight:400;opacity:.9;line-height:1.7">';
-      bullets.forEach(b => { html += '• ' + esc(b) + '<br>'; });
-      html += '</div>';
-    }
-  }
-  html += '</div>';
-  html += '<div class="vt-btns">';
-  html += '<button class="vt-refresh" onclick="_sgVersionRefreshNow()">Refresh Now</button>';
-  html += '<button class="vt-later" onclick="_sgVersionSnooze(\'' + verLabel + '\')">Remind in 30 min</button>';
-  html += '</div>';
-  html += '<button class="vt-close" onclick="_sgVersionDismiss(\'' + verLabel + '\')" title="Dismiss permanently">✕</button>';
-
-  toast.classList.remove('t-success','t-warn','t-error','t-info','t-version');
-  toast.classList.add('t-version');
-  toast.innerHTML = html;
-  toast.classList.remove('show');
-  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
-  if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version update available: ' + newVer);
-  if(typeof gsLogAdd === 'function') gsLogAdd('info', 'Version update available: ' + newVer + ' — toast shown');
-}
-
-function _sgVersionRefreshNow(){
-  try { localStorage.removeItem(_SG_VER_SNOOZE_KEY); } catch(_){}
-  location.reload();
-}
-
-function _sgVersionSnooze(newVer){
-  try {
-    const snoozeUntil = Date.now() + 30 * 60 * 1000; // 30 minutes
-    localStorage.setItem(_SG_VER_SNOOZE_KEY, String(snoozeUntil));
-  } catch(_){}
-  const toast = document.getElementById('sg-toast');
-  if(toast) toast.classList.remove('show');
-  if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version toast snoozed 30 min');
-  // Re-check after 30 minutes + 5 seconds
-  clearTimeout(_sgVerSnoozeTimer);
-  _sgVerSnoozeTimer = setTimeout(() => _sgVersionChanged(newVer), 30 * 60 * 1000 + 5000);
-}
-
-function _sgVersionDismiss(ver){
-  // Permanently hides toast for this version — clears on next version change
-  try { localStorage.setItem(_SG_VER_DISMISS_KEY, ver); } catch(_){}
-  const toast = document.getElementById('sg-toast');
-  if(toast) toast.classList.remove('show');
-  if(typeof _sgLogEvent === 'function') _sgLogEvent('info', 'Version toast dismissed for ' + ver);
-}
 // ─────────────────────────────────────────────────────────────────────────────, sandboxed iframes, and when
 // navigator.clipboard is blocked. Tries execCommand('copy') first via hidden textarea
 // (works everywhere), falls back to Clipboard API. Returns true if either succeeded.
@@ -3688,34 +3598,12 @@ function sgFbLoadAndSubscribe(){
           }
         }catch(_){}
       });
-      // App version — detect when a new build is deployed to GitHub Pages.
-      // Two scenarios:
-      // A) Agent loads page AFTER you pushed → sg/appVersion = 'v28', _sgAppVersion = 'v27'
-      //    → file is stale, show toast immediately on first read
-      // B) Agent loads page BEFORE you push → appVersion = 'v27' = _sgAppVersion → no toast
-      //    → later Firebase fires with 'v27' → show toast then
+      // App version — track silently, no toast
       _sgFbDB.ref('sg/appVersion').on('value', s => {
         const ver = s.val();
         if(!ver) return;
-        if(_sgLoadedVersion === null){
-          // First read — store as baseline
-          _sgLoadedVersion = ver;
-          console.log('[SG] appVersion at load:', ver);
-          // Scenario A: file is older than what Firebase knows about → show toast now
-          if(ver !== _sgAppVersion){
-            // Get notes for this version if available
-            const notesEntry = Array.isArray(_sgUpdateNotes)
-              ? _sgUpdateNotes.find(n => n.version === ver)
-              : null;
-            _sgShowVersionToast(ver, notesEntry ? notesEntry.message : '', notesEntry ? notesEntry.status : '');
-          }
-        } else {
-          // Scenario B: version changed while page is open
-          const notesEntry = Array.isArray(_sgUpdateNotes)
-            ? _sgUpdateNotes.find(n => n.version === ver)
-            : null;
-          _sgVersionChanged(ver, notesEntry ? notesEntry.message : '', notesEntry ? notesEntry.status : '');
-        }
+        if(_sgLoadedVersion === null) _sgLoadedVersion = ver;
+        console.log('[SG] appVersion:', ver);
       });
       // Update notes — pushed from Apps Script alongside appVersion
       _sgFbDB.ref('sg/updateNotes').on('value', s => {
@@ -5884,7 +5772,9 @@ function _generateScriptCore(){
     }
     const script = pool.length>0?rand(pool):'';
     if(!script) return null;
-    return {item,qR,text:fill(script,vars)};
+    // Pinned empathy override — fixed script for specific return reasons
+    const pinnedScript = PINNED_EMPATHY[sel] && item.trim()==='Empathy + Issue Statement' ? PINNED_EMPATHY[sel] : script;
+    return {item,qR,text:fill(pinnedScript,vars)};
   }).filter(Boolean);
 
   // ── RAW_DB fallback — if Firebase push corrupted db, silently use baked-in data ──
@@ -5898,7 +5788,8 @@ function _generateScriptCore(){
       }
       const script = pool.length>0?rand(pool):'';
       if(!script) return null;
-      return {item,qR,text:fill(script,vars)};
+      const pinnedScript = PINNED_EMPATHY[sel] && item.trim()==='Empathy + Issue Statement' ? PINNED_EMPATHY[sel] : script;
+      return {item,qR,text:fill(pinnedScript,vars)};
     }).filter(Boolean);
     if(state.generatedSections.length > 0){
       console.warn('SG: db empty for this flow — used RAW_DB fallback. Re-push from Sheets to fix.');
@@ -5990,7 +5881,8 @@ function reshuffleSection(i){
     }
   }
   if(pool.length>0){
-    let newText = fill(rand(pool),vars);
+    const pickedScript = PINNED_EMPATHY[sel] && sec.item.trim()==='Empathy + Issue Statement' ? PINNED_EMPATHY[sel] : rand(pool);
+    let newText = fill(pickedScript,vars);
     // Re-append refund amount / SLA wallet to Result Sharing after reshuffle
     if(sec.item==='Result Sharing + Root Cause'){
       const fv = id => !document.getElementById(id)?.classList.contains('hidden');
