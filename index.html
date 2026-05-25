@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>All in One Script Generator - v26</title>
+<title>All in One Script Generator - v28</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -214,7 +214,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v26</div>
+        <div class="logo-title">All in One Script Generator - v28</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -385,6 +385,16 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
             </div>
           </div>
           <textarea id="inp-need-probing" rows="1" class="hidden" oninput="setState('need_probing',this.value)"></textarea>
+        </div>
+
+        <!-- Evidence Deadline field — shown alongside Request Evidence flows -->
+        <div id="field-ev-deadline" class="field-gap hidden">
+          <span class="lbl" style="color:#7c3aed">📅 Evidence Submission Deadline</span>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input type="date" id="inp-ev-deadline-date" style="padding:7px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;color:#374151;background:#fff;cursor:pointer" oninput="setState('ev_deadline_date',this.value)">
+            <input type="time" id="inp-ev-deadline-time" style="padding:7px 10px;border:1.5px solid #e5e7eb;border-radius:8px;font-size:13px;font-family:inherit;color:#374151;background:#fff;cursor:pointer" oninput="setState('ev_deadline_time',this.value)">
+            <span style="font-size:11px;color:#9ca3af">Leave blank to skip deadline line</span>
+          </div>
         </div>
 
 
@@ -1385,7 +1395,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="docs-sidebar-logo">
       <span class="ds-badge">Shopee Return & Refund</span>
       <h2>All in One Script Generator</h2>
-      <p>Technical Documentation — v26</p>
+      <p>Technical Documentation — v28</p>
     </div>
 
     <div class="docs-nav-group">
@@ -2171,7 +2181,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v26')" id="vnav-v26"><span class="ddot" style="background:#ee4d2d"></span>v26 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v28')" id="vnav-v28"><span class="ddot" style="background:#ee4d2d"></span>v28 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v26')" id="vnav-v26"><span class="ddot" style="background:#6b7280"></span>v26</a>
     <a class="docs-nav-item" onclick="scrollToVer('v25')" id="vnav-v25"><span class="ddot" style="background:#6b7280"></span>v25</a>
     <a class="docs-nav-item" onclick="scrollToVer('v24')" id="vnav-v24"><span class="ddot" style="background:#6b7280"></span>v24</a>
     <a class="docs-nav-item" onclick="scrollToVer('v23')" id="vnav-v23"><span class="ddot" style="background:#6b7280"></span>v23</a>
@@ -2210,11 +2221,44 @@ setTimeout(function(){
       <!-- Cards injected by sgRenderUpdateNotes() -->
     </div>
 
+      <!-- v28 -->
+      <div id="vsec-v28" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v28 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">25 May 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>📅 Evidence Deadline field restored</strong> — a date + time picker now appears below the evidence panel whenever <strong>Request Evidence</strong> or <strong>Request Evidence from Seller</strong> is selected. On Generate, it appends <em>"Kindly provide us with the requested evidence(s) by 15 May 2026, 5:00 PM."</em> to Result Sharing. Leaving the date blank skips the line; date-only (no time) shows just the date. Dates auto-format nicely (e.g. <code>30 May 2026, 5:00 PM</code>). Works across all three paths — generate, RAW_DB fallback, and reshuffle. Deadline fields auto-clear on every DMS auto-fill so old case data never carries over.</li>
+            <li><strong>📌 Fixed Empathy + Issue Statement</strong> — the return reason <em>"I want to return item in original/ sealed condition"</em> now always uses one fixed Empathy script via the new <code>PINNED_EMPATHY</code> map, instead of picking randomly from the pool. Applied to generate, fallback, and reshuffle so the script stays consistent even after reshuffling.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🗑️ Removed</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Version update toast</strong> — the bottom-right "new version available" toast (Refresh Now / Remind in 30 min / ✕) has been fully removed: all toast CSS, the snooze/dismiss localStorage keys, and the <code>_sgVersion*</code> functions. The <code>sg/appVersion</code> Firebase node is still tracked silently in the background (Firebase Sync dashboard still logs it), it just no longer shows any popup.</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Fixes</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Firebase sync now updates the Generator</strong> — the live Firebase listener (<code>sgApplyScripts</code>) was silently dropping every structural row (rows starting with <code>[</code>), so <code>[ISSUE_DESC]</code>, <code>[NEXT_STEPS]</code>, and <code>[FLOW]</code> pushes never reached the generator. This is why edits made in the Sheet weren't visible to other users on their machines. These rows are now parsed and applied (after the ≥10-row validation), exactly mirroring "Sync FROM Sheet". BUYER_REASONS, SELLER_REASONS, Next Steps, and Flow config all update live now.</li>
+            <li><strong><code>anyDetail is not defined</code> crash fixed</strong> — adding the deadline toggle accidentally removed the <code>const anyDetail</code> declaration in <code>renderFields()</code>, crashing the whole form render. Restored. Verified with a headless DOM simulation across Request Evidence, Accept, Reject, and Close flows for both Buyer and Seller.</li>
+            <li><strong>Empathy phrasing</strong> — the <em>"return item in original/sealed condition"</em> issue-description phrases reworded so they complete the sentence "...which {issue_description}." grammatically.</li>
+          </ul>
+        </div>
+      </div>
+      </div>
+      </div>
+
       <!-- v26 -->
       <div id="vsec-v26" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v26 — Current</div>
+      <div style="background:#6b7280;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v26</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">20 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -3144,7 +3188,7 @@ let state = {
 // Priority: 1) localStorage cached Sheet data  2) baked-in RAW_DB
 const _SG_DB_CACHE_KEY = 'sg_cached_db';
 const _SG_DB_CACHE_VER = 'sg_cached_db_ver';
-const _SG_CACHE_VERSION = 'v27r1'; // bump this when db structure changes to auto-invalidate old caches
+const _SG_CACHE_VERSION = 'v28r1'; // bump this when db structure changes to auto-invalidate old caches
 let db = (()=>{
   try{
     const cached    = localStorage.getItem(_SG_DB_CACHE_KEY);
@@ -3243,7 +3287,7 @@ function showToast(msg, type){
 // was present when this page first loaded. Persists until user acts.
 // "Later" snoozes for 30 minutes (localStorage), re-shows after snooze expires.
 
-var _sgAppVersion      = 'v27';          // version baked into this build
+var _sgAppVersion      = 'v28';          // version baked into this build
 var _sgLoadedVersion   = null;           // the sg/appVersion value at first load
 var _sgUpdateNotes     = [];             // [{version, date, message, status}] from Firebase sg/updateNotes
 
@@ -3912,7 +3956,7 @@ function getAppsScriptCode(){
     "var SYNC_PATH        = 'sg/lastSync';",
     "var VERSION_PATH     = 'sg/appVersion';",
     "var UPDATES_PATH     = 'sg/updateNotes';",
-    "var APP_VERSION      = 'v27';",
+    "var APP_VERSION      = 'v28';",
     "var SCRIPTS_SHEET    = 'Scripts';",
     "var EVIDENCE_SHEET   = 'Evidence';",
     "var UPDATES_SHEET    = 'Updates';",
@@ -4589,7 +4633,7 @@ function gsSyncToSheet(){
   gsLogAdd('upload', `Sync TO Sheet — queuing ${totalRows} rows to Firebase (sg/sheetRestore)…`);
 
   _sgFbDB.ref('sg/sheetRestore').set({
-    rows, requestedAt: new Date().toISOString(), requestedBy: 'generator-v26', totalRows, status: 'pending'
+    rows, requestedAt: new Date().toISOString(), requestedBy: 'generator-v28', totalRows, status: 'pending'
   }).then(() => {
     gsLogAdd('success', `Sync TO Sheet queued — ${totalRows} rows in sg/sheetRestore. Run "Restore from Generator (preview)" in Sheet → Sync to Firebase menu.`);
     setS('✅ Sent — run Apps Script "Restore from Generator" in your Sheet', '#059669');
@@ -5215,6 +5259,7 @@ function renderForm(){
   // Detail fields
   document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
   document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
+  document.getElementById('field-ev-deadline').classList.toggle('hidden', !isProbing);
   if(isProbing) evGenInit();
   // Hide entire detail container when no inner fields are relevant
   const anyDetail = isReject || isProbing || (isBuyer && (isAccept || res==='Close Request'));
@@ -5237,6 +5282,7 @@ function setResult(r){
   const isAccept = r==='Accept Request';
   document.getElementById('field-reject-cause').classList.toggle('hidden', !isReject);
   document.getElementById('field-need-probing').classList.toggle('hidden', !isProbing);
+  document.getElementById('field-ev-deadline').classList.toggle('hidden', !isProbing);
   if(isProbing) evGenInit();
   const isSellerApprove = !isBuyer && r==='Approve Compensation Request';
   document.getElementById('field-sla-wallet').classList.toggle('hidden', !isSellerApprove);
@@ -5270,6 +5316,7 @@ function setP1Result(val){
   const isBuyer = state.user==='Buyer';
   document.getElementById('field-reject-cause').classList.add('hidden');
   document.getElementById('field-need-probing').classList.add('hidden');
+  document.getElementById('field-ev-deadline').classList.add('hidden');
   document.getElementById('field-sla-wallet').classList.add('hidden');
   document.getElementById('section-detail').classList.toggle('hidden', true);
   renderOutput();
@@ -5801,6 +5848,18 @@ function _generateScriptCore(){
   const liveSla       = fieldVisible('field-sla-wallet')    ? (document.getElementById('inp-sla')?.value||'').trim()    : '';
   const liveReject    = fieldVisible('field-reject-cause')  ? (document.getElementById('inp-reject-cause')?.value||'').trim().replace(/\.+$/, '')  : '';
   const liveProbing   = fieldVisible('field-need-probing')  ? (document.getElementById('inp-need-probing')?.value||'').trim()  : '';
+  // Evidence deadline — formatted as "15 May 2026, 5:00 PM"
+  const _evDateRaw = fieldVisible('field-ev-deadline') ? (document.getElementById('inp-ev-deadline-date')?.value||'') : '';
+  const _evTimeRaw = fieldVisible('field-ev-deadline') ? (document.getElementById('inp-ev-deadline-time')?.value||'') : '';
+  const _evDeadline = (() => {
+    if(!_evDateRaw) return '';
+    const d = new Date(_evDateRaw + 'T00:00:00');
+    const dateStr = d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+    if(!_evTimeRaw) return dateStr;
+    const [hh,mm] = _evTimeRaw.split(':');
+    const h = parseInt(hh,10), ampm = h>=12?'PM':'AM', h12 = h%12||12;
+    return `${dateStr}, ${h12}:${mm} ${ampm}`;
+  })();
   const liveNextSteps = (state.user==='Buyer' && (state.result==='Accept Request') ) ? (state.type_return==='Refund Only' ? NEXT_STEPS_REFUND_ONLY : NEXT_STEPS_RETURN) : '';
 
   // ── Integrate all case details directly into the script sentences ──
@@ -5842,8 +5901,8 @@ function _generateScriptCore(){
     } else if(sellerUploadsViaCentre){
       sections[rsIdx].text += `\n\nTo submit the evidences, please follow the steps below:\n\nSeller Centre > Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.`;
     }
+    if(_evDeadline) sections[rsIdx].text += `\n\nKindly provide us with the requested evidence(s) by ${_evDeadline}.`;
   }
-
 
   // Next Steps (buyer typed) → inserted after Result Sharing (3rd paragraph) with connecting sentence
   if(state.user==='Buyer' && liveNextSteps){
@@ -5910,6 +5969,18 @@ function reshuffleSection(i){
       } else if(sellerUploadsViaCentre){
         newText += `\n\nTo submit the evidences, please follow the steps below:\n\nSeller Centre > Return/Refund Dashboard by selecting Upload Evidence under the relevant request. The submission deadline will be shown in the Actions column.`;
       }
+      const _fbDeadline = (() => {
+        if(!fv('field-ev-deadline')) return '';
+        const dr = (document.getElementById('inp-ev-deadline-date')?.value||'');
+        const tr = (document.getElementById('inp-ev-deadline-time')?.value||'');
+        if(!dr) return '';
+        const d = new Date(dr+'T00:00:00');
+        const ds = d.toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+        if(!tr) return ds;
+        const [hh,mm]=tr.split(':'); const h=parseInt(hh,10),ampm=h>=12?'PM':'AM',h12=h%12||12;
+        return `${ds}, ${h12}:${mm} ${ampm}`;
+      })();
+      if(_fbDeadline) newText += `\n\nKindly provide us with the requested evidence(s) by ${_fbDeadline}.`;
     }
 
     state.generatedSections[i].text = newText;
@@ -6179,6 +6250,10 @@ function autoFillFromDMS(data){
     const oEl=document.getElementById('inp-ordersn');  if(oEl) oEl.value=orderSN;
     const pEl=document.getElementById('inp-product');  if(pEl) pEl.value=productName;
     const sEl=document.getElementById('inp-sla');      if(sEl&&slaWallet) sEl.value=slaWallet;
+    // Clear evidence deadline from any previous case
+    const edEl=document.getElementById('inp-ev-deadline-date'); if(edEl) edEl.value='';
+    const etEl=document.getElementById('inp-ev-deadline-time'); if(etEl) etEl.value='';
+    state.ev_deadline_date=''; state.ev_deadline_time='';
 
     // Set reason dropdown
     const sel=document.getElementById('sel-reason');
@@ -7967,7 +8042,7 @@ function downloadSelf(){
   const blob=new Blob(['<!DOCTYPE html>\n'+document.documentElement.outerHTML],{type:'text/html'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='All in One Script Generator v19.html';
+  a.download='All in One Script Generator v28.html';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
