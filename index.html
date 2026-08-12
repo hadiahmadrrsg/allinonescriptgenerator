@@ -208,6 +208,52 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 </head>
 <body>
 
+<!-- ═══ LOGIN GATE OVERLAY (Google sign-in, Shopee domains only) ═══ -->
+<div id="sg-login-overlay" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#fff7ed 0%,#fef3c7 50%,#fff7ed 100%);display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:white;border-radius:20px;box-shadow:0 10px 50px rgba(0,0,0,.12);padding:36px 32px;max-width:400px;width:100%;text-align:center">
+
+    <!-- STEP 0: checking session -->
+    <div id="sg-auth-step-loading">
+      <div style="width:56px;height:56px;margin:0 auto 16px;background:linear-gradient(90deg,#ee4d2d,#ff7337);border-radius:16px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:13px">Shopee</div>
+      <div style="font-weight:700;font-size:16px;color:#1a1a1a;margin-bottom:6px">All in One Script Generator</div>
+      <div id="sg-auth-loading-msg" style="font-size:13px;color:#9ca3af">Checking your session…</div>
+    </div>
+
+    <!-- STEP 1: sign in -->
+    <div id="sg-auth-step-login" class="hidden">
+      <div style="width:56px;height:56px;margin:0 auto 16px;background:linear-gradient(90deg,#ee4d2d,#ff7337);border-radius:16px;display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:13px">Shopee</div>
+      <div style="font-weight:800;font-size:20px;color:#1a1a1a;margin-bottom:6px">Welcome!</div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:22px">Sign in with your Shopee Google account to continue.</div>
+      <button onclick="sgGoogleSignIn()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:12px;border-radius:12px;border:1.5px solid #e5e7eb;background:white;cursor:pointer;font-family:'Sora',sans-serif;font-weight:600;font-size:14px;color:#374151;transition:all .15s" onmouseover="this.style.borderColor='#ee4d2d'" onmouseout="this.style.borderColor='#e5e7eb'">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3l5.7-5.7C34 5.9 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.9 1.2 8 3l5.7-5.7C34 5.9 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C41.4 34.9 44 30 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+        Sign in with Google
+      </button>
+      <div style="margin-top:14px;font-size:11px;color:#9ca3af">Only <strong>@shopee.com</strong> and <strong>@shopeemobile-external.com</strong> accounts are allowed.</div>
+      <div id="sg-auth-error" class="hidden" style="margin-top:14px;background:#fef2f2;border:1.5px solid #fecaca;border-radius:10px;padding:10px 12px;font-size:12px;color:#b91c1c;font-weight:600"></div>
+    </div>
+
+    <!-- STEP 2: choose BPO -->
+    <div id="sg-auth-step-bpo" class="hidden">
+      <img id="sg-bpo-photo" src="" alt="" style="width:56px;height:56px;border-radius:50%;margin:0 auto 14px;display:block;object-fit:cover;background:#f3f4f6" onerror="this.style.display='none'">
+      <div id="sg-bpo-greeting" style="font-weight:800;font-size:19px;color:#1a1a1a;margin-bottom:6px">Hi!</div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:20px">Select your BPO to continue.</div>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#6b7280;margin-bottom:10px">Select your BPO</div>
+      <div id="sg-bpo-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px"></div>
+      <button id="sg-bpo-continue" onclick="sgBpoContinue()" disabled style="width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(90deg,#ee4d2d,#ff7337);color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif;opacity:.5">Continue →</button>
+      <button onclick="sgSignOut()" style="margin-top:10px;background:none;border:none;color:#9ca3af;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;text-decoration:underline">Sign out</button>
+    </div>
+
+    <!-- STEP 3: connection error -->
+    <div id="sg-auth-step-error" class="hidden">
+      <div style="font-size:40px;margin-bottom:10px">🔌</div>
+      <div style="font-weight:700;font-size:16px;color:#1a1a1a;margin-bottom:6px">Can't reach the login service</div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:18px">Firebase could not be loaded. Check your network / ad-blocker and retry.</div>
+      <button onclick="location.reload()" style="padding:10px 24px;border-radius:12px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">↻ Retry</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- HEADER -->
 <div id="header">
   <div id="header-inner">
@@ -229,6 +275,21 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <button class="nav-btn inactive" id="nav-snip" onclick="switchView('snippets')">📝 Snippets</button>
       <button class="nav-btn inactive" id="nav-adm" onclick="switchView('admin')">⚙️ Admin</button>
       <button class="nav-btn inactive" id="nav-guide" onclick="switchView('guide')">📖 Instructions</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ USER PROFILE BAR (below nav, right side) ═══ -->
+<div id="sg-profile-bar" class="hidden" style="padding:8px 24px 0">
+  <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:flex-end">
+    <div style="display:flex;align-items:center;gap:10px;background:white;border:1.5px solid #e5e7eb;border-radius:14px;padding:6px 10px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
+      <img id="sg-prof-photo" src="" alt="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;background:#f3f4f6" onerror="this.style.display='none'">
+      <div style="text-align:left;line-height:1.25">
+        <div id="sg-prof-name" style="font-weight:700;font-size:12px;color:#1a1a1a;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+        <div id="sg-prof-email" style="font-size:10.5px;color:#9ca3af;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+      </div>
+      <button id="sg-prof-bpo" onclick="sgShowBpoChooser()" title="Click to change your BPO" style="padding:4px 12px;border-radius:20px;border:1.5px solid #7c3aed;background:#f5f3ff;color:#7c3aed;font-weight:700;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif"></button>
+      <button onclick="sgSignOut()" style="padding:4px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">Sign out</button>
     </div>
   </div>
 </div>
@@ -937,6 +998,14 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div style="font-size:12.5px;color:#374151;line-height:1.6">
       <strong>All in One Script Generator:</strong> <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
       Latest version always available there. Please always refresh the website.
+    </div>
+  </div>
+  <!-- Master File (Google Sheet) info bubble -->
+  <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:16px">📗</span>
+    <div style="font-size:12.5px;color:#374151;line-height:1.6">
+      <strong>Master File (Script Storage):</strong> <a href="https://docs.google.com/spreadsheets/d/11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ/edit?gid=1457984563#gid=1457984563" target="_blank" style="color:#059669;font-weight:600">Open Master Google Sheet ↗</a><br>
+      All scripts are stored and edited here, then pushed to the generators via Apps Script sync.
     </div>
   </div>
 
@@ -3481,17 +3550,20 @@ function initSgFirebase(){
     {
       name: 'gstatic',
       app: 'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
-      db:  'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js'
+      db:  'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',
+      auth:'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js'
     },
     {
       name: 'jsDelivr',
       app: 'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-app-compat.js',
-      db:  'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.js'
+      db:  'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-database-compat.js',
+      auth:'https://cdn.jsdelivr.net/npm/firebase@9.23.0/firebase-auth-compat.js'
     },
     {
       name: 'unpkg',
       app: 'https://unpkg.com/firebase@9.23.0/firebase-app-compat.js',
-      db:  'https://unpkg.com/firebase@9.23.0/firebase-database-compat.js'
+      db:  'https://unpkg.com/firebase@9.23.0/firebase-database-compat.js',
+      auth:'https://unpkg.com/firebase@9.23.0/firebase-auth-compat.js'
     }
   ];
 
@@ -3518,7 +3590,7 @@ function initSgFirebase(){
 
     let loaded = 0;
     let failed = false;
-    const sdks = [source.app, source.db];
+    const sdks = [source.app, source.db, source.auth];
 
     sdks.forEach(src => {
       const s = document.createElement('script');
@@ -3604,6 +3676,8 @@ function onSgFbLoaded(){
     _sgFbReady = true;
     sgFbStatus('warn');
     sgFbLoadAndSubscribe();
+    // Start Google login gate (Shopee-only)
+    if(typeof initSgAuth === 'function') initSgAuth();
   }catch(e){
     console.error('SG Firebase init error:', e);
     if(typeof _sgLogEvent === 'function') _sgLogEvent('error', 'Firebase init failed: ' + (e && e.message));
@@ -4874,6 +4948,160 @@ function fbDashForceReinit(){
 
 // Kick off Firebase on page load
 initSgFirebase();
+
+// ═══════════════════════════════════════════════════════════════
+// GOOGLE LOGIN GATE (Shopee-only) + BPO PROFILE
+// ═══════════════════════════════════════════════════════════════
+const SG_ALLOWED_DOMAINS = ['shopee.com','shopeemobile-external.com'];
+const SG_BPO_LIST = ['Vads','ePerformax','Asia Recruit','In House'];
+let _sgAuth = null;
+let _sgUser = null;       // {name, email, photo, uid}
+let _sgBpoDraft = '';     // selection inside the chooser before Continue
+
+function _sgAuthStep(step){
+  ['loading','login','bpo','error'].forEach(s=>{
+    const el = document.getElementById('sg-auth-step-'+s);
+    if(el) el.classList.toggle('hidden', s!==step);
+  });
+  const ov = document.getElementById('sg-login-overlay');
+  if(ov) ov.style.display = step==null ? 'none' : 'flex';
+}
+
+function _sgAuthShowError(msg){
+  const el = document.getElementById('sg-auth-error');
+  if(el){ el.textContent = msg; el.classList.remove('hidden'); }
+}
+
+function initSgAuth(){
+  try{
+    if(typeof firebase === 'undefined' || typeof firebase.auth !== 'function'){
+      console.warn('[SG Auth] auth SDK unavailable');
+      _sgAuthStep('error');
+      return;
+    }
+    _sgAuth = firebase.app('sg').auth();
+    _sgAuth.onAuthStateChanged(user=>{
+      if(!user){
+        _sgUser = null;
+        document.getElementById('sg-profile-bar')?.classList.add('hidden');
+        _sgAuthStep('login');
+        return;
+      }
+      const email = (user.email||'').toLowerCase();
+      const allowed = SG_ALLOWED_DOMAINS.some(d=>email.endsWith('@'+d));
+      if(!allowed){
+        _sgAuth.signOut();
+        _sgAuthStep('login');
+        _sgAuthShowError('❌ ' + email + ' is not allowed. Please sign in with your @shopee.com or @shopeemobile-external.com account.');
+        if(typeof _sgLogEvent === 'function') _sgLogEvent('warn','Login blocked — non-Shopee domain: ' + email);
+        return;
+      }
+      _sgUser = { name: user.displayName || email.split('@')[0], email, photo: user.photoURL || '', uid: user.uid };
+      if(typeof _sgLogEvent === 'function') _sgLogEvent('success','Signed in: ' + email);
+      const bpo = localStorage.getItem('sg_bpo::' + email);
+      if(!bpo){ sgShowBpoChooser(); } else { sgFinishLogin(bpo); }
+    });
+  }catch(e){
+    console.error('[SG Auth] init failed:', e);
+    _sgAuthStep('error');
+  }
+}
+
+function sgGoogleSignIn(){
+  if(!_sgAuth){ _sgAuthStep('error'); return; }
+  document.getElementById('sg-auth-error')?.classList.add('hidden');
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  _sgAuth.signInWithPopup(provider).catch(err=>{
+    if(err && err.code === 'auth/popup-closed-by-user') return;
+    console.error('[SG Auth] sign-in error:', err);
+    _sgAuthShowError('Sign-in failed: ' + (err && err.message || err) + (err && err.code === 'auth/unauthorized-domain' ? '\nAdd this site to Firebase Console → Authentication → Settings → Authorized domains.' : ''));
+  });
+}
+
+function sgShowBpoChooser(){
+  if(!_sgUser) return;
+  _sgBpoDraft = localStorage.getItem('sg_bpo::' + _sgUser.email) || '';
+  const photo = document.getElementById('sg-bpo-photo');
+  if(photo && _sgUser.photo){ photo.src = _sgUser.photo; photo.style.display='block'; }
+  const greet = document.getElementById('sg-bpo-greeting');
+  if(greet) greet.textContent = 'Hi, ' + _sgUser.name + '!';
+  const wrap = document.getElementById('sg-bpo-btns');
+  if(wrap){
+    wrap.innerHTML = SG_BPO_LIST.map(b=>{
+      const active = b === _sgBpoDraft;
+      return `<button onclick="sgPickBpo('${b.replace(/'/g,"\\'")}')" data-bpo="${esc(b)}" style="padding:13px 8px;border-radius:12px;border:1.5px solid ${active?'#7c3aed':'#e5e7eb'};background:${active?'#f5f3ff':'white'};color:${active?'#7c3aed':'#374151'};font-weight:700;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s">${esc(b)}</button>`;
+    }).join('');
+  }
+  _sgBpoUpdateContinue();
+  _sgAuthStep('bpo');
+}
+
+function sgPickBpo(bpo){
+  _sgBpoDraft = bpo;
+  document.querySelectorAll('#sg-bpo-btns button').forEach(btn=>{
+    const active = btn.dataset.bpo === bpo;
+    btn.style.borderColor = active ? '#7c3aed' : '#e5e7eb';
+    btn.style.background  = active ? '#f5f3ff' : 'white';
+    btn.style.color       = active ? '#7c3aed' : '#374151';
+  });
+  _sgBpoUpdateContinue();
+}
+
+function _sgBpoUpdateContinue(){
+  const btn = document.getElementById('sg-bpo-continue');
+  if(btn){ btn.disabled = !_sgBpoDraft; btn.style.opacity = _sgBpoDraft ? '1' : '.5'; }
+}
+
+function sgBpoContinue(){
+  if(!_sgUser || !_sgBpoDraft) return;
+  localStorage.setItem('sg_bpo::' + _sgUser.email, _sgBpoDraft);
+  sgFinishLogin(_sgBpoDraft);
+}
+
+function sgFinishLogin(bpo){
+  // Fill profile bar (below nav, right side)
+  const photo = document.getElementById('sg-prof-photo');
+  if(photo && _sgUser.photo){ photo.src = _sgUser.photo; photo.style.display='block'; }
+  const nameEl = document.getElementById('sg-prof-name');
+  if(nameEl) nameEl.textContent = _sgUser.name;
+  const mailEl = document.getElementById('sg-prof-email');
+  if(mailEl) mailEl.textContent = _sgUser.email;
+  const bpoEl = document.getElementById('sg-prof-bpo');
+  if(bpoEl) bpoEl.textContent = bpo;
+  document.getElementById('sg-profile-bar')?.classList.remove('hidden');
+  _sgAuthStep(null); // hide overlay → app unlocked
+
+  // Adopt Google name as the profile / snippets user ID if not set yet
+  if(!localStorage.getItem('sg_snip_user_id')){
+    localStorage.setItem('sg_snip_user_id', _sgUser.name);
+  }
+
+  // Record the login + BPO in Firebase (sg/users) for admin visibility
+  try{
+    if(_sgFbReady && _sgFbDB){
+      const key = _sgUser.email.replace(/\./g, ',');
+      _sgFbDB.ref('sg/users/' + key).update({
+        name: _sgUser.name, email: _sgUser.email, bpo,
+        lastLogin: new Date().toISOString()
+      });
+    }
+  }catch(e){ console.warn('[SG Auth] could not save user profile to Firebase:', e); }
+}
+
+function sgSignOut(){
+  if(_sgAuth) _sgAuth.signOut();
+  document.getElementById('sg-profile-bar')?.classList.add('hidden');
+  _sgAuthStep('login');
+}
+
+// Safety: if Firebase SDK never loads (all CDNs blocked), show error state after 15s
+setTimeout(()=>{
+  if(!_sgAuth){
+    const loading = document.getElementById('sg-auth-step-loading');
+    if(loading && !loading.classList.contains('hidden')) _sgAuthStep('error');
+  }
+}, 15000);
 
 
 
