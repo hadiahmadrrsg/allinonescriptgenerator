@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>All in One Script Generator - v29</title>
+<title>All in One Script Generator - v30</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -48,6 +48,8 @@ textarea{resize:vertical}
 .btn-sm{padding:5px 12px;border-radius:8px;border:1px solid rgba(255,255,255,.4);background:rgba(255,255,255,.15);color:white;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif}
 .btn-copy{padding:5px 12px;border-radius:8px;border:none;background:white;color:#ee4d2d;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;transition:all .2s}
 .btn-copy.done{background:#22c55e;color:white}
+.btn-big{padding:10px 24px!important;font-size:14px!important;border-radius:10px!important;font-weight:700!important}
+.tf-bar:hover .tf-tip{display:block!important}
 /* Section divider */
 .section-div{border-top:1px solid #f3f4f6;padding-top:12px;margin-top:0}
 .section-title{font-size:12px;font-weight:700;color:#374151;margin-bottom:10px}
@@ -260,7 +262,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v29</div>
+        <div class="logo-title">All in One Script Generator - v30</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -470,9 +472,9 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <div class="output-header">
         <h3 id="output-title">Generated Script</h3>
         <div class="flex-gap">
-          <button class="btn-sm" onclick="generateScript()">🔄 Regenerate</button>
+          <button class="btn-sm btn-big" onclick="generateScript()">🔄 Regenerate</button>
           <button class="btn-sm" onclick="undoLastAction()" id="btn-undo" style="display:none">↩ Undo</button>
-          <button class="btn-copy" id="btn-copy" onclick="copyAll()">📋 Copy All</button>
+          <button class="btn-copy btn-big" id="btn-copy" onclick="copyAll()">📋 Copy All</button>
         </div>
       </div>
       <div class="output-body" id="output-sections"></div>
@@ -718,6 +720,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <button id="admin-tab-backend" onclick="setAdminTab('backend')" class="admin-sub-btn">🔧 Backend HTML</button>
     <button id="admin-tab-statistics" onclick="setAdminTab('statistics')" class="admin-sub-btn">📊 Statistics</button>
     <button id="admin-tab-users" onclick="setAdminTab('users')" class="admin-sub-btn">👥 Users</button>
+    <button id="admin-tab-traffic" onclick="setAdminTab('traffic')" class="admin-sub-btn">📈 Traffic</button>
   </div>
 
   <!-- BOOKMARKLET SECTION -->
@@ -2248,7 +2251,7 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v29')" id="vnav-v29"><span class="ddot" style="background:#ee4d2d"></span>v29 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v30')" id="vnav-v30"><span class="ddot" style="background:#ee4d2d"></span>v30 — Current</a>
     <a class="docs-nav-item" onclick="scrollToVer('v28')" id="vnav-v28"><span class="ddot" style="background:#6b7280"></span>v28</a>
     <a class="docs-nav-item" onclick="scrollToVer('v26')" id="vnav-v26"><span class="ddot" style="background:#6b7280"></span>v26</a>
     <a class="docs-nav-item" onclick="scrollToVer('v25')" id="vnav-v25"><span class="ddot" style="background:#6b7280"></span>v25</a>
@@ -2289,11 +2292,11 @@ setTimeout(function(){
       <!-- Cards injected by sgRenderUpdateNotes() -->
     </div>
 
-      <!-- v29 -->
-      <div id="vsec-v29" class="dcard" style="margin-bottom:28px">
+      <!-- v30 -->
+      <div id="vsec-v30" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v29 — Current</div>
+        <div style="color:white;font-weight:800;font-size:16px">v30 — Current</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">12 Aug 2026</div>
       </div>
       <div style="padding:20px">
@@ -2307,6 +2310,8 @@ setTimeout(function(){
             <li><strong>📗 Master File link in Admin</strong> — a green bubble below the 🌐 generator link opens the master Google Sheet where all scripts are stored and edited</li>
             <li><strong>📊 Statistics by BPO</strong> — new purple BPO filter row (All / per-BPO), a 🏢 BPO Breakdown table with totals, buyer/seller split, unique users and share bars, BPO columns in the User Breakdown and daily Recent Activity tables, and a BPO column in the CSV export. Every generation event now records the agent's BPO</li>
             <li><strong>👥 Admin → Users tab</strong> — lists everyone who has logged in (from Firebase <code>sg/users</code>): avatar, name, email, BPO pill, and last login (relative + absolute). Includes per-BPO summary cards, search, BPO filter pills, refresh, and CSV export</li>
+            <li><strong>📈 Admin → Traffic tab</strong> — live usage analytics replicated from WJ Dashboard: every <strong>📋 Copy All</strong> click is logged to Firebase <code>sg/_traffic</code> with the agent's name, email, BPO and flow. Shows Total/Today/Last-7-Days/Peak-Day cards, a 14-day bar chart (hover a bar to see who copied that day), an hour-of-day heatmap, day-of-week bars, and a per-user table. Includes a searchable <strong>Include user</strong> filter — type and select a name to see only that person's data</li>
+            <li><strong>🔘 Bigger action buttons</strong> — 🔄 Regenerate and 📋 Copy All are now larger and identically sized for easier clicking</li>
             <li><strong>🔔 Auto version detection</strong> — the app version is now a single constant (<code>SG_APP_VERSION</code>) that automatically drives the header title, browser tab title, and Download-Self filename. The generator also watches Firebase <code>sg/appVersion</code>: when a newer version is published there, the header pill turns yellow ("🔔 vXX available — click to update") and a toast prompts agents to refresh</li>
           </ul>
         </div>
@@ -3174,6 +3179,18 @@ setTimeout(function(){
   </script>
 
   <!-- STATISTICS SECTION -->
+  <!-- TRAFFIC SECTION -->
+  <div id="admin-section-traffic" class="hidden" style="max-width:960px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-weight:800;font-size:20px;color:#1a1a1a">📈 Traffic — Copy All Usage</div>
+        <div style="font-size:12px;color:#9ca3af;margin-top:2px">Every <strong>📋 Copy All</strong> click is logged live to Firebase <code style="background:#f3f4f6;padding:1px 6px;border-radius:4px">sg/_traffic</code></div>
+      </div>
+      <button onclick="renderTrafficPanel()" style="padding:8px 16px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#374151;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">🔄 Refresh</button>
+    </div>
+    <div id="traffic-content"></div>
+  </div>
+
   <!-- USERS SECTION -->
   <div id="admin-section-users" class="hidden" style="max-width:960px;margin:0 auto">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
@@ -3401,7 +3418,7 @@ const _FLOW_META = {
 // Change SG_APP_VERSION here and the header, page title, browser tab,
 // and Download-Self filename all update automatically.
 // ═══════════════════════════════════════════════════════════════
-const SG_APP_VERSION = 'v29';
+const SG_APP_VERSION = 'v30';
 const SG_APP_VERSION_DATE = '12 Aug 2026';
 
 (function sgApplyVersion(){
@@ -3857,6 +3874,12 @@ function sgFbLoadAndSubscribe(){
         if(_sgLoadedVersion === null) _sgLoadedVersion = ver;
         console.log('[SG] appVersion:', ver);
         sgCheckAppVersion(ver);
+      });
+      // Traffic — Copy All click events, live
+      _sgFbDB.ref('sg/_traffic').on('value', s => {
+        const val = s.val();
+        _sgTraffic = val ? Object.values(val) : [];
+        if(state && state.view === 'admin' && state.adminTab === 'traffic') renderTrafficPanel();
       });
       // Update notes — pushed from Apps Script alongside appVersion
       _sgFbDB.ref('sg/updateNotes').on('value', s => {
@@ -5334,6 +5357,197 @@ function _sgRenderUsersTable(){
   tbl.innerHTML = h;
 }
 
+
+// ═══════════════════════════════════════════════════════════════
+// TRAFFIC — Copy All click tracking (replicated from WJ Dashboard,
+// with two changes: events = Copy All clicks, filter = INCLUDE)
+// ═══════════════════════════════════════════════════════════════
+var _sgTraffic = [];          // [{ts, day, hour, dow, username, email, bpo, flow}]
+var _sgTrafficInclude = '';   // '' = show everyone; otherwise only this username
+
+function sgLogCopyEvent(){
+  try{
+    if(!_sgFbReady || !_sgFbDB) return;
+    const now = new Date();
+    const email = (_sgUser && _sgUser.email) || null;
+    _sgFbDB.ref('sg/_traffic').push({
+      ts:   now.toISOString(),
+      day:  now.toISOString().slice(0,10),
+      hour: now.getHours(),
+      dow:  now.getDay(),
+      username: (_sgUser && _sgUser.name) || localStorage.getItem('sg_snip_user_id') || null,
+      email: email,
+      bpo:  email ? (localStorage.getItem('sg_bpo::' + email) || null) : null,
+      flow: (state && state.user && state.result) ? (state.user + '|' + state.result) : null
+    }).catch(e=>console.warn('[SG] traffic log error:', e));
+  }catch(e){}
+}
+
+function sgTrafficSetInclude(name){
+  _sgTrafficInclude = (name || '').trim();
+  renderTrafficPanel();
+}
+
+function renderTrafficPanel(){
+  const box = document.getElementById('traffic-content');
+  if(!box) return;
+  if(!_sgFbReady || !_sgFbDB){
+    box.innerHTML = '<div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;padding:32px;text-align:center;color:#9ca3af;font-size:13px">🔌 Firebase not connected — traffic data unavailable.<br>Check the 🔥 Firebase Sync tab, then click Refresh.</div>';
+    return;
+  }
+  const allEvents = _sgTraffic || [];
+
+  // Known usernames (for the searchable include list)
+  const knownNames = [...new Set(allEvents.map(v=>v.username||'(anonymous)'))].sort((a,b)=>a.localeCompare(b));
+
+  // INCLUDE filter — when set, only that user's data is shown everywhere
+  const inc = _sgTrafficInclude;
+  const events = inc ? allEvents.filter(v=>(v.username||'(anonymous)')===inc) : allEvents;
+
+  const todayStr  = new Date().toISOString().slice(0,10);
+  const msPerDay  = 86400000;
+  const dayLabels = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+  const days14 = [];
+  for(let i=13;i>=0;i--){ days14.push(new Date(Date.now()-i*msPerDay).toISOString().slice(0,10)); }
+
+  const byDay = {}, namesByDay = {};
+  events.forEach(v=>{
+    byDay[v.day]=(byDay[v.day]||0)+1;
+    const nm=v.username||'(anonymous)';
+    if(!namesByDay[v.day]) namesByDay[v.day]={};
+    namesByDay[v.day][nm]=(namesByDay[v.day][nm]||0)+1;
+  });
+  function dayNames(d){
+    const m=namesByDay[d]; if(!m) return '';
+    return Object.entries(m).sort((a,b)=>b[1]-a[1]).map(([nm,c])=>c>1?nm+' ('+c+')':nm).join(', ');
+  }
+
+  const byHour = Array(24).fill(0);
+  events.forEach(v=>{ if(v.hour!=null) byHour[v.hour]++; });
+  const byDow = Array(7).fill(0);
+  events.forEach(v=>{ if(v.dow!=null) byDow[v.dow]++; });
+
+  const total   = events.length;
+  const today   = byDay[todayStr]||0;
+  const week7   = days14.slice(7).reduce((s,d)=>s+(byDay[d]||0),0);
+  const maxDay  = days14.reduce((m,d)=>Math.max(m,byDay[d]||0),0);
+  const peakDay = days14.find(d=>(byDay[d]||0)===maxDay);
+  const peakLabel = (maxDay>0 && peakDay) ? new Date(peakDay+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '—';
+
+  function barChart(){
+    if(!total) return '<div style="text-align:center;padding:40px;color:#9ca3af;font-size:13px">No data yet — a record is logged every time someone clicks 📋 Copy All.</div>';
+    const bars = days14.map(d=>{
+      const cnt=byDay[d]||0;
+      const pct=maxDay>0?Math.round((cnt/maxDay)*100):0;
+      const isToday=d===todayStr;
+      const label=new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      const barColor=isToday?'#ee4d2d':'#2563eb';
+      const barBg=isToday?'#fff5f2':'#eff6ff';
+      const fullLabel=new Date(d+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      const tipInner=cnt
+        ? '<div style="font-weight:800;margin-bottom:4px;color:#fff">'+fullLabel+' · '+cnt+' cop'+(cnt!==1?'ies':'y')+'</div><div style="color:#d1d5db;line-height:1.5">'+esc(dayNames(d))+'</div>'
+        : '<div style="font-weight:700;color:#fff">'+fullLabel+'</div><div style="color:#9ca3af">No copies</div>';
+      return '<div class="tf-bar" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;cursor:'+(cnt?'pointer':'default')+'">'
+        +'<div class="tf-tip" style="display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#111827;border-radius:8px;padding:8px 12px;font-size:11px;min-width:140px;max-width:240px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.25);white-space:normal;text-align:left;pointer-events:none">'+tipInner+'<div style="position:absolute;top:100%;left:50%;transform:translateX(-50%);border:6px solid transparent;border-top-color:#111827"></div></div>'
+        +'<div style="font-size:11px;font-weight:800;color:'+(cnt?barColor:'#d1d5db')+'">'+(cnt||'')+'</div>'
+        +'<div style="width:100%;display:flex;align-items:flex-end;height:80px"><div style="width:100%;height:'+Math.max(pct,cnt?4:0)+'%;background:'+(cnt?barColor:barBg)+';border-radius:4px 4px 0 0;transition:height .3s;min-height:'+(cnt?4:0)+'px"></div></div>'
+        +'<div style="font-size:9.5px;color:'+(isToday?'#ee4d2d':'#6b7280')+';font-weight:'+(isToday?800:600)+';text-align:center;line-height:1.2;white-space:nowrap">'+label+(isToday?'<br>TODAY':'')+'</div>'
+        +'</div>';
+    }).join('');
+    return '<div style="display:flex;align-items:flex-end;gap:6px;padding:8px 0 0 0;height:130px">'+bars+'</div>';
+  }
+
+  function hourChart(){
+    const maxH=Math.max(...byHour,1);
+    const cells=byHour.map((cnt,hh)=>{
+      const pct=Math.round((cnt/maxH)*100);
+      const bg=cnt===0?'#f3f4f6':pct>75?'#1d4ed8':pct>50?'#2563eb':pct>25?'#93c5fd':'#dbeafe';
+      const tc=cnt===0?'#d1d5db':pct>50?'#fff':'#1e40af';
+      const label=(hh%3===0)?String(hh).padStart(2,'0')+':00':'';
+      return '<div title="'+hh+':00 — '+cnt+' copies" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px">'
+        +'<div style="width:100%;height:28px;border-radius:4px;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:'+tc+'">'+(cnt||'')+'</div>'
+        +'<div style="font-size:8px;color:#9ca3af;min-height:10px">'+label+'</div></div>';
+    }).join('');
+    return '<div style="display:flex;gap:3px;align-items:flex-start">'+cells+'</div>';
+  }
+
+  function dowChart(){
+    const maxDow=Math.max(...byDow,1);
+    const bars=byDow.map((cnt,i)=>{
+      const pct=Math.round((cnt/maxDow)*100);
+      return '<div style="display:flex;flex-direction:column;align-items:center;gap:4px;flex:1">'
+        +'<div style="font-size:11px;font-weight:800;color:'+(cnt?'#059669':'#d1d5db')+'">'+(cnt||'')+'</div>'
+        +'<div style="width:100%;height:48px;display:flex;align-items:flex-end"><div style="width:100%;height:'+Math.max(pct,cnt?6:0)+'%;background:'+(cnt?'#059669':'#f3f4f6')+';border-radius:4px 4px 0 0;min-height:'+(cnt?4:0)+'px"></div></div>'
+        +'<div style="font-size:11px;color:#6b7280;font-weight:700">'+dayLabels[i]+'</div></div>';
+    }).join('');
+    return '<div style="display:flex;gap:8px;align-items:flex-end;height:80px">'+bars+'</div>';
+  }
+
+  // Per-user table (respects the include filter)
+  const byUser={};
+  events.forEach(v=>{
+    const u=v.username||'(anonymous)';
+    if(!byUser[u]) byUser[u]={username:u,email:v.email||'',bpo:v.bpo||'—',total:0,today:0,lastSeen:''};
+    byUser[u].total++;
+    if(v.email && !byUser[u].email) byUser[u].email=v.email;
+    if(v.bpo && (byUser[u].bpo==='—'||!byUser[u].bpo)) byUser[u].bpo=v.bpo;
+    if(v.day===todayStr) byUser[u].today++;
+    if(!byUser[u].lastSeen||v.ts>byUser[u].lastSeen) byUser[u].lastSeen=v.ts;
+  });
+  const userRows=Object.values(byUser).sort((a,b)=>b.total-a.total);
+
+  // INCLUDE filter UI — searchable via datalist
+  const dlOptions = knownNames.map(n=>'<option value="'+esc(n)+'"></option>').join('');
+  const includeNote = inc
+    ? '<div style="background:#f5f3ff;border:1.5px solid #ddd6fe;border-radius:10px;padding:8px 14px;margin-bottom:12px;display:flex;align-items:center;gap:8px"><span style="font-size:15px">🔎</span><span style="font-size:13px;color:#5b21b6;font-weight:600">Showing only <b>'+esc(inc)+'</b> in all charts and counts.</span></div>'
+    : '';
+
+  box.innerHTML = ''
+  +'<div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;padding:14px 20px;margin-bottom:12px">'
+    +'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+      +'<span style="font-size:12px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.5px">Include user:</span>'
+      +'<input list="traffic-users-dl" id="traffic-include-input" value="'+esc(inc)+'" placeholder="🔍 Type a name to include..." onchange="sgTrafficSetInclude(this.value)" style="width:240px;padding:8px 12px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:13px;font-family:\'Sora\',sans-serif">'
+      +'<datalist id="traffic-users-dl">'+dlOptions+'</datalist>'
+      +(inc?'<button onclick="sgTrafficSetInclude(\'\')" style="padding:8px 14px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:12px;cursor:pointer;font-family:\'Sora\',sans-serif">✕ Show everyone</button>':'')
+      +'<span style="font-size:12px;color:#9ca3af">Search a name and select it to see only that person\'s data.</span>'
+    +'</div>'
+  +'</div>'
+  +includeNote
+  +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px">'
+    +'<div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px;text-align:center"><div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;margin-bottom:4px">Total Copies</div><div style="font-size:28px;font-weight:900;color:#2563eb">'+total+'</div></div>'
+    +'<div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px;text-align:center"><div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;margin-bottom:4px">Today</div><div style="font-size:28px;font-weight:900;color:#ee4d2d">'+today+'</div></div>'
+    +'<div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px;text-align:center"><div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;margin-bottom:4px">Last 7 Days</div><div style="font-size:28px;font-weight:900;color:#059669">'+week7+'</div></div>'
+    +'<div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:16px;text-align:center"><div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;margin-bottom:4px">Peak Day</div><div style="font-size:22px;font-weight:900;color:#d97706">'+peakLabel+'</div><div style="font-size:11px;font-weight:700;color:#d97706">'+(maxDay||0)+' copies</div></div>'
+  +'</div>'
+  +'<div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;padding:20px;margin-bottom:16px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px"><h3 style="font-size:15px;font-weight:800;margin:0;color:#1a1a1a">📅 Last 14 Days</h3><span style="font-size:11px;color:#6b7280;font-weight:600">🔴 = today · hover a bar to see who copied</span></div>'
+    +barChart()
+  +'</div>'
+  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">'
+    +'<div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;padding:20px"><h3 style="font-size:15px;font-weight:800;margin:0 0 14px;color:#1a1a1a">🕐 Copies by Hour (all-time)</h3>'+hourChart()+'<div style="margin-top:8px;font-size:11px;color:#6b7280">Darker blue = more copies. Hover cells for detail.</div></div>'
+    +'<div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;padding:20px"><h3 style="font-size:15px;font-weight:800;margin:0 0 14px;color:#1a1a1a">📆 Copies by Day of Week (all-time)</h3>'+dowChart()+'</div>'
+  +'</div>'
+  +'<div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;padding:20px;margin-top:16px">'
+    +'<h3 style="font-size:15px;font-weight:800;margin:0 0 14px;color:#1a1a1a">👤 Copies by User</h3>'
+    +(userRows.length
+      ? '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">'
+        +'<tr style="background:#f9fafb"><th class="tbl-th">User</th><th class="tbl-th">Email</th><th class="tbl-th">BPO</th><th class="tbl-th">Total</th><th class="tbl-th">Today</th><th class="tbl-th">Last Copy</th></tr>'
+        +userRows.map(u=>{
+          const lastSeen=u.lastSeen?new Date(u.lastSeen).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'—';
+          const bpoCell=(u.bpo&&u.bpo!=='—')?'<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe">'+esc(u.bpo)+'</span>':'<span style="color:#d1d5db">—</span>';
+          return '<tr class="tbl-tr"><td class="tbl-td" style="font-weight:600;color:'+(u.username==='(anonymous)'?'#9ca3af':'#1a1a1a')+'">'+esc(u.username)+'</td>'
+            +'<td class="tbl-td" style="color:#6b7280">'+esc(u.email||'—')+'</td>'
+            +'<td class="tbl-td">'+bpoCell+'</td>'
+            +'<td class="tbl-td" style="font-weight:900;color:#2563eb">'+u.total+'</td>'
+            +'<td class="tbl-td" style="font-weight:700;color:'+(u.today?'#ee4d2d':'#9ca3af')+'">'+u.today+'</td>'
+            +'<td class="tbl-td" style="color:#6b7280;white-space:nowrap">'+lastSeen+'</td></tr>';
+        }).join('')
+        +'</table></div>'
+      : '<p style="text-align:center;color:#9ca3af;font-size:13px;padding:20px 0">No copies logged yet.</p>')
+  +'</div>';
+}
+
 function sgDownloadUsersCSV(){
   if(!_sgUsersCache || !_sgUsersCache.length){ alert('No users loaded. Click 🔄 Refresh first.'); return; }
   const header = ['Name','Email','BPO','Last Login'];
@@ -6569,9 +6783,11 @@ function copyAll(){
   const text = state.generatedSections.map(s=>s.text).join('\n\n');
   _sgCopyToClipboard(text, ()=>{
     const btn=document.getElementById('btn-copy');
-    if(!btn) return;
-    btn.textContent='✓ Copied!';btn.className='btn-copy done';
-    setTimeout(()=>{btn.textContent='📋 Copy All';btn.className='btn-copy';},2000);
+    if(btn){
+      btn.textContent='✓ Copied!';btn.classList.add('done');
+      setTimeout(()=>{btn.textContent='📋 Copy All';btn.classList.remove('done');},2000);
+    }
+    sgLogCopyEvent(); // Traffic: one record per successful Copy All
   });
 }
 
@@ -7196,7 +7412,7 @@ function renderP1FlowsPanel(){
 }
 
 function setAdminTab(item){state.adminTab=item;renderAdminPanel();
-  const tabs=['bookmarklet','instructions','gssync','firebase','backend','versions','statistics','users'];
+  const tabs=['bookmarklet','instructions','gssync','firebase','backend','versions','statistics','users','traffic'];
   tabs.forEach(t=>{
     const btn=document.getElementById('admin-tab-'+t);
     const sec=document.getElementById('admin-section-'+t);
@@ -7224,6 +7440,7 @@ function setAdminTab(item){state.adminTab=item;renderAdminPanel();
   if(item==='versions'){ if(typeof sgRenderUpdateNotes === 'function') sgRenderUpdateNotes(); }
   if(item==='statistics'){ renderStatsPanel(); }
   if(item==='users'){ sgRenderUsersPanel(); }
+  if(item==='traffic'){ renderTrafficPanel(); }
 }
 
 function startEdit(id){
