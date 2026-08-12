@@ -274,16 +274,15 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <button class="nav-btn inactive" id="nav-ev" onclick="switchView('evidence')">📋 Evidence Collection</button>
       <button class="nav-btn inactive" id="nav-snip" onclick="switchView('snippets')">📝 Snippets</button>
       <button class="nav-btn inactive" id="nav-adm" onclick="switchView('admin')">⚙️ Admin</button>
-      <button class="nav-btn inactive" id="nav-guide" onclick="switchView('guide')">📖 Instructions</button>
-      <!-- ═══ USER PROFILE CARD (in header, right of nav) ═══ -->
-      <div id="sg-profile-bar" class="hidden" style="display:flex;align-items:center;gap:8px;background:white;border-radius:14px;padding:5px 8px;box-shadow:0 2px 12px rgba(0,0,0,.15);margin-left:8px">
-        <img id="sg-prof-photo" src="" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#f3f4f6" onerror="this.style.display='none'">
-        <div style="text-align:left;line-height:1.2">
-          <div id="sg-prof-name" style="font-weight:700;font-size:11.5px;color:#1a1a1a;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-          <div id="sg-prof-email" style="font-size:10px;color:#9ca3af;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-        </div>
-        <button id="sg-prof-bpo" onclick="sgShowBpoChooser()" title="Click to change your BPO" style="padding:4px 11px;border-radius:20px;border:1.5px solid #7c3aed;background:#f5f3ff;color:#7c3aed;font-weight:700;font-size:10.5px;cursor:pointer;font-family:'Sora',sans-serif;white-space:nowrap"></button>
-        <button onclick="sgSignOut()" style="padding:4px 11px;border-radius:20px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:10.5px;cursor:pointer;font-family:'Sora',sans-serif;white-space:nowrap">Sign out</button>
+      <!-- ═══ USER PROFILE — nav-style pills, same size as nav buttons ═══ -->
+      <div id="sg-profile-bar" class="hidden" style="display:flex;gap:8px;align-items:center">
+        <span class="nav-btn" style="background:white;color:#1a1a1a;display:inline-flex;align-items:center;gap:6px;cursor:default">
+          <img id="sg-prof-photo" src="" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;background:#f3f4f6;flex-shrink:0" onerror="this.style.display='none'">
+          <span id="sg-prof-name" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+          <span id="sg-prof-email" style="color:#9ca3af;font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
+        </span>
+        <button class="nav-btn" id="sg-prof-bpo" onclick="sgShowBpoChooser()" title="Click to change your BPO" style="background:#7c3aed;color:white"></button>
+        <button class="nav-btn inactive" onclick="sgSignOut()">Sign out</button>
       </div>
     </div>
   </div>
@@ -677,7 +676,174 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 </div>
 
 <!-- INSTRUCTIONS VIEW -->
-<div id="view-guide" class="hidden">
+
+<!-- ADMIN VIEW - Login -->
+<!-- ═══ EVIDENCE COLLECTION VIEW ═══ -->
+
+
+
+<!-- ADMIN VIEW - Panel -->
+<div id="view-admin-panel" class="hidden">
+<div class="admin-panel">
+
+  <!-- Header (shown for all tabs) -->
+  <div style="margin-bottom:20px">
+    <div style="font-weight:700;font-size:20px;color:#1a1a1a">⚙️ Admin Panel</div>
+    <div id="db-count" style="display:none"></div>
+  </div>
+  <!-- GitHub info bubble -->
+  <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:16px">🌐</span>
+    <div style="font-size:12.5px;color:#374151;line-height:1.6">
+      <strong>All in One Script Generator:</strong> <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
+      Latest version always available there. Please always refresh the website.
+    </div>
+  </div>
+  <!-- Master File (Google Sheet) info bubble -->
+  <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
+    <span style="font-size:16px">📗</span>
+    <div style="font-size:12.5px;color:#374151;line-height:1.6">
+      <strong>Master File (Script Storage):</strong> <a href="https://docs.google.com/spreadsheets/d/11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ/edit?gid=1457984563#gid=1457984563" target="_blank" style="color:#059669;font-weight:600">Open Master Google Sheet ↗</a><br>
+      All scripts are stored and edited here, then pushed to the generators via Apps Script sync.
+    </div>
+  </div>
+
+  <!-- Admin Sub-Tabs -->
+  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+    <button id="admin-tab-bookmarklet" onclick="setAdminTab('bookmarklet')" class="admin-sub-btn active">🔗 Bookmarklet</button>
+    <button id="admin-tab-instructions" onclick="setAdminTab('instructions')" class="admin-sub-btn">📖 Instructions</button>
+    <button id="admin-tab-versions" onclick="setAdminTab('versions')" class="admin-sub-btn">📝 Version Updates</button>
+    <button id="admin-tab-gssync" onclick="setAdminTab('gssync')" class="admin-sub-btn">📋 Google Sheet Sync</button>
+    <button id="admin-tab-firebase" onclick="setAdminTab('firebase')" class="admin-sub-btn">🔥 Firebase Sync</button>
+    <button id="admin-tab-backend" onclick="setAdminTab('backend')" class="admin-sub-btn">🔧 Backend HTML</button>
+    <button id="admin-tab-statistics" onclick="setAdminTab('statistics')" class="admin-sub-btn">📊 Statistics</button>
+    <button id="admin-tab-users" onclick="setAdminTab('users')" class="admin-sub-btn">👥 Users</button>
+  </div>
+
+  <!-- BOOKMARKLET SECTION -->
+  <div id="admin-section-bookmarklet">
+  <!-- Bookmarklet Setup -->
+  <div style="margin-bottom:24px;background:#fff5f3;border-radius:12px;border:1.5px solid #fbd5cc;padding:18px 20px">
+    <div style="font-weight:700;font-size:14px;color:#374151;margin-bottom:4px">🔗 DMS Bookmarklet Setup</div>
+    <div style="font-size:12px;color:#9ca3af;margin-bottom:14px">Generate a bookmarklet that scrapes case data from DMS. After scraping, come back here and paste with DMS Auto-Fill.</div>
+    <div style="margin-bottom:12px;text-align:center">
+      <button onclick="generateBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif">⚡ Generate Bookmarklet</button>
+    </div>
+    <div id="bm-output" class="hidden">
+      <!-- Step-by-step instructions -->
+      <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:20px;margin-bottom:12px">
+        <div style="font-size:16px;font-weight:800;color:#92400e;margin-bottom:14px">📋 Install the Bookmarklet</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
+            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">①</div>
+            <div style="font-size:12px;color:#374151;line-height:1.6">Click <strong>📋 Copy Code</strong> below</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
+            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">②</div>
+            <div style="font-size:12px;color:#374151;line-height:1.6"><strong>Right-click</strong> your bookmark bar → <strong>Add page</strong> (or "Add bookmark")</div>
+          </div>
+          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
+            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">③</div>
+            <div style="font-size:12px;color:#374151;line-height:1.6">Name it <strong>Bookmarklet</strong>, paste the code as the <strong>URL</strong> → <strong>Save</strong></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button onclick="copyBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#ee4d2d,#ff7337);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;box-shadow:0 4px 12px rgba(238,77,45,.3)">📋 Copy Code</button>
+          <span id="bm-copy-status" style="font-size:12px;color:#059669;font-weight:600"></span>
+        </div>
+      </div>
+      <details style="margin-bottom:12px">
+        <summary style="font-size:11px;color:#9ca3af;cursor:pointer;margin-bottom:6px">View raw bookmarklet code</summary>
+        <textarea id="bm-code-text" rows="3" readonly onclick="this.select()" style="width:100%;font-size:10px;font-family:monospace;border-radius:8px;border:1.5px solid #e5e7eb;padding:8px;resize:none;color:#374151;background:#f9fafb;cursor:pointer"></textarea>
+      </details>
+      <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #86efac;padding:12px;font-size:11px;color:#374151">
+        <div style="font-weight:700;color:#166534;margin-bottom:10px">✅ How to use (after installing):</div>
+        <div style="font-weight:600;color:#374151;margin-bottom:4px">On DMS:</div>
+        <ol style="margin:0 0 10px 0;padding-left:18px;line-height:2">
+          <li>Open a case on <strong>dms.cs.shopee.sg</strong></li>
+          <li>Click the bookmark — a panel confirms the data was scraped</li>
+        </ol>
+        <div style="font-weight:600;color:#374151;margin-bottom:4px">On the Script Generator:</div>
+        <ol style="margin:0;padding-left:18px;line-height:2">
+          <li>Click the blue <strong>📋 DMS Auto-Fill</strong> button</li>
+          <li>Press <kbd style="background:#374151;color:white;padding:1px 6px;border-radius:4px;font-size:10px">Ctrl+V</kbd> — form fills instantly ✅</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Import Modal -->
+  <div id="import-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:flex;align-items:center;justify-content:center">
+    <div style="background:white;border-radius:18px;padding:28px;width:min(700px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div>
+          <div style="font-weight:700;font-size:18px;color:#1a1a1a">📤 Import from Google Sheet</div>
+          <div style="font-size:12px;color:#9ca3af;margin-top:2px">Paste copied cells or upload a CSV file</div>
+        </div>
+        <button onclick="closeImportModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;padding:4px">✕</button>
+      </div>
+
+      <!-- Column guide -->
+      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#166534">
+        <strong>📋 Expected column order (match your Google Sheet):</strong><br>
+        <span style="font-family:monospace">A: Type Return &nbsp;|&nbsp; B: User &nbsp;|&nbsp; C: Result &nbsp;|&nbsp; D: Section/Item &nbsp;|&nbsp; E: Script Text</span><br>
+        <span style="color:#6b7280;margin-top:4px;display:block">Tip: In Google Sheets, select all cells and press Ctrl+C, then paste below. Or export as CSV and upload.</span>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;gap:6px;margin-bottom:14px">
+        <button id="tab-file" onclick="switchImportTab('file')" style="padding:6px 16px;border-radius:8px;border:2px solid #059669;background:#f0fdf4;color:#059669;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">📁 Upload CSV</button>
+        <button id="tab-paste" onclick="switchImportTab('paste')" style="padding:6px 16px;border-radius:8px;border:2px solid #e5e7eb;background:white;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">📋 Paste from Sheet</button>
+      </div>
+
+      <!-- Paste panel -->
+      <div id="import-paste-panel" class="hidden">
+        <textarea id="import-paste" rows="10" placeholder="Paste your Google Sheet data here (Ctrl+V)..." style="width:100%;border-radius:10px;border:1.5px solid #e5e7eb;padding:10px;font-size:12px;font-family:'Sora',sans-serif;outline:none;resize:vertical"></textarea>
+      </div>
+
+      <!-- File upload panel -->
+      <div id="import-file-panel">
+        <div id="admin-drop-zone" style="border:2px dashed #e5e7eb;border-radius:10px;padding:32px 24px;text-align:center;cursor:pointer"
+          ondragover="event.preventDefault();this.style.borderColor='#ee4d2d';this.style.background='#fff5f3'"
+          ondragleave="this.style.borderColor='#e5e7eb';this.style.background=''"
+          ondrop="handleAdminDrop(event)">
+          <div style="font-size:36px;margin-bottom:10px">📂</div>
+          <div style="font-size:14px;font-weight:600;color:#374151;margin-bottom:4px">Drag &amp; drop your CSV file here</div>
+          <div style="font-size:12px;color:#9ca3af">Exported from Google Sheets or Excel</div>
+          <div id="admin-drop-feedback" style="margin-top:10px;font-size:12px;color:#059669;font-weight:600"></div>
+        </div>
+      </div>
+
+      <!-- Mode selector -->
+      <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:12px;font-weight:600;color:#374151">Import mode:</span>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+          <input type="radio" name="import-mode" value="replace" checked style="cursor:pointer"> Replace matching (same Section + Result + User)
+        </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
+          <input type="radio" name="import-mode" value="add" style="cursor:pointer"> Add to existing
+        </label>
+      </div>
+
+      <!-- Preview -->
+      <div id="import-preview" class="hidden" style="margin-top:14px;background:#f9fafb;border-radius:10px;padding:12px;border:1.5px solid #e5e7eb">
+        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px" id="import-preview-title"></div>
+        <div id="import-preview-rows" style="font-size:11px;color:#6b7280;max-height:120px;overflow-y:auto"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
+        <button onclick="previewImport()" style="padding:8px 18px;border-radius:10px;border:1.5px solid #059669;background:white;color:#059669;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">🔍 Preview</button>
+        <button id="btn-apply-import" onclick="applyImport()" class="hidden" style="padding:8px 18px;border-radius:10px;border:none;background:#059669;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">✅ Apply Import</button>
+        <button onclick="closeImportModal()" style="padding:8px 16px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- end admin-section-bookmarklet -->
+
+  <!-- INSTRUCTIONS SECTION (moved from top nav) -->
+<div id="admin-section-instructions" class="hidden">
 <div style="max-width:1100px;margin:0 auto;padding:28px 24px;font-family:'Sora',sans-serif">
 
   <div style="text-align:center;margin-bottom:32px">
@@ -972,170 +1138,6 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 
 </div>
 </div>
-
-<!-- ADMIN VIEW - Login -->
-<!-- ═══ EVIDENCE COLLECTION VIEW ═══ -->
-
-
-
-<!-- ADMIN VIEW - Panel -->
-<div id="view-admin-panel" class="hidden">
-<div class="admin-panel">
-
-  <!-- Header (shown for all tabs) -->
-  <div style="margin-bottom:20px">
-    <div style="font-weight:700;font-size:20px;color:#1a1a1a">⚙️ Admin Panel</div>
-    <div id="db-count" style="display:none"></div>
-  </div>
-  <!-- GitHub info bubble -->
-  <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
-    <span style="font-size:16px">🌐</span>
-    <div style="font-size:12.5px;color:#374151;line-height:1.6">
-      <strong>All in One Script Generator:</strong> <a href="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" target="_blank" style="color:#ee4d2d;font-weight:600">hadiahmadrrsg.github.io/allinonescriptgenerator/</a><br>
-      Latest version always available there. Please always refresh the website.
-    </div>
-  </div>
-  <!-- Master File (Google Sheet) info bubble -->
-  <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
-    <span style="font-size:16px">📗</span>
-    <div style="font-size:12.5px;color:#374151;line-height:1.6">
-      <strong>Master File (Script Storage):</strong> <a href="https://docs.google.com/spreadsheets/d/11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ/edit?gid=1457984563#gid=1457984563" target="_blank" style="color:#059669;font-weight:600">Open Master Google Sheet ↗</a><br>
-      All scripts are stored and edited here, then pushed to the generators via Apps Script sync.
-    </div>
-  </div>
-
-  <!-- Admin Sub-Tabs -->
-  <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap">
-    <button id="admin-tab-bookmarklet" onclick="setAdminTab('bookmarklet')" class="admin-sub-btn active">🔗 Bookmarklet</button>
-    <button id="admin-tab-versions" onclick="setAdminTab('versions')" class="admin-sub-btn">📝 Version Updates</button>
-    <button id="admin-tab-gssync" onclick="setAdminTab('gssync')" class="admin-sub-btn">📋 Google Sheet Sync</button>
-    <button id="admin-tab-firebase" onclick="setAdminTab('firebase')" class="admin-sub-btn">🔥 Firebase Sync</button>
-    <button id="admin-tab-backend" onclick="setAdminTab('backend')" class="admin-sub-btn">🔧 Backend HTML</button>
-    <button id="admin-tab-statistics" onclick="setAdminTab('statistics')" class="admin-sub-btn">📊 Statistics</button>
-    <button id="admin-tab-users" onclick="setAdminTab('users')" class="admin-sub-btn">👥 Users</button>
-  </div>
-
-  <!-- BOOKMARKLET SECTION -->
-  <div id="admin-section-bookmarklet">
-  <!-- Bookmarklet Setup -->
-  <div style="margin-bottom:24px;background:#fff5f3;border-radius:12px;border:1.5px solid #fbd5cc;padding:18px 20px">
-    <div style="font-weight:700;font-size:14px;color:#374151;margin-bottom:4px">🔗 DMS Bookmarklet Setup</div>
-    <div style="font-size:12px;color:#9ca3af;margin-bottom:14px">Generate a bookmarklet that scrapes case data from DMS. After scraping, come back here and paste with DMS Auto-Fill.</div>
-    <div style="margin-bottom:12px;text-align:center">
-      <button onclick="generateBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif">⚡ Generate Bookmarklet</button>
-    </div>
-    <div id="bm-output" class="hidden">
-      <!-- Step-by-step instructions -->
-      <div style="background:#fffbeb;border:2px solid #f59e0b;border-radius:12px;padding:20px;margin-bottom:12px">
-        <div style="font-size:16px;font-weight:800;color:#92400e;margin-bottom:14px">📋 Install the Bookmarklet</div>
-        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
-          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
-            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">①</div>
-            <div style="font-size:12px;color:#374151;line-height:1.6">Click <strong>📋 Copy Code</strong> below</div>
-          </div>
-          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
-            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">②</div>
-            <div style="font-size:12px;color:#374151;line-height:1.6"><strong>Right-click</strong> your bookmark bar → <strong>Add page</strong> (or "Add bookmark")</div>
-          </div>
-          <div style="flex:1;min-width:180px;background:white;border-radius:10px;padding:14px;border:1.5px solid #fde68a">
-            <div style="font-weight:800;font-size:22px;color:#ee4d2d;margin-bottom:4px">③</div>
-            <div style="font-size:12px;color:#374151;line-height:1.6">Name it <strong>Bookmarklet</strong>, paste the code as the <strong>URL</strong> → <strong>Save</strong></div>
-          </div>
-        </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button onclick="copyBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#ee4d2d,#ff7337);color:white;font-size:14px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif;box-shadow:0 4px 12px rgba(238,77,45,.3)">📋 Copy Code</button>
-          <span id="bm-copy-status" style="font-size:12px;color:#059669;font-weight:600"></span>
-        </div>
-      </div>
-      <details style="margin-bottom:12px">
-        <summary style="font-size:11px;color:#9ca3af;cursor:pointer;margin-bottom:6px">View raw bookmarklet code</summary>
-        <textarea id="bm-code-text" rows="3" readonly onclick="this.select()" style="width:100%;font-size:10px;font-family:monospace;border-radius:8px;border:1.5px solid #e5e7eb;padding:8px;resize:none;color:#374151;background:#f9fafb;cursor:pointer"></textarea>
-      </details>
-      <div style="background:#f0fdf4;border-radius:10px;border:1.5px solid #86efac;padding:12px;font-size:11px;color:#374151">
-        <div style="font-weight:700;color:#166534;margin-bottom:10px">✅ How to use (after installing):</div>
-        <div style="font-weight:600;color:#374151;margin-bottom:4px">On DMS:</div>
-        <ol style="margin:0 0 10px 0;padding-left:18px;line-height:2">
-          <li>Open a case on <strong>dms.cs.shopee.sg</strong></li>
-          <li>Click the bookmark — a panel confirms the data was scraped</li>
-        </ol>
-        <div style="font-weight:600;color:#374151;margin-bottom:4px">On the Script Generator:</div>
-        <ol style="margin:0;padding-left:18px;line-height:2">
-          <li>Click the blue <strong>📋 DMS Auto-Fill</strong> button</li>
-          <li>Press <kbd style="background:#374151;color:white;padding:1px 6px;border-radius:4px;font-size:10px">Ctrl+V</kbd> — form fills instantly ✅</li>
-        </ol>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- Import Modal -->
-  <div id="import-modal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;display:flex;align-items:center;justify-content:center">
-    <div style="background:white;border-radius:18px;padding:28px;width:min(700px,95vw);max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-        <div>
-          <div style="font-weight:700;font-size:18px;color:#1a1a1a">📤 Import from Google Sheet</div>
-          <div style="font-size:12px;color:#9ca3af;margin-top:2px">Paste copied cells or upload a CSV file</div>
-        </div>
-        <button onclick="closeImportModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;padding:4px">✕</button>
-      </div>
-
-      <!-- Column guide -->
-      <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:12px;margin-bottom:16px;font-size:12px;color:#166534">
-        <strong>📋 Expected column order (match your Google Sheet):</strong><br>
-        <span style="font-family:monospace">A: Type Return &nbsp;|&nbsp; B: User &nbsp;|&nbsp; C: Result &nbsp;|&nbsp; D: Section/Item &nbsp;|&nbsp; E: Script Text</span><br>
-        <span style="color:#6b7280;margin-top:4px;display:block">Tip: In Google Sheets, select all cells and press Ctrl+C, then paste below. Or export as CSV and upload.</span>
-      </div>
-
-      <!-- Tabs -->
-      <div style="display:flex;gap:6px;margin-bottom:14px">
-        <button id="tab-file" onclick="switchImportTab('file')" style="padding:6px 16px;border-radius:8px;border:2px solid #059669;background:#f0fdf4;color:#059669;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">📁 Upload CSV</button>
-        <button id="tab-paste" onclick="switchImportTab('paste')" style="padding:6px 16px;border-radius:8px;border:2px solid #e5e7eb;background:white;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">📋 Paste from Sheet</button>
-      </div>
-
-      <!-- Paste panel -->
-      <div id="import-paste-panel" class="hidden">
-        <textarea id="import-paste" rows="10" placeholder="Paste your Google Sheet data here (Ctrl+V)..." style="width:100%;border-radius:10px;border:1.5px solid #e5e7eb;padding:10px;font-size:12px;font-family:'Sora',sans-serif;outline:none;resize:vertical"></textarea>
-      </div>
-
-      <!-- File upload panel -->
-      <div id="import-file-panel">
-        <div id="admin-drop-zone" style="border:2px dashed #e5e7eb;border-radius:10px;padding:32px 24px;text-align:center;cursor:pointer"
-          ondragover="event.preventDefault();this.style.borderColor='#ee4d2d';this.style.background='#fff5f3'"
-          ondragleave="this.style.borderColor='#e5e7eb';this.style.background=''"
-          ondrop="handleAdminDrop(event)">
-          <div style="font-size:36px;margin-bottom:10px">📂</div>
-          <div style="font-size:14px;font-weight:600;color:#374151;margin-bottom:4px">Drag &amp; drop your CSV file here</div>
-          <div style="font-size:12px;color:#9ca3af">Exported from Google Sheets or Excel</div>
-          <div id="admin-drop-feedback" style="margin-top:10px;font-size:12px;color:#059669;font-weight:600"></div>
-        </div>
-      </div>
-
-      <!-- Mode selector -->
-      <div style="margin-top:14px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <span style="font-size:12px;font-weight:600;color:#374151">Import mode:</span>
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
-          <input type="radio" name="import-mode" value="replace" checked style="cursor:pointer"> Replace matching (same Section + Result + User)
-        </label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;cursor:pointer">
-          <input type="radio" name="import-mode" value="add" style="cursor:pointer"> Add to existing
-        </label>
-      </div>
-
-      <!-- Preview -->
-      <div id="import-preview" class="hidden" style="margin-top:14px;background:#f9fafb;border-radius:10px;padding:12px;border:1.5px solid #e5e7eb">
-        <div style="font-size:12px;font-weight:700;color:#374151;margin-bottom:6px" id="import-preview-title"></div>
-        <div id="import-preview-rows" style="font-size:11px;color:#6b7280;max-height:120px;overflow-y:auto"></div>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-top:16px;justify-content:flex-end">
-        <button onclick="previewImport()" style="padding:8px 18px;border-radius:10px;border:1.5px solid #059669;background:white;color:#059669;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">🔍 Preview</button>
-        <button id="btn-apply-import" onclick="applyImport()" class="hidden" style="padding:8px 18px;border-radius:10px;border:none;background:#059669;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">✅ Apply Import</button>
-        <button onclick="closeImportModal()" style="padding:8px 16px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  </div><!-- end admin-section-bookmarklet -->
 
   <!-- GOOGLE SHEET SYNC SECTION -->
   <div id="admin-section-gssync" class="hidden">
@@ -2300,7 +2302,8 @@ setTimeout(function(){
           <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
             <li><strong>🔐 Google Sign-In login gate</strong> — the generator now requires signing in with a Google account before use. Only <code>@shopee.com</code> and <code>@shopeemobile-external.com</code> emails are accepted; any other domain is signed out immediately with an error. Sessions persist across refreshes. Powered by Firebase Authentication (Google provider must be enabled in Firebase Console → Authentication → Sign-in method; the hosting domain must be added under Authorized domains)</li>
             <li><strong>🏢 BPO selection on first login</strong> — after signing in, agents pick their BPO (Vads / ePerformax / Asia Recruit / In House). The choice is remembered per email and can be changed anytime by clicking the purple BPO pill in the header</li>
-            <li><strong>👤 Profile card in the header</strong> — signed-in user's Google avatar, name, email, BPO pill, and a Sign out button now appear in the nav bar to the right of the Instructions button</li>
+            <li><strong>👤 Profile bar under the nav</strong> — signed-in user's Google avatar, name and email (left) with the BPO pill and Sign out button (right) in a full-width white bar inside the header, aligned with the nav above</li>
+            <li><strong>📖 Instructions moved into Admin</strong> — the Instructions page is now an Admin sub-tab, placed right after 🔗 Bookmarklet; the top nav is one button lighter</li>
             <li><strong>📗 Master File link in Admin</strong> — a green bubble below the 🌐 generator link opens the master Google Sheet where all scripts are stored and edited</li>
             <li><strong>📊 Statistics by BPO</strong> — new purple BPO filter row (All / per-BPO), a 🏢 BPO Breakdown table with totals, buyer/seller split, unique users and share bars, BPO columns in the User Breakdown and daily Recent Activity tables, and a BPO column in the CSV export. Every generation event now records the agent's BPO</li>
             <li><strong>👥 Admin → Users tab</strong> — lists everyone who has logged in (from Firebase <code>sg/users</code>): avatar, name, email, BPO pill, and last login (relative + absolute). Includes per-BPO summary cards, search, BPO filter pills, refresh, and CSV export</li>
@@ -5598,7 +5601,6 @@ function switchView(v){
   document.getElementById('view-evidence').classList.add('hidden');
   document.getElementById('view-snippets').classList.toggle('hidden',v!=='snippets');
   document.getElementById('view-admin-panel').classList.toggle('hidden',v!=='admin');
-  document.getElementById('view-guide').classList.toggle('hidden',v!=='guide');
   if(v==='evidence'){ document.getElementById('view-evidence').classList.remove('hidden'); evSetCat(evState.cat||'B'); }
   if(v==='snippets'){
     if(!getSnipUserId()){
@@ -5612,7 +5614,6 @@ function switchView(v){
   document.getElementById('nav-ev').className='nav-btn '+(v==='evidence'?'active':'inactive');
   document.getElementById('nav-snip').className='nav-btn '+(v==='snippets'?'active':'inactive');
   document.getElementById('nav-adm').className='nav-btn '+(v==='admin'?'active':'inactive');
-  document.getElementById('nav-guide').className='nav-btn '+(v==='guide'?'active':'inactive');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -7195,7 +7196,7 @@ function renderP1FlowsPanel(){
 }
 
 function setAdminTab(item){state.adminTab=item;renderAdminPanel();
-  const tabs=['bookmarklet','gssync','firebase','backend','versions','statistics','users'];
+  const tabs=['bookmarklet','instructions','gssync','firebase','backend','versions','statistics','users'];
   tabs.forEach(t=>{
     const btn=document.getElementById('admin-tab-'+t);
     const sec=document.getElementById('admin-section-'+t);
