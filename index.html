@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>All in One Script Generator - v28</title>
+<title>All in One Script Generator - v29</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -260,7 +260,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Script Generator - v28</div>
+        <div class="logo-title">All in One Script Generator - v29</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -269,27 +269,22 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         </div>
       </div>
     </div>
-    <div class="flex-gap">
+    <div class="flex-gap" style="flex-wrap:wrap;align-items:center">
       <button class="nav-btn active" id="nav-gen" onclick="switchView('generator')">⚡ Script Generator</button>
       <button class="nav-btn inactive" id="nav-ev" onclick="switchView('evidence')">📋 Evidence Collection</button>
       <button class="nav-btn inactive" id="nav-snip" onclick="switchView('snippets')">📝 Snippets</button>
       <button class="nav-btn inactive" id="nav-adm" onclick="switchView('admin')">⚙️ Admin</button>
       <button class="nav-btn inactive" id="nav-guide" onclick="switchView('guide')">📖 Instructions</button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ USER PROFILE BAR (below nav, right side) ═══ -->
-<div id="sg-profile-bar" class="hidden" style="padding:8px 24px 0">
-  <div style="max-width:1100px;margin:0 auto;display:flex;justify-content:flex-end">
-    <div style="display:flex;align-items:center;gap:10px;background:white;border:1.5px solid #e5e7eb;border-radius:14px;padding:6px 10px;box-shadow:0 2px 12px rgba(0,0,0,.06)">
-      <img id="sg-prof-photo" src="" alt="" style="width:30px;height:30px;border-radius:50%;object-fit:cover;background:#f3f4f6" onerror="this.style.display='none'">
-      <div style="text-align:left;line-height:1.25">
-        <div id="sg-prof-name" style="font-weight:700;font-size:12px;color:#1a1a1a;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-        <div id="sg-prof-email" style="font-size:10.5px;color:#9ca3af;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+      <!-- ═══ USER PROFILE CARD (in header, right of nav) ═══ -->
+      <div id="sg-profile-bar" class="hidden" style="display:flex;align-items:center;gap:8px;background:white;border-radius:14px;padding:5px 8px;box-shadow:0 2px 12px rgba(0,0,0,.15);margin-left:8px">
+        <img id="sg-prof-photo" src="" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;background:#f3f4f6" onerror="this.style.display='none'">
+        <div style="text-align:left;line-height:1.2">
+          <div id="sg-prof-name" style="font-weight:700;font-size:11.5px;color:#1a1a1a;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          <div id="sg-prof-email" style="font-size:10px;color:#9ca3af;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+        </div>
+        <button id="sg-prof-bpo" onclick="sgShowBpoChooser()" title="Click to change your BPO" style="padding:4px 11px;border-radius:20px;border:1.5px solid #7c3aed;background:#f5f3ff;color:#7c3aed;font-weight:700;font-size:10.5px;cursor:pointer;font-family:'Sora',sans-serif;white-space:nowrap"></button>
+        <button onclick="sgSignOut()" style="padding:4px 11px;border-radius:20px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:10.5px;cursor:pointer;font-family:'Sora',sans-serif;white-space:nowrap">Sign out</button>
       </div>
-      <button id="sg-prof-bpo" onclick="sgShowBpoChooser()" title="Click to change your BPO" style="padding:4px 12px;border-radius:20px;border:1.5px solid #7c3aed;background:#f5f3ff;color:#7c3aed;font-weight:700;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif"></button>
-      <button onclick="sgSignOut()" style="padding:4px 12px;border-radius:20px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:11px;cursor:pointer;font-family:'Sora',sans-serif">Sign out</button>
     </div>
   </div>
 </div>
@@ -1017,6 +1012,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <button id="admin-tab-firebase" onclick="setAdminTab('firebase')" class="admin-sub-btn">🔥 Firebase Sync</button>
     <button id="admin-tab-backend" onclick="setAdminTab('backend')" class="admin-sub-btn">🔧 Backend HTML</button>
     <button id="admin-tab-statistics" onclick="setAdminTab('statistics')" class="admin-sub-btn">📊 Statistics</button>
+    <button id="admin-tab-users" onclick="setAdminTab('users')" class="admin-sub-btn">👥 Users</button>
   </div>
 
   <!-- BOOKMARKLET SECTION -->
@@ -2250,7 +2246,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v28')" id="vnav-v28"><span class="ddot" style="background:#ee4d2d"></span>v28 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v29')" id="vnav-v29"><span class="ddot" style="background:#ee4d2d"></span>v29 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v28')" id="vnav-v28"><span class="ddot" style="background:#6b7280"></span>v28</a>
     <a class="docs-nav-item" onclick="scrollToVer('v26')" id="vnav-v26"><span class="ddot" style="background:#6b7280"></span>v26</a>
     <a class="docs-nav-item" onclick="scrollToVer('v25')" id="vnav-v25"><span class="ddot" style="background:#6b7280"></span>v25</a>
     <a class="docs-nav-item" onclick="scrollToVer('v24')" id="vnav-v24"><span class="ddot" style="background:#6b7280"></span>v24</a>
@@ -2290,11 +2287,45 @@ setTimeout(function(){
       <!-- Cards injected by sgRenderUpdateNotes() -->
     </div>
 
+      <!-- v29 -->
+      <div id="vsec-v29" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v29 — Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">12 Aug 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">✨ New</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>🔐 Google Sign-In login gate</strong> — the generator now requires signing in with a Google account before use. Only <code>@shopee.com</code> and <code>@shopeemobile-external.com</code> emails are accepted; any other domain is signed out immediately with an error. Sessions persist across refreshes. Powered by Firebase Authentication (Google provider must be enabled in Firebase Console → Authentication → Sign-in method; the hosting domain must be added under Authorized domains)</li>
+            <li><strong>🏢 BPO selection on first login</strong> — after signing in, agents pick their BPO (Vads / ePerformax / Asia Recruit / In House). The choice is remembered per email and can be changed anytime by clicking the purple BPO pill in the header</li>
+            <li><strong>👤 Profile card in the header</strong> — signed-in user's Google avatar, name, email, BPO pill, and a Sign out button now appear in the nav bar to the right of the Instructions button</li>
+            <li><strong>📗 Master File link in Admin</strong> — a green bubble below the 🌐 generator link opens the master Google Sheet where all scripts are stored and edited</li>
+            <li><strong>📊 Statistics by BPO</strong> — new purple BPO filter row (All / per-BPO), a 🏢 BPO Breakdown table with totals, buyer/seller split, unique users and share bars, BPO columns in the User Breakdown and daily Recent Activity tables, and a BPO column in the CSV export. Every generation event now records the agent's BPO</li>
+            <li><strong>👥 Admin → Users tab</strong> — lists everyone who has logged in (from Firebase <code>sg/users</code>): avatar, name, email, BPO pill, and last login (relative + absolute). Includes per-BPO summary cards, search, BPO filter pills, refresh, and CSV export</li>
+            <li><strong>🔔 Auto version detection</strong> — the app version is now a single constant (<code>SG_APP_VERSION</code>) that automatically drives the header title, browser tab title, and Download-Self filename. The generator also watches Firebase <code>sg/appVersion</code>: when a newer version is published there, the header pill turns yellow ("🔔 vXX available — click to update") and a toast prompts agents to refresh</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">🔧 Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><code>firebase-auth-compat.js</code> added to all three CDN fallback sources (gstatic → jsDelivr → unpkg)</li>
+            <li>New Firebase node <code>sg/users/&lt;email&gt;</code> — <code>{name, email, bpo, photo, lastLogin}</code> written on every login</li>
+            <li>Login gate functions: <code>initSgAuth()</code>, <code>sgGoogleSignIn()</code>, <code>sgShowBpoChooser()</code>, <code>sgFinishLogin()</code>, <code>sgSignOut()</code>; users panel: <code>sgRenderUsersPanel()</code>; version check: <code>sgCheckAppVersion()</code></li>
+            <li>Google display name auto-fills the Statistics/Snippets profile ID on first login if unset</li>
+            <li>To announce a new version to all open generators, set Firebase <code>sg/appVersion</code> to e.g. <code>v30</code> (via Apps Script push or the Firebase console)</li>
+          </ul>
+        </div>
+      </div>
+        </div>
+      </div>
+
       <!-- v28 -->
       <div id="vsec-v28" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
       <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v28 — Current</div>
+        <div style="color:white;font-weight:800;font-size:16px">v28</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">25 May 2026</div>
       </div>
       <div style="padding:20px">
@@ -3140,6 +3171,40 @@ setTimeout(function(){
   </script>
 
   <!-- STATISTICS SECTION -->
+  <!-- USERS SECTION -->
+  <div id="admin-section-users" class="hidden" style="max-width:960px;margin:0 auto">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-weight:800;font-size:20px;color:#1a1a1a">👥 Logged-in Users</div>
+        <div style="font-size:12px;color:#9ca3af;margin-top:2px">Everyone who has signed in with Google, from Firebase <code style="background:#f3f4f6;padding:1px 6px;border-radius:4px">sg/users</code></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="users-search" placeholder="🔍 Search name / email..." oninput="_sgRenderUsersTable()" style="width:220px;padding:8px 12px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:13px;font-family:'Sora',sans-serif">
+        <button onclick="sgRenderUsersPanel(true)" style="padding:8px 16px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#374151;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">🔄 Refresh</button>
+        <button onclick="sgDownloadUsersCSV()" style="padding:8px 16px;border-radius:10px;border:none;background:#2563eb;color:white;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif">⬇️ Download CSV</button>
+      </div>
+    </div>
+
+    <!-- BPO filter pills -->
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px">BPO:</span>
+      <button class="users-bpo-btn stats-bpo-btn active" data-bpo="All" onclick="sgSetUsersBpo('All')">All</button>
+      <button class="users-bpo-btn stats-bpo-btn" data-bpo="Vads" onclick="sgSetUsersBpo('Vads')">Vads</button>
+      <button class="users-bpo-btn stats-bpo-btn" data-bpo="ePerformax" onclick="sgSetUsersBpo('ePerformax')">ePerformax</button>
+      <button class="users-bpo-btn stats-bpo-btn" data-bpo="Asia Recruit" onclick="sgSetUsersBpo('Asia Recruit')">Asia Recruit</button>
+      <button class="users-bpo-btn stats-bpo-btn" data-bpo="In House" onclick="sgSetUsersBpo('In House')">In House</button>
+    </div>
+
+    <!-- Summary cards -->
+    <div id="users-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px"></div>
+
+    <!-- Users table -->
+    <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden">
+      <div style="padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:700;font-size:13px;color:#1a1a1a;display:flex;justify-content:space-between"><span>👤 Users</span><span id="users-count-label" style="font-weight:600;color:#9ca3af;font-size:12px"></span></div>
+      <div id="users-table" style="padding:0;overflow-x:auto"></div>
+    </div>
+  </div>
+
   <div id="admin-section-statistics" class="hidden" style="max-width:960px;margin:0 auto">
 
     <!-- Header -->
@@ -3156,14 +3221,30 @@ setTimeout(function(){
     </div>
 
     <!-- Period Toggle -->
-    <div style="display:flex;gap:8px;margin-bottom:20px">
+    <div style="display:flex;gap:8px;margin-bottom:12px">
       <button class="stats-period-btn active" data-period="daily" onclick="setStatsPeriod('daily')">📅 Daily</button>
       <button class="stats-period-btn" data-period="weekly" onclick="setStatsPeriod('weekly')">📆 Weekly</button>
       <button class="stats-period-btn" data-period="monthly" onclick="setStatsPeriod('monthly')">🗓️ Monthly</button>
     </div>
 
+    <!-- BPO Filter -->
+    <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:11px;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.5px">BPO:</span>
+      <button class="stats-bpo-btn active" data-bpo="All" onclick="setStatsBpo('All')">All</button>
+      <button class="stats-bpo-btn" data-bpo="Vads" onclick="setStatsBpo('Vads')">Vads</button>
+      <button class="stats-bpo-btn" data-bpo="ePerformax" onclick="setStatsBpo('ePerformax')">ePerformax</button>
+      <button class="stats-bpo-btn" data-bpo="Asia Recruit" onclick="setStatsBpo('Asia Recruit')">Asia Recruit</button>
+      <button class="stats-bpo-btn" data-bpo="In House" onclick="setStatsBpo('In House')">In House</button>
+    </div>
+
     <!-- Summary Cards -->
     <div id="stats-summary" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px"></div>
+
+    <!-- BPO Breakdown Table -->
+    <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px">
+      <div style="padding:12px 16px;background:#f9fafb;border-bottom:1px solid #e5e7eb;font-weight:700;font-size:13px;color:#1a1a1a">🏢 BPO Breakdown</div>
+      <div id="stats-bpo-table" style="padding:0;overflow-x:auto"></div>
+    </div>
 
     <!-- User Breakdown Table -->
     <div style="background:white;border-radius:14px;border:1.5px solid #e5e7eb;overflow:hidden;margin-bottom:24px">
@@ -3189,6 +3270,8 @@ setTimeout(function(){
 <style>
 .stats-period-btn{padding:7px 18px;border-radius:9px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:13px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
 .stats-period-btn.active{border-color:#2563eb;background:#2563eb;color:white;font-weight:700}
+.stats-bpo-btn{padding:6px 14px;border-radius:20px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-weight:600;font-size:12px;cursor:pointer;font-family:'Sora',sans-serif;transition:all .15s}
+.stats-bpo-btn.active{border-color:#7c3aed;background:#7c3aed;color:white;font-weight:700}
 </style>
 <script>
 // ═══════════════════════════════════════════════════════════════
@@ -3310,6 +3393,54 @@ const _FLOW_META = {
 // ═══════════════════════════════════════════════════════════════
 // FIREBASE SCRIPT SYNC  (Google Sheet → Apps Script → Firebase → all generators live)
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// APP VERSION — single source of truth.
+// Change SG_APP_VERSION here and the header, page title, browser tab,
+// and Download-Self filename all update automatically.
+// ═══════════════════════════════════════════════════════════════
+const SG_APP_VERSION = 'v29';
+const SG_APP_VERSION_DATE = '12 Aug 2026';
+
+(function sgApplyVersion(){
+  try{
+    document.title = 'All in One Script Generator - ' + SG_APP_VERSION;
+    const t = document.querySelector('.logo-title');
+    if(t) t.textContent = 'All in One Script Generator - ' + SG_APP_VERSION;
+  }catch(e){}
+})();
+
+var _sgNewVerAvailable = false; // set true when Firebase sg/appVersion is newer than this file
+
+// Compare this file's version against the one published in Firebase (sg/appVersion).
+// If Firebase announces a newer version, turn the header pill into a clickable
+// "new version — refresh" alert and toast once.
+function sgCheckAppVersion(remoteVer){
+  try{
+    const cur = String(SG_APP_VERSION).replace(/^v/i,'').trim();
+    const rem = String(remoteVer).replace(/^v/i,'').trim();
+    if(!rem || rem === cur) return;
+    const newer = rem.localeCompare(cur, undefined, {numeric:true}) > 0;
+    if(!newer) return;
+    _sgNewVerAvailable = true;
+    const pill  = document.getElementById('header-refresh-status');
+    const label = document.getElementById('header-refresh-label');
+    if(pill && label){
+      pill.style.background  = 'rgba(250,204,21,.3)';
+      pill.style.color       = '#fde68a';
+      pill.style.borderColor = 'rgba(250,204,21,.55)';
+      pill.style.cursor      = 'pointer';
+      pill.title = 'A newer version is live — click to reload';
+      pill.onclick = () => location.reload();
+      label.textContent = '🔔 v' + rem + ' available — click to update';
+    }
+    if(!window._sgVerToastShown){
+      window._sgVerToastShown = true;
+      showToast('🔔 A new version (v' + rem + ') is available!\nClick the yellow badge in the header (or refresh) to update.', 'warn');
+    }
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('warn', 'Newer app version detected: v' + rem + ' (running ' + SG_APP_VERSION + ')');
+  }catch(e){}
+}
+
 /* ─── PASTE YOUR FIREBASE CONFIG HERE ───────────────────────────
    1. Go to https://console.firebase.google.com
    2. Open your project (same one as WJ Dashboard, or create a new one)
@@ -3716,12 +3847,13 @@ function sgFbLoadAndSubscribe(){
           }
         }catch(_){}
       });
-      // App version — track silently, no toast
+      // App version — auto-detect newer releases published to Firebase
       _sgFbDB.ref('sg/appVersion').on('value', s => {
         const ver = s.val();
         if(!ver) return;
         if(_sgLoadedVersion === null) _sgLoadedVersion = ver;
         console.log('[SG] appVersion:', ver);
+        sgCheckAppVersion(ver);
       });
       // Update notes — pushed from Apps Script alongside appVersion
       _sgFbDB.ref('sg/updateNotes').on('value', s => {
@@ -4735,6 +4867,7 @@ function gsBootSnapshot(){
 var _gsOrigApplyScripts = null; // patched below after fn is defined
 
 function setRefreshStatus(syncState){
+  if(_sgNewVerAvailable) return; // a newer version alert owns the pill — don't overwrite it
   const pill  = document.getElementById('header-refresh-status');
   const label = document.getElementById('header-refresh-label');
   if(!pill || !label) return;
@@ -5083,6 +5216,7 @@ function sgFinishLogin(bpo){
       const key = _sgUser.email.replace(/\./g, ',');
       _sgFbDB.ref('sg/users/' + key).update({
         name: _sgUser.name, email: _sgUser.email, bpo,
+        photo: _sgUser.photo || '',
         lastLogin: new Date().toISOString()
       });
     }
@@ -5102,6 +5236,116 @@ setTimeout(()=>{
     if(loading && !loading.classList.contains('hidden')) _sgAuthStep('error');
   }
 }, 15000);
+
+// ═══════════════════════════════════════════════════════════════
+// ADMIN → USERS PANEL (reads Firebase sg/users)
+// ═══════════════════════════════════════════════════════════════
+let _sgUsersCache = null;
+let _sgUsersBpo = 'All';
+
+function sgSetUsersBpo(b){
+  _sgUsersBpo = b;
+  document.querySelectorAll('.users-bpo-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.bpo===b));
+  _sgRenderUsersTable();
+}
+
+function sgRenderUsersPanel(force){
+  const tbl = document.getElementById('users-table');
+  if(!tbl) return;
+  if(!_sgFbReady || !_sgFbDB){
+    tbl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">🔌 Firebase not connected — user list unavailable.<br>Check the 🔥 Firebase Sync tab, then click Refresh here.</div>';
+    return;
+  }
+  if(_sgUsersCache && !force){ _sgRenderUsersTable(); return; }
+  tbl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">⏳ Loading users…</div>';
+  _sgFbDB.ref('sg/users').once('value').then(snap=>{
+    const val = snap.val() || {};
+    _sgUsersCache = Object.values(val);
+    _sgRenderUsersTable();
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('info','Users panel loaded ' + _sgUsersCache.length + ' user(s) from sg/users');
+  }).catch(err=>{
+    tbl.innerHTML = '<div style="padding:24px;text-align:center;color:#b91c1c;font-size:13px">⚠️ Could not load users: ' + esc(err && err.message || err) + '</div>';
+  });
+}
+
+function _sgUsersFmtLast(iso){
+  if(!iso) return {rel:'—', abs:''};
+  const t = new Date(iso).getTime();
+  if(isNaN(t)) return {rel:'—', abs:''};
+  const diff = Date.now() - t;
+  const mins = Math.floor(diff/60000);
+  let rel;
+  if(mins < 1) rel = 'just now';
+  else if(mins < 60) rel = mins + 'm ago';
+  else if(mins < 1440) rel = Math.floor(mins/60) + 'h ago';
+  else rel = Math.floor(mins/1440) + 'd ago';
+  const abs = new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  return {rel, abs};
+}
+
+function _sgRenderUsersTable(){
+  const tbl = document.getElementById('users-table');
+  const summary = document.getElementById('users-summary');
+  const countLabel = document.getElementById('users-count-label');
+  if(!tbl || !_sgUsersCache) return;
+
+  // Summary cards — total + per-BPO (from full cache, not the filtered view)
+  if(summary){
+    const perBpo = {};
+    _sgUsersCache.forEach(u=>{ const b=u.bpo||'Unknown'; perBpo[b]=(perBpo[b]||0)+1; });
+    let cards = `<div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:14px;text-align:center">
+      <div style="font-size:24px;font-weight:800;color:#ee4d2d">${_sgUsersCache.length}</div>
+      <div style="font-size:11px;font-weight:600;color:#6b7280;margin-top:2px">Total Users</div></div>`;
+    SG_BPO_LIST.forEach(b=>{
+      cards += `<div style="background:white;border-radius:12px;border:1.5px solid #e5e7eb;padding:14px;text-align:center">
+        <div style="font-size:24px;font-weight:800;color:#7c3aed">${perBpo[b]||0}</div>
+        <div style="font-size:11px;font-weight:600;color:#6b7280;margin-top:2px">${esc(b)}</div></div>`;
+    });
+    summary.innerHTML = cards;
+  }
+
+  // Filter + search
+  const q = (document.getElementById('users-search')?.value || '').trim().toLowerCase();
+  let rows = _sgUsersCache.slice();
+  if(_sgUsersBpo !== 'All') rows = rows.filter(u=>(u.bpo||'Unknown')===_sgUsersBpo);
+  if(q) rows = rows.filter(u=>String(u.name||'').toLowerCase().includes(q) || String(u.email||'').toLowerCase().includes(q));
+  rows.sort((a,b)=>String(b.lastLogin||'').localeCompare(String(a.lastLogin||'')));
+
+  if(countLabel) countLabel.textContent = rows.length + ' shown';
+
+  if(rows.length === 0){
+    tbl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No users match this filter</div>';
+    return;
+  }
+  let h = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  h += '<tr style="background:#f9fafb"><th class="tbl-th">User</th><th class="tbl-th">Email</th><th class="tbl-th">BPO</th><th class="tbl-th">Last Login</th></tr>';
+  rows.forEach(u=>{
+    const {rel, abs} = _sgUsersFmtLast(u.lastLogin);
+    const avatar = u.photo
+      ? `<img src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer" style="width:26px;height:26px;border-radius:50%;object-fit:cover;background:#f3f4f6;vertical-align:middle" onerror="this.style.display='none'">`
+      : `<span style="display:inline-flex;width:26px;height:26px;border-radius:50%;background:#fff5f3;color:#ee4d2d;font-weight:800;font-size:11px;align-items:center;justify-content:center;vertical-align:middle">${esc(String(u.name||'?').charAt(0).toUpperCase())}</span>`;
+    const bpoCell = u.bpo ? `<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe">${esc(u.bpo)}</span>` : '<span style="color:#d1d5db">—</span>';
+    h += `<tr class="tbl-tr"><td class="tbl-td" style="font-weight:600"><span style="display:inline-flex;align-items:center;gap:8px">${avatar}${esc(u.name||'—')}</span></td><td class="tbl-td" style="color:#6b7280">${esc(u.email||'—')}</td><td class="tbl-td">${bpoCell}</td><td class="tbl-td" style="white-space:nowrap"><span style="font-weight:600;color:#374151">${rel}</span> <span style="color:#9ca3af;font-size:11px">${abs?'· '+abs:''}</span></td></tr>`;
+  });
+  h += '</table>';
+  tbl.innerHTML = h;
+}
+
+function sgDownloadUsersCSV(){
+  if(!_sgUsersCache || !_sgUsersCache.length){ alert('No users loaded. Click 🔄 Refresh first.'); return; }
+  const header = ['Name','Email','BPO','Last Login'];
+  const rows = _sgUsersCache.map(u=>[u.name||'', u.email||'', u.bpo||'', u.lastLogin||'']);
+  const csv = [header,...rows].map(r=>r.map(c=>{
+    const v=String(c??'');
+    return (v.includes(',')||v.includes('\n')||v.includes('"'))?'"'+v.replace(/"/g,'""')+'"':v;
+  }).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'sg_users_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 
 
 
@@ -6951,7 +7195,7 @@ function renderP1FlowsPanel(){
 }
 
 function setAdminTab(item){state.adminTab=item;renderAdminPanel();
-  const tabs=['bookmarklet','gssync','firebase','backend','versions','statistics'];
+  const tabs=['bookmarklet','gssync','firebase','backend','versions','statistics','users'];
   tabs.forEach(t=>{
     const btn=document.getElementById('admin-tab-'+t);
     const sec=document.getElementById('admin-section-'+t);
@@ -6978,6 +7222,7 @@ function setAdminTab(item){state.adminTab=item;renderAdminPanel();
   if(item==='firebase'){ fbDashRefresh(); }
   if(item==='versions'){ if(typeof sgRenderUpdateNotes === 'function') sgRenderUpdateNotes(); }
   if(item==='statistics'){ renderStatsPanel(); }
+  if(item==='users'){ sgRenderUsersPanel(); }
 }
 
 function startEdit(id){
@@ -7009,9 +7254,12 @@ function clearStatsData(){ localStorage.removeItem('sg_stats'); }
 function trackGeneration(){
   const data = getStatsData();
   const userId = localStorage.getItem('sg_snip_user_id')||'Unknown';
+  let bpo = 'Unknown';
+  try{ if(_sgUser && _sgUser.email) bpo = localStorage.getItem('sg_bpo::'+_sgUser.email) || 'Unknown'; }catch(e){}
   data.push({
     ts: new Date().toISOString(),
     user: userId,
+    bpo,
     disputeType: state.user,
     requestType: state.type_return,
     result: state.result,
@@ -7024,6 +7272,13 @@ function trackGeneration(){
 function setStatsPeriod(p){
   statsPeriod=p;
   document.querySelectorAll('.stats-period-btn').forEach(b=>b.classList.toggle('active',b.dataset.period===p));
+  renderStatsPanel();
+}
+
+var statsBpo = 'All';
+function setStatsBpo(b){
+  statsBpo = b;
+  document.querySelectorAll('.stats-bpo-btn').forEach(btn=>btn.classList.toggle('active',btn.dataset.bpo===b));
   renderStatsPanel();
 }
 
@@ -7075,6 +7330,12 @@ function renderStatsPanel(){
     const monthAgo = new Date(now); monthAgo.setMonth(now.getMonth()-1);
     periodData = allData.filter(d=>new Date(d.ts)>=monthAgo);
   }
+
+  // Keep an unfiltered copy for the BPO breakdown table, then apply the BPO filter
+  const periodDataAllBpo = periodData;
+  if(statsBpo && statsBpo !== 'All'){
+    periodData = periodData.filter(d=>(d.bpo||'Unknown')===statsBpo);
+  }
   
   // Summary cards
   const uniqueUsers = new Set(periodData.map(d=>d.user));
@@ -7100,14 +7361,48 @@ function renderStatsPanel(){
         <div style="font-size:28px;font-weight:800;color:#059669">${sellerCount}</div>
         <div style="font-size:12px;font-weight:600;color:#6b7280;margin-top:2px">Seller Scripts</div>
       </div>
+      <div style="background:white;border-radius:12px;border:1.5px solid ${statsBpo==='All'?'#e5e7eb':'#c4b5fd'};padding:16px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:#7c3aed;line-height:28px">${esc(statsBpo)}</div>
+        <div style="font-size:12px;font-weight:600;color:#6b7280;margin-top:2px">BPO Filter</div>
+      </div>
     `;
+  }
+
+  // BPO breakdown (always across all BPOs for the selected period)
+  const bpoMap = {};
+  periodDataAllBpo.forEach(d=>{
+    const b = d.bpo||'Unknown';
+    if(!bpoMap[b]) bpoMap[b] = {total:0,buyer:0,seller:0,users:new Set()};
+    bpoMap[b].total++;
+    if(d.disputeType==='Buyer') bpoMap[b].buyer++; else bpoMap[b].seller++;
+    bpoMap[b].users.add(d.user);
+  });
+  const bpoTableEl = document.getElementById('stats-bpo-table');
+  if(bpoTableEl){
+    if(Object.keys(bpoMap).length===0){
+      bpoTableEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No data for this period</div>';
+    } else {
+      let bhtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
+      bhtml += '<tr style="background:#f9fafb"><th class="tbl-th">BPO</th><th class="tbl-th">Total</th><th class="tbl-th">Buyer</th><th class="tbl-th">Seller</th><th class="tbl-th">Users</th><th class="tbl-th">Share</th></tr>';
+      const sortedBpos = Object.entries(bpoMap).sort((a,b)=>b[1].total-a[1].total);
+      const maxBpo = sortedBpos[0]?sortedBpos[0][1].total:1;
+      sortedBpos.forEach(([b,s])=>{
+        const pct = periodDataAllBpo.length?Math.round(s.total/periodDataAllBpo.length*100):0;
+        const barW = Math.round(s.total/maxBpo*100);
+        const dim = (statsBpo!=='All' && b!==statsBpo);
+        bhtml += `<tr class="tbl-tr" style="${dim?'opacity:.45':''}"><td class="tbl-td"><span style="font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe">${esc(b)}</span></td><td class="tbl-td" style="font-weight:700;color:#ee4d2d">${s.total}</td><td class="tbl-td">${s.buyer}</td><td class="tbl-td">${s.seller}</td><td class="tbl-td" style="color:#6b7280">${s.users.size}</td><td class="tbl-td" style="min-width:120px"><div style="display:flex;align-items:center;gap:6px"><div style="flex:1;height:8px;border-radius:4px;background:#f3f4f6"><div style="height:8px;border-radius:4px;background:#7c3aed;width:${barW}%"></div></div><span style="color:#6b7280;font-size:11px">${pct}%</span></div></td></tr>`;
+      });
+      bhtml += '</table>';
+      bpoTableEl.innerHTML = bhtml;
+    }
   }
   
   // User breakdown
   const userMap = {};
   periodData.forEach(d=>{
-    if(!userMap[d.user]) userMap[d.user]={total:0,buyer:0,seller:0,flows:{}};
+    if(!userMap[d.user]) userMap[d.user]={total:0,buyer:0,seller:0,flows:{},bpo:''};
     userMap[d.user].total++;
+    if(d.bpo) userMap[d.user].bpo = d.bpo;
     if(d.disputeType==='Buyer') userMap[d.user].buyer++;
     else userMap[d.user].seller++;
     const f = d.flow||'Unknown'; userMap[d.user].flows[f] = (userMap[d.user].flows[f]||0)+1;
@@ -7119,11 +7414,12 @@ function renderStatsPanel(){
       userTableEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No data for this period</div>';
     } else {
       let thtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
-      thtml += '<tr style="background:#f9fafb"><th class="tbl-th">User</th><th class="tbl-th">Total</th><th class="tbl-th">Buyer</th><th class="tbl-th">Seller</th><th class="tbl-th">Top Flow</th></tr>';
+      thtml += '<tr style="background:#f9fafb"><th class="tbl-th">User</th><th class="tbl-th">BPO</th><th class="tbl-th">Total</th><th class="tbl-th">Buyer</th><th class="tbl-th">Seller</th><th class="tbl-th">Top Flow</th></tr>';
       const sortedUsers = Object.entries(userMap).sort((a,b)=>b[1].total-a[1].total);
       sortedUsers.forEach(([user,stats])=>{
         const topFlow = Object.entries(stats.flows).sort((a,b)=>b[1]-a[1])[0];
-        thtml += `<tr class="tbl-tr"><td class="tbl-td" style="font-weight:600">${esc(user)}</td><td class="tbl-td" style="font-weight:700;color:#ee4d2d">${stats.total}</td><td class="tbl-td">${stats.buyer}</td><td class="tbl-td">${stats.seller}</td><td class="tbl-td"><span style="font-size:11px;background:#f3f4f6;padding:2px 8px;border-radius:6px">${topFlow?esc(topFlow[0])+' ('+topFlow[1]+')':'—'}</span></td></tr>`;
+        const bpoCell = stats.bpo ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe">${esc(stats.bpo)}</span>` : '<span style="color:#d1d5db">—</span>';
+        thtml += `<tr class="tbl-tr"><td class="tbl-td" style="font-weight:600">${esc(user)}</td><td class="tbl-td">${bpoCell}</td><td class="tbl-td" style="font-weight:700;color:#ee4d2d">${stats.total}</td><td class="tbl-td">${stats.buyer}</td><td class="tbl-td">${stats.seller}</td><td class="tbl-td"><span style="font-size:11px;background:#f3f4f6;padding:2px 8px;border-radius:6px">${topFlow?esc(topFlow[0])+' ('+topFlow[1]+')':'—'}</span></td></tr>`;
       });
       thtml += '</table>';
       userTableEl.innerHTML = thtml;
@@ -7167,13 +7463,14 @@ function renderStatsPanel(){
         recentEl.innerHTML = '<div style="padding:24px;text-align:center;color:#9ca3af;font-size:13px">No activity recorded today</div>';
       } else {
         let rhtml = '<table style="width:100%;border-collapse:collapse;font-size:12px">';
-        rhtml += '<tr style="background:#f9fafb"><th class="tbl-th">Time</th><th class="tbl-th">User</th><th class="tbl-th">Type</th><th class="tbl-th">Flow</th><th class="tbl-th">Reason</th></tr>';
+        rhtml += '<tr style="background:#f9fafb"><th class="tbl-th">Time</th><th class="tbl-th">User</th><th class="tbl-th">BPO</th><th class="tbl-th">Type</th><th class="tbl-th">Flow</th><th class="tbl-th">Reason</th></tr>';
         recent.forEach(d=>{
           const t = new Date(d.ts);
           const timeStr = t.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
           const typeBg = d.disputeType==='Buyer'?'#fef3c7':'#dbeafe';
           const typeColor = d.disputeType==='Buyer'?'#92400e':'#1e40af';
-          rhtml += `<tr class="tbl-tr"><td class="tbl-td" style="white-space:nowrap;color:#6b7280">${timeStr}</td><td class="tbl-td" style="font-weight:600">${esc(d.user)}</td><td class="tbl-td"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;background:${typeBg};color:${typeColor}">${esc(d.disputeType)}</span></td><td class="tbl-td">${esc(d.result||'—')}</td><td class="tbl-td" style="color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.returnReason||'—')}</td></tr>`;
+          const bpoCell = d.bpo ? `<span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#f5f3ff;color:#7c3aed;border:1px solid #ddd6fe">${esc(d.bpo)}</span>` : '<span style="color:#d1d5db">—</span>';
+          rhtml += `<tr class="tbl-tr"><td class="tbl-td" style="white-space:nowrap;color:#6b7280">${timeStr}</td><td class="tbl-td" style="font-weight:600">${esc(d.user)}</td><td class="tbl-td">${bpoCell}</td><td class="tbl-td"><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:6px;background:${typeBg};color:${typeColor}">${esc(d.disputeType)}</span></td><td class="tbl-td">${esc(d.result||'—')}</td><td class="tbl-td" style="color:#6b7280;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(d.returnReason||'—')}</td></tr>`;
         });
         rhtml += '</table>';
         recentEl.innerHTML = rhtml;
@@ -7230,9 +7527,9 @@ function renderStatsPanel(){
 function downloadStatsCSV(){
   const data = getStatsData();
   if(!data.length){ alert('No statistics data to download.'); return; }
-  const header = ['Timestamp','User','Dispute Type','Request Type','Result','Flow','Return Reason'];
+  const header = ['Timestamp','User','BPO','Dispute Type','Request Type','Result','Flow','Return Reason'];
   const rows = data.map(d=>[
-    d.ts, d.user, d.disputeType, d.requestType, d.result, d.flow, d.returnReason
+    d.ts, d.user, d.bpo||'', d.disputeType, d.requestType, d.result, d.flow, d.returnReason
   ]);
   const csvContent = [header,...rows].map(row=>
     row.map(cell=>{
@@ -8270,7 +8567,7 @@ function downloadSelf(){
   const blob=new Blob(['<!DOCTYPE html>\n'+document.documentElement.outerHTML],{type:'text/html'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='All in One Script Generator v28.html';
+  a.download='All in One Script Generator '+SG_APP_VERSION+'.html';
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
 }
