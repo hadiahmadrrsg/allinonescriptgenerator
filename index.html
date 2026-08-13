@@ -340,6 +340,14 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <div>
         <span class="lbl">Decision / Result</span>
         <div class="grid-btns" id="result-btns"></div>
+        <!-- Full / Partial amount toggle (Buyer Refund Only Accept, Seller Without Buyer Approve Comp) -->
+        <div id="amount-type-wrap" class="hidden" style="margin-top:10px;border-left:3px solid #ee4d2d;background:#fff7ed;padding:9px 12px">
+          <span class="lbl" id="amount-type-label" style="margin:0 0 7px;display:block;font-weight:700;color:#c2410c">Refund Amount</span>
+          <div class="toggle-group" id="amount-type-btns">
+            <button class="toggle-btn active" data-value="Full" onclick="setAmountType('Full')">Full</button>
+            <button class="toggle-btn" data-value="Partial" onclick="setAmountType('Partial')">Partial</button>
+          </div>
+        </div>
         <!-- P1 Cases Dropdown -->
         <div id="p1-cases-wrap" class="hidden" style="margin-top:10px">
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
@@ -349,14 +357,6 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
           <select id="p1-cases-select" onchange="setP1Result(this.value)" style="width:100%;font-size:13px;padding:9px 12px;border-radius:10px;border:2px solid #fca5a5;background:#fff5f5;font-family:'Sora',sans-serif;outline:none;cursor:pointer;color:#374151;font-weight:600">
             <option value="">-- Select P1 decision --</option>
           </select>
-        </div>
-        <!-- Full / Partial amount toggle (Buyer Refund Only Accept, Seller Without Buyer Approve Comp) -->
-        <div id="amount-type-wrap" class="hidden" style="margin-top:10px;border-left:3px solid #ee4d2d;background:#fff7ed;padding:9px 12px">
-          <span class="lbl" id="amount-type-label" style="margin:0 0 7px;display:block;font-weight:700;color:#c2410c">Refund Amount</span>
-          <div class="toggle-group" id="amount-type-btns">
-            <button class="toggle-btn active" data-value="Full" onclick="setAmountType('Full')">Full</button>
-            <button class="toggle-btn" data-value="Partial" onclick="setAmountType('Partial')">Partial</button>
-          </div>
         </div>
       </div>
 
