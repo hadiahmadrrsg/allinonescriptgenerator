@@ -1192,7 +1192,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <ul style="margin:4px 0 10px;padding-left:18px">
         <li>All data lives in one file: <a href="https://docs.google.com/spreadsheets/d/11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ/edit" target="_blank" style="color:#059669;font-weight:600">Master Google Sheet ↗</a> — the script opens it by ID, so it works from any spreadsheet you paste it into.</li>
         <li><strong>Scripts</strong> tab — <code style="background:#fff7ed;padding:1px 6px;border-radius:4px">Type Return | User | Result | Section | Script Text</code>. Special row prefixes: <code>[FLOW]</code>, <code>[P1]</code>, <code>[NEXT_STEPS]</code>, <code>[ISSUE_DESC]</code></li>
-        <li><strong>Claude Export/Import Sheet</strong> tab — Evidence Collection: <code style="background:#fff7ed;padding:1px 6px;border-radius:4px">Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Script</code> (same format as Evidence Collection → Export CSV)</li>
+        <li><strong>Claude Export/Import Sheet</strong> tab — Evidence Collection, columns A–F only: <code style="background:#fff7ed;padding:1px 6px;border-radius:4px">Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence text</code>. Column F is the single source of truth used everywhere in the generator; anything after F is ignored.</li>
         <li><strong>Updates</strong> tab (optional) — <code>Version | Date | Message | Status</code></li>
       </ul>
       <div style="font-weight:700;color:#92400e">2️⃣ Open Apps Script in your Sheet</div>
@@ -2125,7 +2125,7 @@ EVIDENCE_DB = {
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Apps Script says "Connection OK" but generator doesn't update</td><td style="border:1px solid #e5e7eb;padding:8px 12px">The databaseURL in the generator config doesn't match the one in the Apps Script. They must point to the same Firebase project and region.</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Generator shows old scripts after push</td><td style="border:1px solid #e5e7eb;padding:8px 12px">The live listener should fire within 2–5 seconds. Try a hard refresh (Ctrl+Shift+R). If it still shows old data, check browser console for Firebase errors.</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Apps Script "Permission denied" for UrlFetchApp</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Re-run <code>pushToFirebase</code> manually and complete the OAuth consent screen again.</td></tr>
-        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Evidence didn't update after push</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Evidence is read from the <strong>Claude Export/Import Sheet</strong> tab of the Master Sheet. Confirm the tab name is exact, and that each row has Category, Return Reason, Evidence Type and Evidence Script filled (rows missing any of these are skipped). Category must be one of <code>SELLER - FORWARD LEG</code>, <code>SELLER - RETURN LEG</code>, <code>BUYER - EVIDENCE</code>.</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Evidence didn't update after push</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Evidence is read from the <strong>Claude Export/Import Sheet</strong> tab of the Master Sheet. Confirm the tab name is exact, and that each row has Category, Return Reason, Evidence Type and Evidence text (col F) filled (rows missing any of these are skipped). After a successful push the Google Sheet Sync label reads <em>… · from Firebase HH:MM</em>. Category must be one of <code>SELLER - FORWARD LEG</code>, <code>SELLER - RETURN LEG</code>, <code>BUYER - EVIDENCE</code>.</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Flows didn't update after push</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Confirm the Scripts tab has valid <code>[FLOW]</code> rows — col 1 must be exactly <code>[FLOW]</code> with no extra spaces.</td></tr>
       </table>
     </div>
@@ -2334,6 +2334,9 @@ setTimeout(function(){
           <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128027; Fixed</div>
           <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
             <li><strong>Apps Script version was stuck at v28</strong> &mdash; <code>APP_VERSION</code> in the generated Apps Script was hardcoded, so every push wrote <code>sg/appVersion = v28</code> regardless of the actual app version. It now reads <code>SG_APP_VERSION</code> so the pushed version always matches the generator.</li>
+            <li><strong>Pushed evidence never appeared on screen (root cause)</strong> &mdash; the generator keeps two evidence stores: <code>EVIDENCE_DB.seller/buyer/returnLeg</code> (full scripts) and <code>EVIDENCE_DB.bullets</code> (bullet versions). Every display path &mdash; Evidence Collection tab, inline generator panel, script injection &mdash; reads <code>bullets</code> <em>first</em>. The Apps Script only ever pushed <code>is_bullet:false</code> rows, so <code>sgApplyEvidence()</code> replaced the full-script store but left the <strong>stale baked-in bullets untouched</strong>, and those kept winning. Firebase had the new data all along; the screen showed the old. A push now clears and rebuilds <em>both</em> stores every time, and if a push carries no bullet rows the full scripts are mirrored into <code>bullets</code> so nothing stale can survive.</li>
+            <li><strong>Single source of truth for evidence</strong> &mdash; the Apps Script reads only the <strong>Claude Export/Import Sheet</strong> tab, columns A&ndash;F. Column F is the evidence text used everywhere in the generator (Evidence Collection tab, inline panel, script injection). Any extra columns in the tab are ignored.</li>
+            <li><strong>Evidence listener decoupled from scripts</strong> &mdash; <code>sg/evidence</code> was subscribed <em>inside</em> the <code>sg/scripts</code> callback, so any exception while applying scripts silently prevented evidence from ever loading. It is now subscribed first and independently, and both apply paths are wrapped in try/catch that logs to the Firebase Sync Event Log instead of dying quietly.</li>
             <li><strong>Evidence Collection tab did not refresh after a Firebase push</strong> &mdash; <code>sgApplyEvidence()</code> rebuilt <code>EVIDENCE_DB</code> in memory but never re-rendered the standalone Evidence Collection tab or the inline evidence panel in the generator. Agents kept seeing the old evidence until they switched tabs or reloaded. Both now re-render immediately when a push lands.</li>
             <li><strong>Category matching is now tolerant</strong> &mdash; <code>SELLER - FORWARD LEG</code> / <code>seller-forward leg</code> / <code>Seller – Forward Leg</code> all map correctly (case, spacing and dash variants). Rows with an unrecognised Category are skipped and listed as a warning in Firebase Sync → Event Log instead of silently vanishing.</li>
             <li><strong>Google Sheet Sync now shows where evidence came from</strong> &mdash; the evidence count label reads e.g. <em>111 entries · from Firebase 14:32</em> or <em>111 entries · built-in (no Firebase push received)</em>, so you can tell at a glance whether a push actually arrived. The count itself was also wrong (it counted risk levels, not evidence entries).</li>
@@ -3781,6 +3784,7 @@ function setValidationReport(report){
 var _sgFbReady  = false;
 var _sgFbDB     = null;
 var _sgFbSubbed = false;
+var _sgFbEvSubbed = false;
 
 function sgFbConfigured(){
   return SG_FIREBASE_CONFIG.databaseURL &&
@@ -3947,20 +3951,26 @@ function onSgFbLoaded(){
 }
 
 function sgFbLoadAndSubscribe(){
+  // Evidence is subscribed independently and FIRST, so a problem in the scripts payload can never
+  // prevent evidence from loading (previously it was nested inside the scripts callback).
+  if(!_sgFbEvSubbed){
+    _sgFbEvSubbed = true;
+    _sgFbDB.ref('sg/evidence').on('value', s => {
+      try{ if(s.val()) sgApplyEvidence(s.val()); }
+      catch(e){ if(typeof _sgLogEvent==='function') _sgLogEvent('error','Evidence apply failed: '+e.message); }
+    });
+  }
   // Read scripts once immediately, then keep a live listener
   _sgFbDB.ref('sg/scripts').once('value', snap => {
     const val = snap.val();
-    if(val){ sgApplyScripts(val); sgFbStatus('ok'); }
+    if(val){ try{ sgApplyScripts(val); }catch(e){ if(typeof _sgLogEvent==='function') _sgLogEvent('error','Scripts apply failed: '+e.message); } sgFbStatus('ok'); }
     else { sgFbStatus('ok'); }
     // Subscribe: auto-reload whenever Apps Script pushes scripts
     if(!_sgFbSubbed){
       _sgFbSubbed = true;
       _sgFbDB.ref('sg/scripts').on('value', s => {
-        if(s.val()) sgApplyScripts(s.val());
-      });
-      // Subscribe: evidence
-      _sgFbDB.ref('sg/evidence').on('value', s => {
-        if(s.val()) sgApplyEvidence(s.val());
+        try{ if(s.val()) sgApplyScripts(s.val()); }
+        catch(e){ if(typeof _sgLogEvent==='function') _sgLogEvent('error','Scripts apply failed: '+e.message); }
       });
       // Last-push timestamp — Apps Script writes sg/lastSync after each push.
       // sgApplyScripts/sgApplyEvidence already update _sgFbLastPush, but this is a
@@ -4225,15 +4235,16 @@ function sgApplyEvidence(firebaseData){
     });
   }
 
-  if(scriptRows.length > 0){
-    ['seller','buyer','returnLeg'].forEach(k => { if(EVIDENCE_DB[k]) delete EVIDENCE_DB[k]; });
-    applyRows(scriptRows, EVIDENCE_DB);
-  }
-  if(bulletRows.length > 0){
-    if(!EVIDENCE_DB.bullets) EVIDENCE_DB.bullets = {};
-    ['seller','buyer','returnLeg'].forEach(k => { if(EVIDENCE_DB.bullets[k]) delete EVIDENCE_DB.bullets[k]; });
-    applyRows(bulletRows, EVIDENCE_DB.bullets);
-  }
+  // A push is the complete truth: clear BOTH stores, then rebuild. Previously the bullets store was
+  // left untouched when a push had no is_bullet rows — and since every display path reads bullets
+  // first, the stale baked-in bullets kept winning over the freshly pushed scripts.
+  ['seller','buyer','returnLeg'].forEach(k => { if(EVIDENCE_DB[k]) delete EVIDENCE_DB[k]; });
+  if(!EVIDENCE_DB.bullets) EVIDENCE_DB.bullets = {};
+  ['seller','buyer','returnLeg'].forEach(k => { if(EVIDENCE_DB.bullets[k]) delete EVIDENCE_DB.bullets[k]; });
+  applyRows(scriptRows, EVIDENCE_DB);
+  // If the push carried no bullet rows (older Apps Script), mirror the full scripts into bullets
+  // so the display paths never fall back to stale baked-in data.
+  applyRows(bulletRows.length > 0 ? bulletRows : scriptRows, EVIDENCE_DB.bullets);
 
   console.log('SG Firebase: evidence updated —', scriptRows.length, 'scripts,', bulletRows.length, 'bullets');
   if(unknownCats.size && typeof _sgLogEvent === 'function'){
@@ -4320,7 +4331,7 @@ function getAppsScriptCode(){
     '//',
     '// Tabs read by this script:',
     '//   "Scripts"                    — Type Return | User | Result | Section | Script Text',
-    '//   "Claude Export/Import Sheet" — Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Script',
+    '//   "Claude Export/Import Sheet" — Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence text (col F)',
     '//   "Updates"                    — Version | Date | Message | Status   (optional)',
     '//',
     '// The script opens the Master Sheet by ID, so it works even if this',
@@ -4394,7 +4405,9 @@ function getAppsScriptCode(){
     '}',
     '',
     'function _readEvidenceRows(){',
-    '  // Columns: Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Script',
+    '  // Single source of truth: tab "Claude Export/Import Sheet", columns A–F only.',
+    '  // A Category | B Return Reason | C Risk Level | D Seller Category | E Evidence Type | F Evidence text',
+    '  // Column F is the evidence text used everywhere in the generator. Any columns after F are ignored.',
     '  var sheet  = _getSheet(EVIDENCE_SHEET);',
     '  var values = sheet.getDataRange().getValues();',
     '  if(values.length < 2) return [];',
@@ -4436,10 +4449,10 @@ function getAppsScriptCode(){
     '}',
     '',
     'function _evidenceSummary(rows){',
-    '  var byCat = {};',
-    '  for(var i=0;i<rows.length;i++){ var c = rows[i].category; byCat[c] = (byCat[c]||0)+1; }',
+    '  var byCat = {}, n = 0;',
+    '  for(var i=0;i<rows.length;i++){ if(rows[i].is_bullet) continue; n++; var c = rows[i].category; byCat[c] = (byCat[c]||0)+1; }',
     '  var parts = []; for(var k in byCat) parts.push(k + ": " + byCat[k]);',
-    '  return rows.length + " rows from tab [" + EVIDENCE_SHEET + "]" + (parts.length ? " (" + parts.join(", ") + ")" : "");',
+    '  return n + " entries from tab [" + EVIDENCE_SHEET + "]" + (parts.length ? " (" + parts.join(", ") + ")" : "");',
     '}',
     '',
     'function pushToFirebase(){',
