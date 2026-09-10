@@ -713,8 +713,11 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   <div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px">
     <span style="font-size:16px">📗</span>
     <div style="font-size:12.5px;color:#374151;line-height:1.6">
-      <strong>Master File (Script Storage):</strong> <a href="https://docs.google.com/spreadsheets/d/11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ/edit?gid=1457984563#gid=1457984563" target="_blank" style="color:#059669;font-weight:600">Open Master Google Sheet ↗</a><br>
-      All scripts are stored and edited here, then pushed to the generators via Apps Script sync.
+      <strong>Master File:</strong>
+      <a href="https://docs.google.com/spreadsheets/d/11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ/edit?gid=1457984563#gid=1457984563" target="_blank" style="color:#059669;font-weight:600">Scripts tab ↗</a>
+      <span style="color:#9ca3af">·</span>
+      <a href="https://docs.google.com/spreadsheets/d/11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ/edit?gid=1019458830#gid=1019458830" target="_blank" style="color:#059669;font-weight:600">Evidence tab (Claude Export/Import Sheet) ↗</a><br>
+      Scripts and Evidence Collection are both stored and edited in this one sheet, then pushed to all generators via Apps Script → Firebase.
     </div>
   </div>
 
@@ -1185,10 +1188,12 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <button onclick="toggleAppsScriptHelp()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#9ca3af;padding:0;line-height:1">×</button>
     </div>
     <div style="font-size:12.5px;color:#374151;line-height:1.7">
-      <div style="font-weight:700;color:#92400e;margin-top:4px">1️⃣ Prepare your Google Sheet</div>
+      <div style="font-weight:700;color:#92400e;margin-top:4px">1️⃣ The Master Sheet</div>
       <ul style="margin:4px 0 10px;padding-left:18px">
-        <li>Columns (row 1 = headers): <code style="background:#fff7ed;padding:1px 6px;border-radius:4px">Type Return | User | Result | Section | Script Text</code></li>
-        <li>Special row prefixes supported: <code>[FLOW]</code>, <code>[EVIDENCE]</code>, <code>[EVIDENCE_BULLET]</code>, <code>[P1]</code>, <code>[NEXT_STEPS]</code>, <code>[ISSUE_DESC]</code></li>
+        <li>All data lives in one file: <a href="https://docs.google.com/spreadsheets/d/11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ/edit" target="_blank" style="color:#059669;font-weight:600">Master Google Sheet ↗</a> — the script opens it by ID, so it works from any spreadsheet you paste it into.</li>
+        <li><strong>Scripts</strong> tab — <code style="background:#fff7ed;padding:1px 6px;border-radius:4px">Type Return | User | Result | Section | Script Text</code>. Special row prefixes: <code>[FLOW]</code>, <code>[P1]</code>, <code>[NEXT_STEPS]</code>, <code>[ISSUE_DESC]</code></li>
+        <li><strong>Claude Export/Import Sheet</strong> tab — Evidence Collection: <code style="background:#fff7ed;padding:1px 6px;border-radius:4px">Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Script</code> (same format as Evidence Collection → Export CSV)</li>
+        <li><strong>Updates</strong> tab (optional) — <code>Version | Date | Message | Status</code></li>
       </ul>
       <div style="font-weight:700;color:#92400e">2️⃣ Open Apps Script in your Sheet</div>
       <ul style="margin:4px 0 10px;padding-left:18px">
@@ -2064,7 +2069,7 @@ EVIDENCE_DB = {
         <strong>[P1] rows</strong> — prefix col 1 with <code>[P1]</code> to tag a row as P1-case only.
       </div>
       <div style="margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;padding:8px 12px;font-size:11.5px;color:#1e40af">
-        <strong>💡 Easiest start:</strong> Export your current scripts (Admin → Script Flows → ⬇️ Export CSV) → open in Google Sheets → done. That CSV already has the exact format the parser expects.
+        <strong>💡 Easiest start:</strong> Export your current scripts (Admin → Google Sheet Sync → ⬇️ Sync FROM Sheet) or evidence (Evidence Collection → ⬇️ Export CSV) → open in Google Sheets → done. That CSV already has the exact format the parser expects.
       </div>
     </div>
 
@@ -2074,7 +2079,7 @@ EVIDENCE_DB = {
       <div style="font-size:13px;color:#374151;line-height:1.9">
         <strong>a)</strong> In your Google Sheet: <strong>Extensions → Apps Script</strong><br>
         <strong>b)</strong> Delete any default code<br>
-        <strong>c)</strong> In the generator: <strong>Admin → Script Flows → 📘 Apps Script Setup → 📋 Copy</strong><br>
+        <strong>c)</strong> In the generator: <strong>Admin → Google Sheet Sync → 📘 Apps Script Setup → 📋 Copy</strong><br>
         <strong>d)</strong> Paste into the Apps Script editor → click <strong>💾 Save</strong> (name it anything, e.g. "Generator Sync")<br>
         <strong>e)</strong> In the toolbar dropdown, select function <code>pushToFirebase</code><br>
         <strong>f)</strong> Click <strong>▶ Run</strong> → Google asks for permissions → <strong>Review permissions → Allow</strong><br>
@@ -2090,7 +2095,7 @@ EVIDENCE_DB = {
       <div class="dcard-title" style="margin-bottom:10px">Step 5 — Verify it's working</div>
       <div style="font-size:13px;color:#374151;line-height:1.9">
         <strong>In the Sheet:</strong> 🔥 Sync to Firebase → 🧪 Test connection → you should see "✅ Connection OK"<br>
-        <strong>In the generator:</strong> Admin → Script Flows → status pill should show <span style="background:#d1fae5;color:#065f46;padding:1px 8px;border-radius:4px;font-size:11px;font-weight:700">🟢 Live</span><br>
+        <strong>In the generator:</strong> Admin → Google Sheet Sync → status pill should show <span style="background:#d1fae5;color:#065f46;padding:1px 8px;border-radius:4px;font-size:11px;font-weight:700">🟢 Live</span><br>
         <strong>Live test:</strong> Make a tiny edit to any script in the Sheet → push → watch the generator update automatically within a few seconds
       </div>
     </div>
@@ -2120,7 +2125,8 @@ EVIDENCE_DB = {
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Apps Script says "Connection OK" but generator doesn't update</td><td style="border:1px solid #e5e7eb;padding:8px 12px">The databaseURL in the generator config doesn't match the one in the Apps Script. They must point to the same Firebase project and region.</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Generator shows old scripts after push</td><td style="border:1px solid #e5e7eb;padding:8px 12px">The live listener should fire within 2–5 seconds. Try a hard refresh (Ctrl+Shift+R). If it still shows old data, check browser console for Firebase errors.</td></tr>
         <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Apps Script "Permission denied" for UrlFetchApp</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Re-run <code>pushToFirebase</code> manually and complete the OAuth consent screen again.</td></tr>
-        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Evidence or flows didn't update after push</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Confirm the Sheet has valid <code>[EVIDENCE]</code> or <code>[FLOW]</code> rows — col 1 must be exactly <code>[EVIDENCE]</code> or <code>[FLOW]</code> with no extra spaces.</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Evidence didn't update after push</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Evidence is read from the <strong>Claude Export/Import Sheet</strong> tab of the Master Sheet. Confirm the tab name is exact, and that each row has Category, Return Reason, Evidence Type and Evidence Script filled (rows missing any of these are skipped). Category must be one of <code>SELLER - FORWARD LEG</code>, <code>SELLER - RETURN LEG</code>, <code>BUYER - EVIDENCE</code>.</td></tr>
+        <tr><td style="border:1px solid #e5e7eb;padding:8px 12px">Flows didn't update after push</td><td style="border:1px solid #e5e7eb;padding:8px 12px">Confirm the Scripts tab has valid <code>[FLOW]</code> rows — col 1 must be exactly <code>[FLOW]</code> with no extra spaces.</td></tr>
       </table>
     </div>
 
@@ -2259,7 +2265,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v31')" id="vnav-v31"><span class="ddot" style="background:#ee4d2d"></span>v31 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v32')" id="vnav-v32"><span class="ddot" style="background:#ee4d2d"></span>v32 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v31')" id="vnav-v31"><span class="ddot" style="background:#6b7280"></span>v31</a>
     <a class="docs-nav-item" onclick="scrollToVer('v30')" id="vnav-v30"><span class="ddot" style="background:#6b7280"></span>v30</a>
     <a class="docs-nav-item" onclick="scrollToVer('v28')" id="vnav-v28"><span class="ddot" style="background:#6b7280"></span>v28</a>
     <a class="docs-nav-item" onclick="scrollToVer('v26')" id="vnav-v26"><span class="ddot" style="background:#6b7280"></span>v26</a>
@@ -2301,12 +2308,54 @@ setTimeout(function(){
       <!-- Cards injected by sgRenderUpdateNotes() -->
     </div>
 
+      <!-- v32 -->
+      <div id="vsec-v32" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v32 &mdash; Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">10 Sep 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#10024; New</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Evidence Collection now syncs from the Master Sheet</strong> &mdash; the Apps Script reads evidence from the <strong>Claude Export/Import Sheet</strong> tab of the same Master Google Sheet that holds the Scripts tab. The old separate [RRSG] Evidence Collection spreadsheet and the previous <code>Evidence</code> tab are no longer used. One file, one push, everything in sync.</li>
+            <li><strong>Apps Script opens the Master Sheet by ID</strong> &mdash; new <code>MASTER_SHEET_ID</code> constant; <code>_getSheet()</code> and <code>_readUpdateRows()</code> now use <code>SpreadsheetApp.openById()</code> instead of the active spreadsheet, so the script works no matter which Google Sheet it is pasted into. Clear error if the ID is wrong or the account has no access.</li>
+            <li><strong>Master File bubble in Admin</strong> now links to both the Scripts tab and the Evidence tab (Claude Export/Import Sheet).</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128465; Removed</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>The yellow <strong>📋 [RRSG] Evidence Collection: Google Sheets</strong> banner at the top of the Evidence Collection tab.</li>
+          </ul>
+        </div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128027; Fixed</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Apps Script version was stuck at v28</strong> &mdash; <code>APP_VERSION</code> in the generated Apps Script was hardcoded, so every push wrote <code>sg/appVersion = v28</code> regardless of the actual app version. It now reads <code>SG_APP_VERSION</code> so the pushed version always matches the generator.</li>
+            <li><strong>Evidence reader tolerates a header row anywhere</strong> &mdash; previously it blindly skipped row 1; now it skips any row whose first cell is <code>Category</code>, so a tab with no header (or a header not on row 1) still imports correctly.</li>
+            <li>Setup guide and troubleshooting table updated: removed references to the deleted <em>Admin → Script Flows</em> tab (now <em>Google Sheet Sync</em>), documented the three Master Sheet tabs, and split the evidence/flows troubleshooting row into two with the correct tab and category names.</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#9333ea;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128295; Technical</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li>New constants: <code>SG_MASTER_SHEET_ID</code>, <code>SG_MASTER_SHEET_URL</code>, <code>SG_MASTER_SCRIPTS_GID</code> (1457984563), <code>SG_MASTER_EVIDENCE_GID</code> (1019458830)</li>
+            <li>Apps Script: <code>EVIDENCE_SHEET = 'Claude Export/Import Sheet'</code>; new <code>_getMaster()</code> helper; <code>pushEvidenceOnly</code> error message names the tab it looked in</li>
+            <li><strong>Action required:</strong> re-copy the Apps Script from Admin → Google Sheet Sync → 📘 Apps Script Setup and paste it over the existing one in the Master Sheet, then run <em>Push Scripts + Evidence</em> once. Firebase paths (<code>sg/scripts</code>, <code>sg/evidence</code>) are unchanged, so generators need no update to receive the data.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+      </div>
+
       <!-- v31 -->
       <div id="vsec-v31" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v31 &mdash; Current</div>
-        <div style="color:rgba(255,255,255,.8);font-size:12px">13 Aug 2026</div>
+      <div style="background:#374151;padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v31</div>
+        <div style="color:rgba(255,255,255,.7);font-size:12px">13 Aug 2026</div>
       </div>
       <div style="padding:20px">
         <div style="margin-bottom:16px">
@@ -3467,8 +3516,14 @@ const _FLOW_META = {
 // Change SG_APP_VERSION here and the header, page title, browser tab,
 // and Download-Self filename all update automatically.
 // ═══════════════════════════════════════════════════════════════
-const SG_APP_VERSION = 'v31';
-const SG_APP_VERSION_DATE = '12 Aug 2026';
+const SG_APP_VERSION = 'v32';
+const SG_APP_VERSION_DATE = '10 Sep 2026';
+
+// Master Google Sheet — single source for Scripts, Evidence (tab "Claude Export/Import Sheet") and Updates
+const SG_MASTER_SHEET_ID  = '11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ';
+const SG_MASTER_SHEET_URL = 'https://docs.google.com/spreadsheets/d/' + SG_MASTER_SHEET_ID;
+const SG_MASTER_SCRIPTS_GID  = '1457984563';
+const SG_MASTER_EVIDENCE_GID = '1019458830';
 
 (function sgApplyVersion(){
   try{
@@ -4221,25 +4276,33 @@ function getAppsScriptCode(){
   return [
     '// ─────────────────────────────────────────────────────────────',
     '// All-in-One Script Generator — Google Sheet → Firebase Sync',
-    '// Paste into Extensions → Apps Script in your Google Sheet.',
+    '// Paste into Extensions → Apps Script in the Master Sheet.',
     '//',
-    '// Sheet tabs required:',
-    '//   "Scripts"  — Type Return | User | Result | Section | Script Text',
-    '//   "Evidence" — Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Scripts',
+    '// Master Sheet (all tabs live here):',
+    '//   https://docs.google.com/spreadsheets/d/' + SG_MASTER_SHEET_ID,
+    '//',
+    '// Tabs read by this script:',
+    '//   "Scripts"                    — Type Return | User | Result | Section | Script Text',
+    '//   "Claude Export/Import Sheet" — Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Script',
+    '//   "Updates"                    — Version | Date | Message | Status   (optional)',
+    '//',
+    '// The script opens the Master Sheet by ID, so it works even if this',
+    '// Apps Script project is bound to a different spreadsheet.',
     '//',
     '// First time: run pushToFirebase once to grant permissions.',
     '// After that use the 🔥 Sync to Firebase menu in the Sheet.',
     '// ─────────────────────────────────────────────────────────────',
     '',
     "var FIREBASE_DB_URL  = '" + DB_URL + "';",
+    "var MASTER_SHEET_ID  = '" + SG_MASTER_SHEET_ID + "';",
     "var SCRIPTS_PATH     = 'sg/scripts';",
     "var EVIDENCE_PATH    = 'sg/evidence';",
     "var SYNC_PATH        = 'sg/lastSync';",
     "var VERSION_PATH     = 'sg/appVersion';",
     "var UPDATES_PATH     = 'sg/updateNotes';",
-    "var APP_VERSION      = 'v28';",
+    "var APP_VERSION      = '" + SG_APP_VERSION + "';",
     "var SCRIPTS_SHEET    = 'Scripts';",
-    "var EVIDENCE_SHEET   = 'Evidence';",
+    "var EVIDENCE_SHEET   = 'Claude Export/Import Sheet';",
     "var UPDATES_SHEET    = 'Updates';",
     '',
     'function onOpen(){',
@@ -4252,10 +4315,15 @@ function getAppsScriptCode(){
     '    .addToUi();',
     '}',
     '',
+    'function _getMaster(){',
+    '  try{ return SpreadsheetApp.openById(MASTER_SHEET_ID); }',
+    '  catch(e){ throw new Error("Cannot open Master Sheet " + MASTER_SHEET_ID + " — check the ID and that this account has access. (" + e.message + ")"); }',
+    '}',
+    '',
     'function _getSheet(name){',
-    '  var ss = SpreadsheetApp.getActiveSpreadsheet();',
+    '  var ss = _getMaster();',
     '  var sh = ss.getSheetByName(name);',
-    "  if(!sh) throw new Error('Sheet tab [' + name + '] not found. Check the tab name exactly.');",
+    "  if(!sh) throw new Error('Sheet tab [' + name + '] not found in the Master Sheet. Check the tab name exactly.');",
     '  return sh;',
     '}',
     '',
@@ -4287,12 +4355,12 @@ function getAppsScriptCode(){
     '}',
     '',
     'function _readEvidenceRows(){',
-    '  // Columns: Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Scripts',
+    '  // Columns: Category | Return Reason | Risk Level | Seller Category | Evidence Type | Evidence Script',
     '  var sheet  = _getSheet(EVIDENCE_SHEET);',
     '  var values = sheet.getDataRange().getValues();',
     '  if(values.length < 2) return [];',
     '  var rows = [];',
-    '  for(var i = 1; i < values.length; i++){',
+    '  for(var i = 0; i < values.length; i++){',
     '    var r          = values[i];',
     '    var category   = String(r[0]||"").trim();',
     '    var reason     = String(r[1]||"").trim();',
@@ -4300,6 +4368,7 @@ function getAppsScriptCode(){
     '    var seller_cat = String(r[3]||"").trim();',
     '    var ev_type    = String(r[4]||"").trim();',
     '    var script     = String(r[5]||"").trim();',
+    '    if(category.toLowerCase() === "category") continue;   // header row',
     '    if(!category||!reason||!ev_type||!script) continue;',
     '    rows.push({row_index:i, category:category, reason:reason, risk:risk,',
     '               seller_cat:seller_cat, ev_type:ev_type, script:script, is_bullet:false});',
@@ -4309,7 +4378,7 @@ function getAppsScriptCode(){
     '',
     'function _readUpdateRows(){',
     '  // Columns: Version | Date | Message | Status',
-    '  var ss = SpreadsheetApp.getActiveSpreadsheet();',
+    '  var ss = _getMaster();',
     '  var sh = ss.getSheetByName(UPDATES_SHEET);',
     '  if(!sh) return [];   // Updates tab is optional — silently skip if missing',
     '  var values = sh.getDataRange().getValues();',
@@ -4354,7 +4423,7 @@ function getAppsScriptCode(){
     'function pushEvidenceOnly(){',
     '  var ui = SpreadsheetApp.getUi(), rows;',
     '  try{ rows=_readEvidenceRows(); }catch(e){ ui.alert("Evidence read failed: "+e.message); return; }',
-    '  if(!rows.length){ ui.alert("No evidence rows found. Check the Evidence tab name."); return; }',
+    '  if(!rows.length){ ui.alert("No evidence rows found in tab [" + EVIDENCE_SHEET + "]. Check the tab name and that it has data."); return; }',
     '  try{ _fbRequest(EVIDENCE_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); _fbRequest(VERSION_PATH,"put",APP_VERSION); try{var u=_readUpdateRows();if(u.length)_fbRequest(UPDATES_PATH,"put",u);}catch(_){} }',
     '  catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
     '  ui.alert("Pushed "+rows.length+" evidence rows.");',
@@ -9399,13 +9468,6 @@ function updateEvScriptCount(){
   <div style="margin-bottom:24px">
     <div style="font-weight:800;font-size:22px;color:#1a1a1a;margin-bottom:4px">📋 Evidence Collection</div>
     <div style="color:#9ca3af;font-size:13px">Select category → Return Reason → Risk Level → Evidence Type → Copy script</div>
-  </div>
-
-  <!-- Google Sheets Link -->
-  <div style="background:#fffbeb;border:1.5px solid #fde68a;border-radius:12px;padding:12px 18px;margin-bottom:24px;display:flex;align-items:center;gap:8px">
-    <span style="font-size:16px">📋</span>
-    <span style="font-size:13px;font-weight:600;color:#374151">[RRSG] Evidence Collection:</span>
-    <a href="https://docs.google.com/spreadsheets/d/1_FgVE4wgEHoswz_NvJBAOUOdU6weAN085-NJrFIgNlU/edit?usp=sharing" target="_blank" style="font-size:13px;font-weight:600;color:#ee4d2d;text-decoration:none">Google Sheets</a>
   </div>
 
   <!-- Category Tabs -->
