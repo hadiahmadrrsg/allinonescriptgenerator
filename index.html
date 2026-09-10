@@ -142,8 +142,8 @@ textarea{resize:vertical}
 .snip-ac-preview{font-size:11px;color:#9ca3af;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* Snippet Expand Toast */
 /* ── Unified toast — top-centre, colour-coded left border ── */
-#sg-toast{position:fixed;top:24px;left:50%;transform:translateX(-50%) translateY(-24px);background:#1e293b;color:#f1f5f9;padding:14px 22px;border-radius:12px;font-family:'Sora',sans-serif;font-size:13.5px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.32);z-index:9999;opacity:0;transition:opacity .28s ease,transform .28s ease;pointer-events:none;max-width:560px;width:max-content;text-align:left;line-height:1.55;border-left:4px solid #6b7280}
-#sg-toast.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
+#sg-toast{position:fixed;bottom:28px;right:28px;transform:translateY(24px);background:#1e293b;color:#f1f5f9;padding:14px 22px;border-radius:12px;font-family:'Sora',sans-serif;font-size:13.5px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.32);z-index:9999;opacity:0;transition:opacity .28s ease,transform .28s ease;pointer-events:none;max-width:560px;width:max-content;text-align:left;line-height:1.55;border-left:4px solid #6b7280}
+#sg-toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
 #sg-toast.t-success{border-left-color:#22c55e}
 #sg-toast.t-warn{border-left-color:#f59e0b}
 #sg-toast.t-error{border-left-color:#ef4444}
@@ -2334,6 +2334,12 @@ setTimeout(function(){
           <div style="font-size:12px;font-weight:700;color:#2563eb;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128027; Fixed</div>
           <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
             <li><strong>Apps Script version was stuck at v28</strong> &mdash; <code>APP_VERSION</code> in the generated Apps Script was hardcoded, so every push wrote <code>sg/appVersion = v28</code> regardless of the actual app version. It now reads <code>SG_APP_VERSION</code> so the pushed version always matches the generator.</li>
+            <li><strong>Evidence Collection tab did not refresh after a Firebase push</strong> &mdash; <code>sgApplyEvidence()</code> rebuilt <code>EVIDENCE_DB</code> in memory but never re-rendered the standalone Evidence Collection tab or the inline evidence panel in the generator. Agents kept seeing the old evidence until they switched tabs or reloaded. Both now re-render immediately when a push lands.</li>
+            <li><strong>Category matching is now tolerant</strong> &mdash; <code>SELLER - FORWARD LEG</code> / <code>seller-forward leg</code> / <code>Seller – Forward Leg</code> all map correctly (case, spacing and dash variants). Rows with an unrecognised Category are skipped and listed as a warning in Firebase Sync → Event Log instead of silently vanishing.</li>
+            <li><strong>Google Sheet Sync now shows where evidence came from</strong> &mdash; the evidence count label reads e.g. <em>111 entries · from Firebase 14:32</em> or <em>111 entries · built-in (no Firebase push received)</em>, so you can tell at a glance whether a push actually arrived. The count itself was also wrong (it counted risk levels, not evidence entries).</li>
+            <li><strong>Apps Script push alerts are specific</strong> &mdash; <em>Pushed OK</em> now lists the evidence tab it read from and a per-Category breakdown; pushing with 0 evidence rows shows an explicit warning instead of a silent "Evidence: 0".</li>
+            <li><strong>⬆️ Sync TO Sheet finally has its other half</strong> &mdash; the button has always told users to run <em>Restore from Generator (preview)</em> in the Sheet menu, but that menu item never existed. Added <code>restoreFromGenerator()</code>: reads <code>sg/sheetRestore</code>, writes the rows to a new <code>Scripts_Restored_&lt;timestamp&gt;</code> tab in the Master Sheet, never touches the live Scripts tab.</li>
+            <li><strong>Toast moved to bottom-right</strong> &mdash; the status toast ("Scripts updated: 222 scripts loaded from Sheet", etc.) used to drop down from the top-centre and cover the nav tabs and profile bar. It now slides up in the bottom-right corner, clear of all controls.</li>
             <li><strong>Evidence reader tolerates a header row anywhere</strong> &mdash; previously it blindly skipped row 1; now it skips any row whose first cell is <code>Category</code>, so a tab with no header (or a header not on row 1) still imports correctly.</li>
             <li>Setup guide and troubleshooting table updated: removed references to the deleted <em>Admin → Script Flows</em> tab (now <em>Google Sheet Sync</em>), documented the three Master Sheet tabs, and split the evidence/flows troubleshooting row into two with the correct tab and category names.</li>
           </ul>
@@ -4187,6 +4193,16 @@ function sgApplyEvidence(firebaseData){
     'SELLER - RETURN LEG':  'returnLeg',
     'BUYER - EVIDENCE':     'buyer'
   };
+  // Tolerant lookup: case-insensitive, collapses spacing/dash variants, accepts short forms
+  const catKeyFor = (raw) => {
+    const c = String(raw||'').toUpperCase().replace(/[\u2013\u2014_]/g,'-').replace(/\s*-\s*/g,' - ').replace(/\s+/g,' ').trim();
+    if(catKeyMap[c]) return catKeyMap[c];
+    if(/^SELLER.*FORWARD/.test(c)) return 'seller';
+    if(/^SELLER.*RETURN/.test(c))  return 'returnLeg';
+    if(/^BUYER/.test(c))           return 'buyer';
+    return null;
+  };
+  const unknownCats = new Set();
 
   // Separate script rows from bullet rows
   const scriptRows = rows.filter(r => !r.is_bullet);
@@ -4194,7 +4210,8 @@ function sgApplyEvidence(firebaseData){
 
   function applyRows(rowList, target){
     rowList.forEach(r => {
-      const catKey = catKeyMap[r.category] || r.category;
+      const catKey = catKeyFor(r.category);
+      if(!catKey){ unknownCats.add(String(r.category||'(blank)')); return; }
       if(!target[catKey]) target[catKey] = {};
       const reasonObj = target[catKey][r.reason] = target[catKey][r.reason] || {};
       const riskObj   = reasonObj[r.risk]         = reasonObj[r.risk]        || {};
@@ -4219,6 +4236,9 @@ function sgApplyEvidence(firebaseData){
   }
 
   console.log('SG Firebase: evidence updated —', scriptRows.length, 'scripts,', bulletRows.length, 'bullets');
+  if(unknownCats.size && typeof _sgLogEvent === 'function'){
+    _sgLogEvent('warn', 'Evidence push: ' + unknownCats.size + ' unknown Category value(s) skipped — ' + [...unknownCats].join(', ') + '. Expected: SELLER - FORWARD LEG / SELLER - RETURN LEG / BUYER - EVIDENCE');
+  }
   // Record into Firebase Sync dashboard
   _sgFbLastPush = {time: Date.now(), kind: 'evidence', accepted: scriptRows.length + bulletRows.length, rejected: 0};
   if(typeof _sgLogEvent === 'function') _sgLogEvent('success', 'Evidence push applied — ' + scriptRows.length + ' scripts, ' + bulletRows.length + ' bullets');
@@ -4236,6 +4256,23 @@ function sgApplyEvidence(firebaseData){
   if(state && state.view === 'admin' && state.adminTab === 'gssync'){
     renderAdminEvidenceFlows();
   }
+  // Re-render the standalone Evidence Collection tab if the agent is on it
+  if(state && state.view === 'evidence' && typeof evSetCat === 'function'){
+    try{ evSetCat(evState.cat || 'B'); }catch(e){}
+  }
+  // Re-render the inline evidence panel inside the generator if it's showing
+  if(state && state.view === 'generator' && typeof evGenInit === 'function'){
+    try{
+      const panel = document.getElementById('field-need-probing');
+      if(panel && !panel.classList.contains('hidden')) evGenInit();
+    }catch(e){}
+  }
+  // Stamp the evidence-updated time so admins can see the push actually landed
+  try{
+    _sgEvidenceUpdatedAt = Date.now();
+    const lbl = document.getElementById('gs-evidence-count-label');
+    if(lbl && typeof gsUpdateCountLabels === 'function') gsUpdateCountLabels();
+  }catch(e){}
 }
 
 // ─── Apps Script helper UI ───────────────────────────────────────
@@ -4312,6 +4349,8 @@ function getAppsScriptCode(){
     "    .addItem('Push Scripts only',       'pushScriptsOnly')",
     "    .addItem('Push Evidence only',      'pushEvidenceOnly')",
     "    .addItem('Test connection',         'testConnection')",
+    '    .addSeparator()',
+    "    .addItem('Restore from Generator (preview)', 'restoreFromGenerator')",
     '    .addToUi();',
     '}',
     '',
@@ -4396,12 +4435,20 @@ function getAppsScriptCode(){
     '  return rows;',
     '}',
     '',
+    'function _evidenceSummary(rows){',
+    '  var byCat = {};',
+    '  for(var i=0;i<rows.length;i++){ var c = rows[i].category; byCat[c] = (byCat[c]||0)+1; }',
+    '  var parts = []; for(var k in byCat) parts.push(k + ": " + byCat[k]);',
+    '  return rows.length + " rows from tab [" + EVIDENCE_SHEET + "]" + (parts.length ? " (" + parts.join(", ") + ")" : "");',
+    '}',
+    '',
     'function pushToFirebase(){',
     '  var ui = SpreadsheetApp.getUi();',
     '  var sRows, eRows, uRows;',
     '  try{ sRows = _readScriptRows();  }catch(e){ ui.alert("Scripts read failed: "+e.message); return; }',
     '  try{ eRows = _readEvidenceRows();}catch(e){ ui.alert("Evidence read failed: "+e.message); return; }',
     '  try{ uRows = _readUpdateRows();  }catch(e){ uRows = []; }',
+    '  if(!eRows.length){ ui.alert("Warning: 0 evidence rows read from tab [" + EVIDENCE_SHEET + "]. Scripts will still be pushed, but evidence will NOT be updated. Check the tab name and columns."); }',
     '  try{',
     '    _fbRequest(SCRIPTS_PATH,  "put", sRows);',
     '    if(eRows.length>0) _fbRequest(EVIDENCE_PATH,"put",eRows);',
@@ -4409,7 +4456,7 @@ function getAppsScriptCode(){
     '    _fbRequest(SYNC_PATH,    "put", new Date().toISOString());',
     '    _fbRequest(VERSION_PATH, "put", APP_VERSION);',
     '  }catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
-    '  ui.alert("Pushed OK!" + " Scripts: " + sRows.length + " / Evidence: " + eRows.length + (uRows.length?" / Updates: "+uRows.length:"") + ". All open generators will update within seconds.");',
+    '  ui.alert("Pushed OK!\\nScripts: " + sRows.length + "\\nEvidence: " + _evidenceSummary(eRows) + (uRows.length?"\\nUpdates: "+uRows.length:"") + "\\n\\nAll open generators will update within seconds.");',
     '}',
     '',
     'function pushScriptsOnly(){',
@@ -4426,7 +4473,26 @@ function getAppsScriptCode(){
     '  if(!rows.length){ ui.alert("No evidence rows found in tab [" + EVIDENCE_SHEET + "]. Check the tab name and that it has data."); return; }',
     '  try{ _fbRequest(EVIDENCE_PATH,"put",rows); _fbRequest(SYNC_PATH,"put",new Date().toISOString()); _fbRequest(VERSION_PATH,"put",APP_VERSION); try{var u=_readUpdateRows();if(u.length)_fbRequest(UPDATES_PATH,"put",u);}catch(_){} }',
     '  catch(e){ ui.alert("Firebase write failed: "+e.message); return; }',
-    '  ui.alert("Pushed "+rows.length+" evidence rows.");',
+    '  ui.alert("Pushed evidence: " + _evidenceSummary(rows));',
+    '}',
+    '',
+    'function restoreFromGenerator(){',
+    '  // Reads the rows the generator queued at sg/sheetRestore (via Admin → Google Sheet Sync → ⬆️ Sync TO Sheet)',
+    '  // and writes them to a NEW preview tab in the Master Sheet. The live Scripts tab is never touched.',
+    '  var ui = SpreadsheetApp.getUi();',
+    '  var payload;',
+    '  try{ payload = JSON.parse(_fbRequest("sg/sheetRestore", "get", undefined).getContentText()); }',
+    '  catch(e){ ui.alert("Could not read sg/sheetRestore: " + e.message); return; }',
+    '  if(!payload || !payload.rows){ ui.alert("Nothing to restore. In the generator go to Admin → Google Sheet Sync → ⬆️ Sync TO Sheet first."); return; }',
+    '  var rows = Array.isArray(payload.rows) ? payload.rows : Object.keys(payload.rows).sort(function(a,b){return Number(a)-Number(b);}).map(function(k){return payload.rows[k];});',
+    '  var grid = rows.map(function(r){ return [r.col0||"", r.col1||"", r.col2||"", r.col3||"", r.col4||""]; });',
+    '  var stamp = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyyMMdd-HHmm");',
+    '  var name  = "Scripts_Restored_" + stamp;',
+    '  var sh = _getMaster().insertSheet(name);',
+    '  sh.getRange(1, 1, grid.length, 5).setValues(grid);',
+    '  sh.setFrozenRows(1);',
+    '  try{ _fbRequest("sg/sheetRestore/status", "put", "done"); }catch(_){}',
+    '  ui.alert("Restored " + (grid.length - 1) + " rows into new tab [" + name + "].\\n\\nReview it, then copy what you need into the live Scripts tab.");',
     '}',
     '',
     'function testConnection(){',
@@ -4701,18 +4767,28 @@ function gsRefreshConnPill(){
 }
 
 // ── Count labels (Scripts / Evidence collapsible headers) ─────
+var _sgEvidenceUpdatedAt = null;   // set by sgApplyEvidence() when a Firebase evidence push lands
 function gsUpdateCountLabels(){
   const sc = document.getElementById('gs-scripts-count-label');
   const ec = document.getElementById('gs-evidence-count-label');
   if(sc) sc.textContent = Array.isArray(db) ? db.length + ' scripts' : '';
   if(ec){
+    // Count leaf evidence entries (Seller: reason → risk → category → type; Buyer: reason → risk → type)
     let total = 0;
     if(typeof EVIDENCE_DB === 'object'){
-      ['seller','buyer','returnLeg'].forEach(cat => {
-        if(EVIDENCE_DB[cat]) Object.values(EVIDENCE_DB[cat]).forEach(r => { Object.values(r).forEach(() => total++); });
+      ['seller','returnLeg'].forEach(cat => {
+        Object.values(EVIDENCE_DB[cat]||{}).forEach(risks => Object.values(risks).forEach(cats => {
+          Object.values(cats||{}).forEach(types => { if(typeof types==='object') total += Object.keys(types).length; });
+        }));
       });
+      Object.values(EVIDENCE_DB.buyer||{}).forEach(risks => Object.values(risks).forEach(types => {
+        if(typeof types==='object') total += Object.keys(types).length;
+      }));
     }
-    ec.textContent = total ? total + ' entries' : '';
+    const src = _sgEvidenceUpdatedAt
+      ? ' · from Firebase ' + new Date(_sgEvidenceUpdatedAt).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})
+      : ' · built-in (no Firebase push received)';
+    ec.textContent = total ? total + ' entries' + src : '';
   }
 }
 
@@ -4983,7 +5059,7 @@ function gsSyncToSheet(){
   gsLogAdd('upload', `Sync TO Sheet — queuing ${totalRows} rows to Firebase (sg/sheetRestore)…`);
 
   _sgFbDB.ref('sg/sheetRestore').set({
-    rows, requestedAt: new Date().toISOString(), requestedBy: 'generator-v28', totalRows, status: 'pending'
+    rows, requestedAt: new Date().toISOString(), requestedBy: 'generator-' + SG_APP_VERSION, totalRows, status: 'pending'
   }).then(() => {
     gsLogAdd('success', `Sync TO Sheet queued — ${totalRows} rows in sg/sheetRestore. Run "Restore from Generator (preview)" in Sheet → Sync to Firebase menu.`);
     setS('✅ Sent — run Apps Script "Restore from Generator" in your Sheet', '#059669');
