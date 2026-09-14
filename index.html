@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>All in One Generator - v34</title>
+<title>All in One Generator - v35</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -291,18 +291,35 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   window.__sg2docId = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
   function post(msg){ try{ msg.doc = window.__sg2docId; window.parent.postMessage(msg, '*'); }catch(e){} }
   window.__sg2post = post;
-  var pendingFill = null;
+  var pendingFill = null, lastFillKey = '';
+  function queueFill(d){
+    var key = ''; try{ key = JSON.stringify(d); }catch(e){}
+    if(key && key === lastFillKey) return;          // same case arrived twice (hash + postMessage) — fill once
+    lastFillKey = key; pendingFill = d; tryFill();
+  }
   function tryFill(){
     if(!pendingFill) return;
     if(typeof window.autoFillFromDMS !== 'function') return;   // main script not parsed yet — retried below
     var d = pendingFill; pendingFill = null;
     try{ window.autoFillFromDMS(d); post({type:'sg2-filled'}); }catch(e){ console.warn('[SG2 embed] fill failed', e); }
   }
+  // Channel 1 — URL fragment set by the panel: #sg2=<json>&t=<ts>&sess=<json>. Changing only the fragment
+  // is a same-document navigation (no reload) → hashchange. Works even if postMessage is interfered with.
+  function readHash(){
+    try{
+      var h = (location.hash || '').replace(/^#/, ''); if(!h) return;
+      var q = new URLSearchParams(h);
+      var sess = q.get('sess'); if(sess){ try{ window.SG2_SESSION = JSON.parse(sess); }catch(e){} }
+      var raw = q.get('sg2'); if(raw){ try{ queueFill(JSON.parse(raw)); }catch(e){ console.warn('[SG2 embed] bad hash data', e); } }
+    }catch(e){}
+  }
+  readHash();
+  window.addEventListener('hashchange', readHash);
+  // Channel 2 — postMessage from the panel
   window.addEventListener('message', function(ev){
     var m = ev && ev.data;
     if(!m || typeof m !== 'object' || m.type !== 'sg2-fill' || !m.data) return;
-    pendingFill = m.data;
-    tryFill();
+    queueFill(m.data);
   });
   var fillPoll = setInterval(function(){ tryFill(); if(typeof window.autoFillFromDMS === 'function' && !pendingFill) clearInterval(fillPoll); }, 100);
   setTimeout(function(){ clearInterval(fillPoll); }, 60000);
@@ -384,7 +401,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Generator - v34</div>
+        <div class="logo-title">All in One Generator - v35</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -1462,7 +1479,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {}
     var hs = (window.location.hash || "").match(/(\d{5,})/);
     if (hs) return hs[1];
-    try { var tm = pageText().match(/\bRID\s*[:#]?\s*(\d{5,})/i); if (tm) return tm[1]; } catch (e) {}
+    try { var tm = pageText().match(/\bRID\b\s*[:#]?\s*(\d{5,})/i); if (tm) return tm[1]; } catch (e) {}
     return seg;
   }
   var rid = findRid();
@@ -1479,10 +1496,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     return enc;
   }
-  function embedUrl(d) {
-    var sep = HOST.indexOf("?") === -1 ? "?" : "&amp;";
-    return HOST + sep + "embed=1" + (d ? "&amp;data=" + dataParam(d) : "");
+  var SESS_KEY = "sg2_session";
+  function loadSession() {
+    try { var s = JSON.parse(localStorage.getItem(SESS_KEY) || "null"); if (s &amp;&amp; s.user &amp;&amp; s.ts &amp;&amp; Date.now() - s.ts &lt; 30 * 24 * 3600 * 1000) return s; /* 30 days, like the website login */ } catch (e) {}
+    return null;
   }
+  function saveSession(sess) { try { if (sess) localStorage.setItem(SESS_KEY, JSON.stringify(sess)); else localStorage.removeItem(SESS_KEY); } catch (e) {} }
+  function frameBase() { var sep = HOST.indexOf("?") === -1 ? "?" : "&amp;"; return HOST + sep + "embed=1"; }
+  /* Case data travels in the URL fragment: changing only the fragment of the iframe src is a same-document
+     navigation (no reload) that fires hashchange inside the generator — independent of postMessage. */
+  function hashFor(d) {
+    var h = "#sg2=" + (d ? dataParam(d) : "") + "&amp;t=" + Date.now();
+    var sess = loadSession(); if (sess) h += "&amp;sess=" + encodeURIComponent(JSON.stringify(sess));
+    return h;
+  }
+  function embedUrl(d) { return frameBase() + hashFor(d); }
   function popoutUrl(d) {
     var sep = HOST.indexOf("?") === -1 ? "?" : "&amp;";
     return HOST + sep + (d ? "data=" + dataParam(d) : "");
@@ -1545,26 +1573,29 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   function dbg() { try { (window.__sg2log = window.__sg2log || []).push([new Date().toISOString()].concat([].slice.call(arguments)).join(" ")); } catch (e) {} }
 
-  /* Deliver case data to the generator: postMessage when the handshake is up; otherwise, once the
-     frame has loaded, reload it with the data in the URL (compat mode — needs no handshake at all). */
+  /* Deliver case data to the generator. Once the real document has loaded, push it through the URL
+     fragment (same-document navigation, no reload) and also postMessage it; before that, hold it. */
   function deliver(p, d) {
     if (!p || !d) return;
     p.__sg2data = d;
     var head = document.getElementById("_sg2_title_rid");
     if (head) head.textContent = d.rid ? "RID " + d.rid : "";
-    if (p.getAttribute("data-ready") === "1") { sendToFrame(d); setStatus("Connected", "#059669"); dbg("delivered via postMessage"); return; }
-    if (p.__sg2loaded) { urlDeliver(p); return; }
+    if (p.__sg2loaded) { pushToFrame(p, d); return; }
     setStatus("Scanned \u2713 \u00b7 loading generator\u2026", "#6b7280");
   }
-  function urlDeliver(p) {
+  function pushToFrame(p, d) {
     var f = document.getElementById("_sg2_frame");
-    if (!f || !p.__sg2data) return;
-    p.__sg2urlMode = true;
-    p.__sg2loaded = 0;
-    p.setAttribute("data-ready", "0");
-    f.src = embedUrl(p.__sg2data);
-    setStatus("Connected \u00b7 compat", "#059669");
-    dbg("delivered via URL (no handshake)");
+    if (!f) return;
+    var url = embedUrl(d);
+    /* fragment-only change → hashchange in the generator. location.replace() (allowed cross-origin) avoids
+       adding a history entry to the DMS tab; fall back to the src attribute if it is unavailable. */
+    var replaced = false;
+    try { if (f.contentWindow &amp;&amp; f.contentWindow.location) { f.contentWindow.location.replace(url); replaced = true; } } catch (e) { replaced = false; }
+    if (!replaced) { try { f.src = url; } catch (e) {} }
+    f.setAttribute("data-sg2-url", url);
+    sendToFrame(d);
+    setStatus("Connected", "#059669");
+    dbg("delivered via hash" + (p.getAttribute("data-ready") === "1" ? "+postMessage" : ""));
   }
 
   function refreshPanel(d) {
@@ -1575,16 +1606,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (head) head.textContent = d.rid ? "RID " + d.rid : "";
     var fb = document.getElementById("_sg2_fallback");
     if (fb) fb.style.display = "none";
-    if (p.getAttribute("data-ready") === "1") {
-      sendToFrame(d);
-      setStatus("Re-scanned \u2713", "#059669");
-      setTimeout(function () { setStatus("Connected", "#059669"); }, 1800);
-    } else if (p.__sg2loaded || p.__sg2urlMode) {
-      urlDeliver(p);
-    } else {
-      deliver(p, d);
-      armReadyWatch(d);
-    }
+    deliver(p, d);
+    if (p.__sg2loaded) { setStatus("Re-scanned \u2713", "#059669"); setTimeout(function () { setStatus("Connected", "#059669"); }, 1800); }
   }
 
   function buildPanel(d) {
@@ -1685,7 +1708,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.__sg2H) {
       try { document.removeEventListener("mousedown", window.__sg2H.mouse, true); } catch (e) {}
       try { document.removeEventListener("keydown", window.__sg2H.key); } catch (e) {}
-      try { window.removeEventListener("message", window.__sg2H.msg); } catch (e) {}
+      try { window.removeEventListener("message", window.__sg2H.msg, true); } catch (e) {}
     }
     window.__sg2H = {};
     /* click anywhere on the DMS page (outside the panel) minimizes it; click the bar or press Esc to restore */
@@ -1788,6 +1811,7 @@ document.addEventListener('DOMContentLoaded', () => {
     /* handshake with the embedded generator */
     {
       window.addEventListener("message", window.__sg2H.msg = function (ev) {
+        /* capture:true so a DMS listener calling stopImmediatePropagation cannot starve us */
         var m = ev &amp;&amp; ev.data;
         if (!m || typeof m !== "object" || typeof m.type !== "string" || m.type.indexOf("sg2-") !== 0) return;
         var p = document.getElementById(PID);
@@ -1804,28 +1828,31 @@ document.addEventListener('DOMContentLoaded', () => {
           var v = document.getElementById("_sg2_ver");
           if (v &amp;&amp; m.version) { v.textContent = (m.version === BM_VERSION ? m.version : BM_VERSION + " \u00b7 site " + m.version); v.style.display = "inline-block"; }
           if (!newDoc) return;
-          if (p.__sg2data) { setStatus("Connected", "#059669"); sendToFrame(p.__sg2data); }
+          if (p.__sg2data) { setStatus("Connected \u2713", "#059669"); if (p.__sg2loaded) sendToFrame(p.__sg2data); }
           else setStatus("Connected \u00b7 scanning DMS\u2026", "#b45309");
         } else if (m.type === "sg2-esc") {
           if (p.style.display !== "none" &amp;&amp; p.__sg2ToggleMin) p.__sg2ToggleMin();
         } else if (m.type === "sg2-authed") {
+          if (m.user &amp;&amp; m.user.email) { saveSession({ user: m.user, bpo: m.bpo || "", ts: Date.now() }); dbg("session saved", m.user.email); }
           setStatus("Signed in \u2713", "#059669");
+        } else if (m.type === "sg2-signedout") {
+          saveSession(null); dbg("session cleared");
         } else if (m.type === "sg2-filled") {
           setStatus("Auto-filled \u2713", "#059669");
         }
-      });
+      }, true);
     }
 
     frame.addEventListener("load", function () {
+      /* a fresh iframe fires load for its empty about:blank document first — that is not the generator */
+      try { if (frame.contentWindow &amp;&amp; frame.contentWindow.location &amp;&amp; frame.contentWindow.location.href === "about:blank") { dbg("ignored about:blank load"); return; } } catch (e) { /* cross-origin → real document */ }
+      if (!frame.src || frame.src.indexOf("embed=1") === -1) return;
       panel.__sg2loaded = Date.now(); panel.__sg2everLoaded = true;
-      dbg("frame load", panel.getAttribute("data-ready"), panel.__sg2urlMode ? "urlMode" : "");
-      if (panel.__sg2urlMode) { if (panel.getAttribute("data-ready") !== "1") setStatus("Connected \u00b7 compat", "#059669"); return; }
-      setTimeout(function () {
-        var p = document.getElementById(PID);
-        if (!p || p.getAttribute("data-ready") === "1" || p.__sg2urlMode) return;
-        if (p.__sg2data) urlDeliver(p);
-        else setStatus("Generator loaded \u00b7 scanning DMS\u2026", "#b45309");
-      }, 1500);
+      if (_readyTimer) { clearTimeout(_readyTimer); _readyTimer = null; }
+      var fbk = document.getElementById("_sg2_fallback"); if (fbk) fbk.style.display = "none";   /* slow network: generator arrived after the 12 s watchdog */
+      dbg("frame load", panel.getAttribute("data-ready"));
+      if (panel.__sg2data) pushToFrame(panel, panel.__sg2data);
+      else setStatus("Generator loaded \u00b7 scanning DMS\u2026", "#b45309");
     });
     preconnect();
     frame.src = embedUrl(d);
@@ -3495,7 +3522,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v34')" id="vnav-v34"><span class="ddot" style="background:#ee4d2d"></span>v34 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v35')" id="vnav-v35"><span class="ddot" style="background:#ee4d2d"></span>v35 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v34')" id="vnav-v34"><span class="ddot" style="background:#6b7280"></span>v34</a>
     <a class="docs-nav-item" onclick="scrollToVer('v33')" id="vnav-v33"><span class="ddot" style="background:#6b7280"></span>v33</a>
     <a class="docs-nav-item" onclick="scrollToVer('v32')" id="vnav-v32"><span class="ddot" style="background:#6b7280"></span>v32</a>
     <a class="docs-nav-item" onclick="scrollToVer('v31')" id="vnav-v31"><span class="ddot" style="background:#6b7280"></span>v31</a>
@@ -3540,11 +3568,32 @@ setTimeout(function(){
       <!-- Cards injected by sgRenderUpdateNotes() -->
     </div>
 
+      <!-- v35 -->
+      <div id="vsec-v35" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v35 &mdash; Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">14 Sep 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128295; Fixed &mdash; repeated sign-in inside DMS</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>No more reloads inside DMS</strong> &mdash; case data now reaches the generator through the URL fragment (same-document navigation → <code>hashchange</code>), with postMessage as a bonus; the old reload-based "compat" path is gone. A first-load bug (the iframe's empty <code>about:blank</code> document was mistaken for the generator) that forced compat mode on every open is fixed.</li>
+            <li><strong>Stays signed in inside DMS</strong> &mdash; after one Google sign-in inside the panel, the panel keeps a 30-day session pass in DMS's own storage and hands it to every new panel, so opening the next case does not ask again even when Chrome blocks the iframe's storage. An embed-core script also shims blocked <code>localStorage</code> so the app never crashes on startup, and the sign-in card shows storage diagnostics with a direct "Allow site data" (Storage Access API) button.</li>
+            <li><strong>Small fixes</strong> &mdash; the RID text fallback no longer mistakes an Order SN that starts with "RID"; a generator that finishes loading after the 12-second watchdog now clears the fallback overlay; the panel's session pass is also accepted when the Firebase SDK cannot load inside DMS; case pushes into the panel use <code>location.replace</code>, so the browser's Back button is not polluted with panel states.</li>
+            <li><strong>Check you are on v35:</strong> the pill in the panel header must read <code>v35</code>. A header that says <code>v34 · Connected · compat</code> is the old bookmark &mdash; regenerate and replace it.</li>
+          </ul>
+        </div>
+      </div>
+        </div>
+      </div>
+
       <!-- v34 -->
       <div id="vsec-v34" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v34 &mdash; Current</div>
+      <div style="background:linear-gradient(90deg,#6b7280,#9ca3af);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v34</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">14 Sep 2026</div>
       </div>
       <div style="padding:20px">
@@ -3558,7 +3607,6 @@ setTimeout(function(){
         <div>
           <div style="font-size:12px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128295; Fixed</div>
           <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
-            <li><strong>Stays signed in inside DMS</strong> &mdash; an embed-core script now runs first: it shims <code>localStorage</code>/<code>sessionStorage</code> when Chrome blocks third-party storage in the DMS iframe (so the app never crashes on startup), and uses the Storage Access API so the Google login made on the website carries into the panel. The Sign-in click asks Chrome for first-party storage once (a small permission prompt may appear); after that, no re-login.</li>
             <li><strong>Snippets &amp; Notes follow the account</strong> &mdash; the snippet/notes user id is saved on the account (Firebase <code>sg/users/&lt;email&gt;/snipUserId</code>) and adopted on every device and inside the DMS panel, and both are (re)loaded right after sign-in. Before, the panel started with the default snippets until the manual sync button was pressed, and a custom id chosen on the website was not carried over.</li>
             <li><strong>Generate Bookmarklet</strong> now also copies the code to the clipboard in the same click (📋 Copy Code remains as a fallback).</li>
             <li><strong>Snippets</strong> unchanged and back in the DMS panel tab strip, placed before Notes; Notes uses the 🗒️ icon so the two are distinguishable.</li>
@@ -4828,7 +4876,7 @@ const _FLOW_META = {
 // Change SG_APP_VERSION here and the header, page title, browser tab,
 // and Download-Self filename all update automatically.
 // ═══════════════════════════════════════════════════════════════
-const SG_APP_VERSION = 'v34';
+const SG_APP_VERSION = 'v35';
 const SG_APP_VERSION_DATE = '14 Sep 2026';
 
 // Master Google Sheet — single source for Scripts, Evidence (tab "Claude Export/Import Sheet") and Updates
@@ -6655,12 +6703,13 @@ function initSgAuth(){
   try{
     if(typeof firebase === 'undefined' || typeof firebase.auth !== 'function'){
       console.warn('[SG Auth] auth SDK unavailable');
-      _sgAuthStep('error');
+      if(!sg2TrySessionPass()) _sgAuthStep('error');
       return;
     }
     _sgAuth = firebase.app('sg').auth();
     _sgAuth.onAuthStateChanged(user=>{
       if(!user){
+        if(sg2TrySessionPass()) return;   // DMS panel handed us a fresh session from an earlier sign-in
         _sgUser = null;
         document.getElementById('sg-profile-bar')?.classList.add('hidden');
         _sgAuthStep('login');
@@ -6682,7 +6731,7 @@ function initSgAuth(){
     });
   }catch(e){
     console.error('[SG Auth] init failed:', e);
-    _sgAuthStep('error');
+    if(!sg2TrySessionPass()) _sgAuthStep('error');
   }
 }
 
@@ -6800,6 +6849,26 @@ function sgSyncSnipUserId(){
     if(saved){ finish(saved); if(local && local !== saved) console.info('[SG] snippet id: using account id "' + saved + '" (this browser had "' + local + '")'); }
     else { const id = local || _sgUser.name; ref.set(id).catch(()=>{}); finish(id); }
   }).catch(()=>finish(local || (_sgUser && _sgUser.name) || ''));
+}
+
+// ── DMS panel session pass ─────────────────────────────────────────────────────────────────────
+// Inside DMS the generator's own storage is often blocked, so Firebase cannot keep the login between
+// case pages. After a real Google sign-in the panel stores {user,bpo,ts} in DMS's first-party storage
+// and hands it back in the URL fragment of every new panel (valid 30 days). Accepted in embed mode only.
+function sg2TrySessionPass(){
+  try{
+    if(!window.SG2_EMBED) return false;
+    const s = window.SG2_SESSION;
+    if(!s || !s.user || !s.user.email || !s.ts || (Date.now() - s.ts) > 30*24*3600*1000) return false;   // 30 days, like the website login
+    const email = String(s.user.email).toLowerCase();
+    if(!SG_ALLOWED_DOMAINS.some(d=>email.endsWith('@'+d))) return false;
+    if(_sgUser && _sgUser.email === email) return true;
+    _sgUser = { name: s.user.name || email.split('@')[0], email, photo: s.user.photo || '', uid: s.user.uid || ('pass:' + email) };
+    if(typeof _sgLogEvent === 'function') _sgLogEvent('info','Signed in via DMS panel session: ' + email);
+    const bpo = s.bpo || localStorage.getItem('sg_bpo::' + email);
+    if(!bpo){ sgShowBpoChooser(); } else { sgFinishLogin(bpo); }
+    return true;
+  }catch(e){ return false; }
 }
 
 function sgSignOut(){
@@ -8429,7 +8498,7 @@ function copyAll(){
 // Readable source: Admin → Bookmarklet → "View readable source".
 // ═══════════════════════════════════════════════════════════════
 const SG2_DEFAULT_HOST = 'https://hadiahmadrrsg.github.io/allinonescriptgenerator/';
-const SG2_BM_TEMPLATE = "javascript:!function(){function e(e){return!(-1===e.indexOf('Returnable Status')&&-1===e.indexOf('dms_new_rr_returnable_status')||-1===e.indexOf('Products')&&-1===e.indexOf('dms_general_products'))}function t(e){return!(-1===e.indexOf('dms_general_parcel')&&-1===e.indexOf('Parcel')||-1===e.indexOf('dms_general_products')&&-1===e.indexOf('Products')||-1===e.indexOf('cs_portal_bundle_id')&&-1===e.indexOf('Bundle ID'))}function n(e){for(var t=1;t<e.length;t++){var n=e[t].trim();if(/^Variation\\s*:/i.test(n))return n.replace(/^Variation\\s*:\\s*/i,'').trim();if(/^dms_general_variation\\s*:/i.test(n))return n.replace(/^dms_general_variation\\s*:\\s*/i,'').trim()}return''}function i(i){var o=c(),r=function(e){if(0===e.length)return'Info';if(1===e.length)return e[0].name;for(var t={},n=0;n<e.length;n++)t[e[n].name]=(t[e[n].name]||0)+1;for(var i=[],o=0;o<e.length;o++){var r=e[o];t[r.name]>1&&r.variation?i.push('- '+r.name+' ('+r.variation+')'):i.push('- '+r.name)}return i.join('\\n')}(function(){for(var i=[],o=document.querySelectorAll('tr'),r=!1,a=0;a<o.length;a++){var s=o[a],d=s.innerText.trim();if(r){if(t(d))break;if(-1!==s.className.indexOf('ant-table-row')&&-1===s.className.indexOf('measure')){var l=d.split(/\\n/),c=l[0].trim().replace(/\\s+X\\d+\\s*$/g,'').trim(),u=n(l).replace(/\\s*[A-Z0-9]{6,}(\\s|_|$)/g,' ').replace(/[_]/g,' ').replace(/\\s+/g,' ').trim();c.length>10&&i.push({name:c,variation:u})}}else e(d)&&(r=!0)}return i}()),a=(o.match(/Request Type[\\s]*:[\\s]*(.*?)(?=\\n|$)/i)||[])[1]||'',s=(o.match(/Request Proposal[\\s]*:?[\\s]*(.+?)(?=\\s{2,}|Refund Amount|\\t|\\n|$)/i)||[])[1]||'',d='',l=o.match(/Seller 1st Dispute[\\s\\S]*?Dispute Reason[\\s]*:[\\s]*(.+?)(?=\\n|$)/i);l&&(d=l[1].trim()),'-'!==d&&'None'!==d&&''!==d||(d='');var u=!1;(/^\\s*Seller\\s*Dispute/i.test(a)||d&&d.length>2&&!/Buyer\\s*Request/i.test(a))&&(u=!0);var g='';/without\\s*buyer/i.test(a)?g='Without Buyer':(/with\\s*buyer/i.test(a)||u)&&(g='With Buyer');var m='Buyer',p='';u?(m='Seller',p='Seller Dispute'):s.match(/Return\\s*[&]\\s*Refund/i)||s.match(/Return\\s*and\\s*Refund/i)||'Return&Refund'===s?p='Return & Refund':s.match(/Refund\\s*Only/i)&&(p='Refund Only');for(var f='',_=[/Real Return Reason[\\s]*:[\\s]*(.+?)(?=\\t|\\n|$)/i,/Real Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=\\s{2,}|\\t|\\n|$)/i,/Real\\s+Return\\s+Reason\\s*[:\\-]?\\s*(.+?)$/im],h=0;h<_.length;h++){var y=o.match(_[h]);if(y&&y[1]&&'-'!==y[1].trim()&&'None'!==y[1].trim()&&'Not Available'!==y[1].trim()&&y[1].trim().length>3){f=y[1].trim();break}}if(!f||'-'===f)for(var v=[/(?:^|\\n|\\t)Return Reason[\\s]*:[\\s]*(.+?)(?=\\s{2,}|Real Return|\\t|\\n|$)/i,/Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=Return Reason Remark|Real Return|\\t{2,}|\\n|$)/i],x=0;x<v.length;x++){var w=o.match(v[x]);if(w&&w[1]&&'-'!==w[1].trim()&&'None'!==w[1].trim()&&'Not Available'!==w[1].trim()&&w[1].trim().length>3){f=w[1].trim();break}}f=(f=(f=f.replace(/\\s*Auto[- ]?Approve.*$/i,'').trim()).replace(/\\s*Images and Videos.*$/i,'').trim()).replace(/\\s*Return Reason Remark.*$/i,'').trim();var b;b=((o.match(/Grand Total[:\\s\\n]*\\$?([\\d,]+\\.?\\d*)/i)||[])[1]||'').replace(/,/g,'');var E='',I=o.match(/Maximum Compensation Amount[:\\s]*\\$?([\\d]+\\.?\\d*)/gi);if(I)for(var S=0;S<I.length;S++){var R=(I[S].match(/([\\d]+\\.?\\d*)$/)||[])[1]||'';if(R&&parseFloat(R)>0){E=R;break}}return{rid:i,orderSN:(o.match(/Order SN[:\\s]*([A-Z0-9]+)/i)||[])[1]||'',userType:m,requestType:p,buyerUsername:((o.match(/Buyer Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\\s*(?:Buyer|Seller)?\\s*$/i,'').trim(),sellerUsername:((o.match(/Seller Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\\s*(?:Buyer|Seller)?\\s*$/i,'').trim(),shopName:(o.match(/Shop Name[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',requestProposal:s,returnReason:f,refundAmount:b,buyerCategory:(o.match(/Buyer Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerCategory:(o.match(/Seller Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerDisputeReason:d,slaWallet:E,sellerSubType:g,productName:r}}var o='__SG2_HOST__',r='__SG2_VER__',a='a87125ac',s='_sg2_panel',d='_sg2_pill',l='sg2_panel_geom';function c(){for(var e=[],t=document.body.children,n=0;n<t.length;n++){var i=t[n];if(i.id!==s&&i.id!==d){var o=i.tagName;if('SCRIPT'!==o&&'STYLE'!==o&&'TEMPLATE'!==o&&'NOSCRIPT'!==o&&'LINK'!==o&&'META'!==o){try{if('none'===window.getComputedStyle(i).display)continue}catch(e){}var r=i.innerText;null==r&&(r=i.textContent||''),r&&e.push(r)}}}return e.join('\\n')}var u='';try{u=new URL(o).origin}catch(e){}function g(){var e=(window.location.pathname.split('/').filter(Boolean).pop()||'').trim();if(/^\\d{5,}$/.test(e))return e;try{for(var t=new URLSearchParams(window.location.search),n=['rid','RID','case_id','caseId','id'],i=0;i<n.length;i++){var o=t.get(n[i]);if(o&&/^\\d{5,}$/.test(o))return o}}catch(e){}var r=(window.location.hash||'').match(/(\\d{5,})/);if(r)return r[1];try{var a=c().match(/\\bRID\\s*[:#]?\\s*(\\d{5,})/i);if(a)return a[1]}catch(e){}return e}var m=g();function p(e){return String(null==e?'':e).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;')}function f(e){var t=encodeURIComponent(JSON.stringify(e));if(t.length>6e3&&e&&e.productName){var n={};for(var i in e)n[i]=e[i];n.productName=String(e.productName).slice(0,300),t=encodeURIComponent(JSON.stringify(n))}return t}function _(e){var t=-1===o.indexOf('?')?'?':'&';return o+t+'embed=1'+(e?'&data='+f(e):'')}function h(e){var t=-1===o.indexOf('?')?'?':'&';return o+t+(e?'data='+f(e):'')}function y(){try{return JSON.parse(localStorage.getItem(l)||'null')}catch(e){return null}}function v(e){try{var t=e.getBoundingClientRect(),n=y()||{},i=e.__sg2IsMin&&e.__sg2IsMin()?n.height||null:t.height,o={left:t.left,top:t.top,width:t.width};i&&(o.height=i),localStorage.setItem(l,JSON.stringify(o))}catch(e){}}function x(e,t){var n=document.getElementById('_sg2_status');n&&(n.textContent=e,n.style.color=t||'#6b7280')}function w(e){var t=document.getElementById('_sg2_frame');if(t&&t.contentWindow)try{t.contentWindow.postMessage({type:'sg2-fill',data:e},'*')}catch(e){}}var b=null;function E(e){b&&clearTimeout(b),b=setTimeout(function(){var t=document.getElementById(s);t&&'1'!==t.getAttribute('data-ready')&&!t.__sg2everLoaded&&function(e,t){var n=document.getElementById('_sg2_fallback');n&&(e=e||null,n.style.display='flex',n.innerHTML='<div style=\"max-width:380px;text-align:center;font-size:13px;color:#374151;line-height:1.6\"><div style=\"font-size:30px;margin-bottom:8px\">\\u26a0\\ufe0f</div><b>'+p(t)+'</b><div style=\"margin-top:6px;color:#6b7280\">Your case data is ready \\u2014 open the generator in its own window instead.</div><button id=\"_sg2_fb_open\" style=\"margin-top:14px;padding:10px 22px;border:none;border-radius:10px;background:#ee4d2d;color:#fff;font-weight:700;font-size:13px;cursor:pointer\">\\u29c9 Open Script Generator 2.0</button></div>',document.getElementById('_sg2_fb_open').onclick=function(){window.open(h(e),'_blank')})}(e||t&&t.__sg2data,'The generator didn\\u2019t load inside DMS.')},12e3)}function I(){try{(window.__sg2log=window.__sg2log||[]).push([(new Date).toISOString()].concat([].slice.call(arguments)).join(' '))}catch(e){}}function S(e,t){if(e&&t){e.__sg2data=t;var n=document.getElementById('_sg2_title_rid');if(n&&(n.textContent=t.rid?'RID '+t.rid:''),'1'===e.getAttribute('data-ready'))return w(t),x('Connected','#059669'),void I('delivered via postMessage');e.__sg2loaded?R(e):x('Scanned \\u2713 \\xb7 loading generator\\u2026','#6b7280')}}function R(e){var t=document.getElementById('_sg2_frame');t&&e.__sg2data&&(e.__sg2urlMode=!0,e.__sg2loaded=0,e.setAttribute('data-ready','0'),t.src=_(e.__sg2data),x('Connected \\xb7 compat','#059669'),I('delivered via URL (no handshake)'))}function B(e){var t=document.getElementById(s);if(t){t.__sg2data=e;var n=document.getElementById('_sg2_title_rid');n&&(n.textContent=e.rid?'RID '+e.rid:'');var i=document.getElementById('_sg2_fallback');i&&(i.style.display='none'),'1'===t.getAttribute('data-ready')?(w(e),x('Re-scanned \\u2713','#059669'),setTimeout(function(){x('Connected','#059669')},1800)):t.__sg2loaded||t.__sg2urlMode?R(t):(S(t,e),E(e))}}function M(e){var t=document.getElementById(s);t&&t.remove();var n=document.getElementById(d);n&&n.remove();var i=y()||{},o=document.createElement('div');o.id=s,o.__sg2data=e,o.setAttribute('data-ready','0'),o.setAttribute('data-build',a),o.style.cssText='position:fixed;top:12px;right:12px;width:560px;height:calc(100vh - 24px);min-width:340px;min-height:200px;z-index:2147483000;background:#fff;border:3px solid #ee4d2d;border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box',i.width&&(o.style.left=Math.max(0,Math.min(i.left,window.innerWidth-100))+'px',o.style.top=Math.max(0,Math.min(i.top,window.innerHeight-60))+'px',o.style.right='auto',o.style.width=Math.min(i.width,window.innerWidth)+'px',i.height&&(o.style.height=Math.min(i.height,window.innerHeight)+'px'));var l=function(e,t,n,i){return'<button id=\"'+e+'\" title=\"'+t+'\" style=\"background:#f3f4f6;border:none;border-radius:8px;height:30px;min-width:30px;padding:0 '+(i?'6':'10')+'px;font-size:'+(i?'20':'12')+'px;font-weight:600;cursor:pointer;color:#374151;line-height:1;font-family:sans-serif\">'+n+'</button>'};o.innerHTML='<div id=\"_sg2_head\" style=\"display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 8px 14px;background:#fff;border-bottom:1px solid #e5e7eb;cursor:move;user-select:none;flex:0 0 auto\"><div style=\"display:flex;align-items:center;gap:8px;min-width:0\"><span style=\"font-weight:800;font-size:14px;color:#ee4d2d;white-space:nowrap\">\\u26a1Script Generator 2.0</span><span id=\"_sg2_ver\" style=\"display:inline-block;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700\">'+r+'</span><span id=\"_sg2_title_rid\" style=\"font-size:12px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\"></span><span id=\"_sg2_status\" style=\"font-size:11px;color:#6b7280;white-space:nowrap\">Loading\\u2026</span></div><div style=\"display:flex;gap:4px;align-items:center;flex:0 0 auto\">'+l('_sg2_rescan','Re-scan this DMS page','\\u21bb Re-scan')+l('_sg2_popout','Open in its own window','\\u29c9')+l('_sg2_min','Minimize','\\u2212',!0)+l('_sg2_close','Close','\\xd7',!0)+'</div></div><div id=\"_sg2_body\" style=\"position:relative;display:flex;flex:1 1 auto;min-height:0;background:#fff\"><iframe id=\"_sg2_frame\" title=\"Script Generator 2.0\" allow=\"clipboard-write; clipboard-read\" style=\"border:0;flex:1 1 auto;min-width:0;min-height:0;align-self:stretch;display:block;background:#fff\"></iframe><div id=\"_sg2_fallback\" style=\"display:none;position:absolute;inset:0;background:#fff;align-items:center;justify-content:center;padding:20px\"></div></div>'+['n','s','w','e','nw','ne','sw','se'].map(function(e){var t='position:absolute;z-index:5;';return'n'===e&&(t+='top:0;left:8px;right:8px;height:8px;cursor:ns-resize'),'s'===e&&(t+='bottom:0;left:8px;right:8px;height:8px;cursor:ns-resize'),'w'===e&&(t+='left:0;top:8px;bottom:8px;width:8px;cursor:ew-resize'),'e'===e&&(t+='right:0;top:8px;bottom:8px;width:8px;cursor:ew-resize'),'nw'===e&&(t+='top:0;left:0;width:14px;height:14px;cursor:nwse-resize;z-index:6'),'ne'===e&&(t+='top:0;right:0;width:14px;height:14px;cursor:nesw-resize;z-index:6'),'sw'===e&&(t+='bottom:0;left:0;width:14px;height:14px;cursor:nesw-resize;z-index:6'),'se'===e&&(t+='bottom:0;right:0;width:14px;height:14px;cursor:nwse-resize;z-index:6'),'<div id=\"_sg2_rs_'+e+'\" style=\"'+t+'\"></div>'}).join(''),document.body.appendChild(o),document.getElementById('_sg2_title_rid').textContent=e&&e.rid?'RID '+e.rid:'';var c=document.getElementById('_sg2_frame');function p(e){c.style.pointerEvents=e?'none':'auto'}['_sg2_rescan','_sg2_popout','_sg2_min','_sg2_close'].forEach(function(e){var t;(t=document.getElementById(e)).addEventListener('mouseenter',function(){this.style.background='#dc2626',this.style.color='#fff'}),t.addEventListener('mouseleave',function(){this.style.background='#f3f4f6',this.style.color='#374151'})}),document.getElementById('_sg2_rescan').onclick=function(){m=g(),x('Scanning\\u2026','#b45309'),k(function(e){B(e)})},document.getElementById('_sg2_popout').onclick=function(){window.open(h(o.__sg2data||null),'_blank')};var f=!1,b='';function M(e){f=!!e,document.getElementById('_sg2_body').style.display=f?'none':'flex',f?(b=o.style.height,o.style.height='auto',o.style.minHeight='0'):(o.style.height=b||'calc(100vh - 24px)',o.style.minHeight='200px');var t=document.getElementById('_sg2_min');t&&(t.textContent=f?'\\u25a1':'\\u2212',t.title=f?'Restore':'Minimize');var n=document.getElementById('_sg2_head');n&&(n.title=f?'Click to restore (or press Esc)':'')}if(o.__sg2ToggleMin=function(){M(!f)},document.getElementById('_sg2_min').onclick=function(){M(!f)},document.getElementById('_sg2_head').addEventListener('click',function(e){f&&'BUTTON'!==e.target.tagName&&M(!1)}),window.__sg2H){try{document.removeEventListener('mousedown',window.__sg2H.mouse,!0)}catch(e){}try{document.removeEventListener('keydown',window.__sg2H.key)}catch(e){}try{window.removeEventListener('message',window.__sg2H.msg)}catch(e){}}window.__sg2H={},document.addEventListener('mousedown',window.__sg2H.mouse=function(e){var t=document.getElementById(s);if(t&&'none'!==t.style.display&&t.__sg2ToggleMin&&(!t.__sg2IsMin||!t.__sg2IsMin())){var n=e.target;t.contains(n)||n&&n.closest&&n.closest('#'+s+',#'+d)||t.__sg2ToggleMin()}},!0),o.__sg2IsMin=function(){return f},document.addEventListener('keydown',window.__sg2H.key=function(e){if('Escape'===e.key&&!e.defaultPrevented){var t=document.getElementById(s);t&&'none'!==t.style.display&&t.__sg2ToggleMin&&t.__sg2ToggleMin()}}),document.getElementById('_sg2_close').onclick=function(){o.style.display='none';var e=document.getElementById(d);e&&e.remove();var t=document.createElement('div');t.id=d,t.style.cssText='position:fixed;top:12px;right:12px;z-index:2147483000;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-radius:12px;background:#ffbb00;color:#3d2b00;font-family:sans-serif;font-size:13px;font-weight:700;cursor:move;box-shadow:0 6px 20px rgba(0,0,0,.3);user-select:none',t.innerHTML='<span style=\"pointer-events:none\">\\u26a1Script Generator 2.0</span><span id=\"_sg2_bub_x\" title=\"Close\" style=\"width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,.12);font-size:20px;line-height:28px;text-align:center;cursor:pointer;flex:0 0 auto\">\\xd7</span>',document.body.appendChild(t);var n=document.getElementById('_sg2_bub_x');n.addEventListener('mouseenter',function(){this.style.background='#dc2626',this.style.color='#fff'}),n.addEventListener('mouseleave',function(){this.style.background='rgba(0,0,0,.12)',this.style.color='#3d2b00'}),n.addEventListener('click',function(e){e.stopPropagation(),t.remove(),o.remove()});var i=!1,r=!1,a=0,s=0;t.addEventListener('mousedown',function(e){if(!e.target||'_sg2_bub_x'!==e.target.id){i=!0,r=!1;var n=t.getBoundingClientRect();a=e.clientX-n.left,s=e.clientY-n.top,t.style.left=n.left+'px',t.style.top=n.top+'px',t.style.right='auto',e.preventDefault()}}),document.addEventListener('mousemove',function(e){i&&(r=!0,t.style.left=Math.min(Math.max(0,e.clientX-a),window.innerWidth-60)+'px',t.style.top=Math.min(Math.max(0,e.clientY-s),window.innerHeight-30)+'px')}),document.addEventListener('mouseup',function(){i=!1}),t.addEventListener('click',function(e){e.target&&'_sg2_bub_x'===e.target.id||(r?r=!1:(t.remove(),o.style.display='flex'))})};var T=document.getElementById('_sg2_head'),N=!1,C=0,L=0;T.addEventListener('mousedown',function(e){if('BUTTON'!==e.target.tagName){N=!0,p(!0);var t=o.getBoundingClientRect();C=e.clientX-t.left,L=e.clientY-t.top,o.style.left=t.left+'px',o.style.top=t.top+'px',o.style.right='auto',e.preventDefault()}}),document.addEventListener('mousemove',function(e){N&&(o.style.left=Math.min(Math.max(0,e.clientX-C),window.innerWidth-60)+'px',o.style.top=Math.min(Math.max(0,e.clientY-L),window.innerHeight-40)+'px')}),document.addEventListener('mouseup',function(){N&&(N=!1,p(!1),v(o))});var O=null;['n','s','w','e','nw','ne','sw','se'].forEach(function(e){document.getElementById('_sg2_rs_'+e).addEventListener('mousedown',function(t){O={dir:e,rect:o.getBoundingClientRect()},p(!0),o.style.left=O.rect.left+'px',o.style.top=O.rect.top+'px',o.style.right='auto',t.preventDefault(),t.stopPropagation()})}),document.addEventListener('mousemove',function(e){if(O){var t=O.rect,n=O.dir,i=t.width,r=t.height,a=t.left,s=t.top;-1!==n.indexOf('e')?i=Math.max(340,e.clientX-t.left):-1!==n.indexOf('w')&&(i=Math.max(340,t.right-e.clientX),a=t.right-i),-1!==n.indexOf('s')?r=Math.max(200,e.clientY-t.top):-1!==n.indexOf('n')&&(r=Math.max(200,t.bottom-e.clientY),s=t.bottom-r),o.style.width=i+'px',o.style.height=r+'px',o.style.left=a+'px',o.style.top=s+'px'}}),document.addEventListener('mouseup',function(){O&&(O=null,p(!1),v(o))}),window.addEventListener('message',window.__sg2H.msg=function(e){var t=e&&e.data;if(t&&'object'==typeof t&&'string'==typeof t.type&&0===t.type.indexOf('sg2-')){var n=document.getElementById(s);if(n){var i=document.getElementById('_sg2_frame');if(i&&i.contentWindow&&e.source===i.contentWindow||u&&e.origin===u)if('sg2-ready'===t.type){var o=!t.doc||n.__sg2doc!==t.doc;I('ready',t.version,t.doc||'',o?'new-doc':'same-doc'),t.doc&&(n.__sg2doc=t.doc),n.setAttribute('data-ready','1');var a=document.getElementById('_sg2_fallback');a&&(a.style.display='none');var d=document.getElementById('_sg2_ver');if(d&&t.version&&(d.textContent=t.version===r?t.version:r+' \\xb7 site '+t.version,d.style.display='inline-block'),!o)return;n.__sg2data?(x('Connected','#059669'),w(n.__sg2data)):x('Connected \\xb7 scanning DMS\\u2026','#b45309')}else'sg2-esc'===t.type?'none'!==n.style.display&&n.__sg2ToggleMin&&n.__sg2ToggleMin():'sg2-authed'===t.type?x('Signed in \\u2713','#059669'):'sg2-filled'===t.type&&x('Auto-filled \\u2713','#059669');else I('ignored message',t.type,e.origin)}}}),c.addEventListener('load',function(){o.__sg2loaded=Date.now(),o.__sg2everLoaded=!0,I('frame load',o.getAttribute('data-ready'),o.__sg2urlMode?'urlMode':''),o.__sg2urlMode?'1'!==o.getAttribute('data-ready')&&x('Connected \\xb7 compat','#059669'):setTimeout(function(){var e=document.getElementById(s);e&&'1'!==e.getAttribute('data-ready')&&!e.__sg2urlMode&&(e.__sg2data?R(e):x('Generator loaded \\xb7 scanning DMS\\u2026','#b45309'))},1500)}),function(){try{for(var e=[u,'https://fonts.googleapis.com','https://fonts.gstatic.com','https://www.gstatic.com','https://cdn.jsdelivr.net'],t=0;t<e.length;t++)if(e[t]&&!document.querySelector('link[data-sg2][href=\"'+e[t]+'\"]')){var n=document.createElement('link');n.rel='preconnect',n.href=e[t],n.setAttribute('data-sg2','1'),'https://fonts.gstatic.com'===e[t]&&(n.crossOrigin='anonymous'),document.head.appendChild(n)}}catch(e){}}(),c.src=_(e),E(e),window.__sg2Follow&&clearInterval(window.__sg2Follow);var z=window.location.pathname,A=!1;window.__sg2Follow=setInterval(function(){var e=document.getElementById(s);if(!e)return clearInterval(window.__sg2Follow),void(window.__sg2Follow=null);if(!A&&window.location.pathname!==z){z=window.location.pathname,m=g(),A=!0,x('New case \\u2014 scanning\\u2026','#b45309');var t=document.getElementById(d);t&&(t.remove(),e.style.display='flex'),k(function(e){A=!1;var t=document.getElementById(s);t&&(e?t.__sg2data&&e.orderSN&&t.__sg2data.orderSN===e.orderSN?x('Same case \\u2713','#059669'):t.__sg2data?B(e):S(t,e):x('Not a case page','#6b7280'))},!0)}},800)}function k(e,t){function n(){if(-1===c().indexOf('Maximum Compensation Amount')){for(var t=null,n=document.querySelectorAll('*'),o=0;o<n.length;o++){var r=n[o];if('View Detail'===(r.innerText||r.textContent||'').trim()&&0===r.children.length){t=r;break}}if(t){t.click();var a=0,s=setInterval(function(){a+=60,(-1!==c().indexOf('Maximum Compensation Amount')||a>=1200)&&(clearInterval(s),e(i(m)))},60)}else e(i(m))}else e(i(m))}var o=0;!function i(){var r=c(),a=/Order SN[\\s]*:[\\s]*[A-Z0-9]{5,}/i.test(r),s=/Request Type[\\s]*:/i.test(r);o++,a&&s?n():o>=40?t&&!a?e(null):n():setTimeout(i,200)}()}var T=document.getElementById(s);if(T&&T.getAttribute('data-build')!==a){window.__sg2Follow&&(clearInterval(window.__sg2Follow),window.__sg2Follow=null),T.remove();var N=document.getElementById(d);N&&N.remove(),T=null}if(T){var C=document.getElementById(d);return C&&(C.remove(),T.style.display='flex'),T.__sg2IsMin&&T.__sg2IsMin()&&T.__sg2ToggleMin&&T.__sg2ToggleMin(),m=g(),x('Scanning\\u2026','#b45309'),void k(function(e){var t=document.getElementById(s);t&&(t.__sg2data&&e.orderSN&&t.__sg2data.orderSN===e.orderSN?x('Same case \\u2713 (use \\u21bb Re-scan to refill)','#059669'):B(e))})}!function(){try{M(null),x('Scanning DMS\\u2026','#b45309'),k(function(e){var t=document.getElementById(s);t&&(I('scan done',e.orderSN),S(t,e))})}catch(t){try{var e=document.createElement('div');e.style.cssText='position:fixed;top:12px;right:12px;width:420px;z-index:2147483000;background:#fff;border:3px solid #dc2626;border-radius:14px;padding:16px;font-family:sans-serif;font-size:13px;box-shadow:0 20px 70px rgba(0,0,0,.35)',e.innerHTML='<b style=\"color:#dc2626\">Script Generator 2.0 \\u2014 error</b><div style=\"margin:8px 0;color:#374151\">'+p(t&&t.message?t.message:String(t))+'</div><button style=\"padding:6px 14px;border:none;border-radius:8px;background:#374151;color:#fff;cursor:pointer\">Close</button>',e.querySelector('button').onclick=function(){e.remove()},document.body.appendChild(e)}catch(e){alert('Script Generator 2.0 error: '+(t&&t.message?t.message:t))}}}()}();";
+const SG2_BM_TEMPLATE = "javascript:!function(){function e(e){return!(-1===e.indexOf('Returnable Status')&&-1===e.indexOf('dms_new_rr_returnable_status')||-1===e.indexOf('Products')&&-1===e.indexOf('dms_general_products'))}function t(e){return!(-1===e.indexOf('dms_general_parcel')&&-1===e.indexOf('Parcel')||-1===e.indexOf('dms_general_products')&&-1===e.indexOf('Products')||-1===e.indexOf('cs_portal_bundle_id')&&-1===e.indexOf('Bundle ID'))}function n(e){for(var t=1;t<e.length;t++){var n=e[t].trim();if(/^Variation\\s*:/i.test(n))return n.replace(/^Variation\\s*:\\s*/i,'').trim();if(/^dms_general_variation\\s*:/i.test(n))return n.replace(/^dms_general_variation\\s*:\\s*/i,'').trim()}return''}function i(i){var o=c(),r=function(e){if(0===e.length)return'Info';if(1===e.length)return e[0].name;for(var t={},n=0;n<e.length;n++)t[e[n].name]=(t[e[n].name]||0)+1;for(var i=[],o=0;o<e.length;o++){var r=e[o];t[r.name]>1&&r.variation?i.push('- '+r.name+' ('+r.variation+')'):i.push('- '+r.name)}return i.join('\\n')}(function(){for(var i=[],o=document.querySelectorAll('tr'),r=!1,a=0;a<o.length;a++){var s=o[a],d=s.innerText.trim();if(r){if(t(d))break;if(-1!==s.className.indexOf('ant-table-row')&&-1===s.className.indexOf('measure')){var l=d.split(/\\n/),c=l[0].trim().replace(/\\s+X\\d+\\s*$/g,'').trim(),u=n(l).replace(/\\s*[A-Z0-9]{6,}(\\s|_|$)/g,' ').replace(/[_]/g,' ').replace(/\\s+/g,' ').trim();c.length>10&&i.push({name:c,variation:u})}}else e(d)&&(r=!0)}return i}()),a=(o.match(/Request Type[\\s]*:[\\s]*(.*?)(?=\\n|$)/i)||[])[1]||'',s=(o.match(/Request Proposal[\\s]*:?[\\s]*(.+?)(?=\\s{2,}|Refund Amount|\\t|\\n|$)/i)||[])[1]||'',d='',l=o.match(/Seller 1st Dispute[\\s\\S]*?Dispute Reason[\\s]*:[\\s]*(.+?)(?=\\n|$)/i);l&&(d=l[1].trim()),'-'!==d&&'None'!==d&&''!==d||(d='');var u=!1;(/^\\s*Seller\\s*Dispute/i.test(a)||d&&d.length>2&&!/Buyer\\s*Request/i.test(a))&&(u=!0);var g='';/without\\s*buyer/i.test(a)?g='Without Buyer':(/with\\s*buyer/i.test(a)||u)&&(g='With Buyer');var m='Buyer',p='';u?(m='Seller',p='Seller Dispute'):s.match(/Return\\s*[&]\\s*Refund/i)||s.match(/Return\\s*and\\s*Refund/i)||'Return&Refund'===s?p='Return & Refund':s.match(/Refund\\s*Only/i)&&(p='Refund Only');for(var f='',_=[/Real Return Reason[\\s]*:[\\s]*(.+?)(?=\\t|\\n|$)/i,/Real Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=\\s{2,}|\\t|\\n|$)/i,/Real\\s+Return\\s+Reason\\s*[:\\-]?\\s*(.+?)$/im],h=0;h<_.length;h++){var y=o.match(_[h]);if(y&&y[1]&&'-'!==y[1].trim()&&'None'!==y[1].trim()&&'Not Available'!==y[1].trim()&&y[1].trim().length>3){f=y[1].trim();break}}if(!f||'-'===f)for(var v=[/(?:^|\\n|\\t)Return Reason[\\s]*:[\\s]*(.+?)(?=\\s{2,}|Real Return|\\t|\\n|$)/i,/Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=Return Reason Remark|Real Return|\\t{2,}|\\n|$)/i],x=0;x<v.length;x++){var w=o.match(v[x]);if(w&&w[1]&&'-'!==w[1].trim()&&'None'!==w[1].trim()&&'Not Available'!==w[1].trim()&&w[1].trim().length>3){f=w[1].trim();break}}f=(f=(f=f.replace(/\\s*Auto[- ]?Approve.*$/i,'').trim()).replace(/\\s*Images and Videos.*$/i,'').trim()).replace(/\\s*Return Reason Remark.*$/i,'').trim();var b;b=((o.match(/Grand Total[:\\s\\n]*\\$?([\\d,]+\\.?\\d*)/i)||[])[1]||'').replace(/,/g,'');var E='',I=o.match(/Maximum Compensation Amount[:\\s]*\\$?([\\d]+\\.?\\d*)/gi);if(I)for(var S=0;S<I.length;S++){var R=(I[S].match(/([\\d]+\\.?\\d*)$/)||[])[1]||'';if(R&&parseFloat(R)>0){E=R;break}}return{rid:i,orderSN:(o.match(/Order SN[:\\s]*([A-Z0-9]+)/i)||[])[1]||'',userType:m,requestType:p,buyerUsername:((o.match(/Buyer Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\\s*(?:Buyer|Seller)?\\s*$/i,'').trim(),sellerUsername:((o.match(/Seller Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\\s*(?:Buyer|Seller)?\\s*$/i,'').trim(),shopName:(o.match(/Shop Name[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',requestProposal:s,returnReason:f,refundAmount:b,buyerCategory:(o.match(/Buyer Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerCategory:(o.match(/Seller Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerDisputeReason:d,slaWallet:E,sellerSubType:g,productName:r}}var o='__SG2_HOST__',r='__SG2_VER__',a='be23fd06',s='_sg2_panel',d='_sg2_pill',l='sg2_panel_geom';function c(){for(var e=[],t=document.body.children,n=0;n<t.length;n++){var i=t[n];if(i.id!==s&&i.id!==d){var o=i.tagName;if('SCRIPT'!==o&&'STYLE'!==o&&'TEMPLATE'!==o&&'NOSCRIPT'!==o&&'LINK'!==o&&'META'!==o){try{if('none'===window.getComputedStyle(i).display)continue}catch(e){}var r=i.innerText;null==r&&(r=i.textContent||''),r&&e.push(r)}}}return e.join('\\n')}var u='';try{u=new URL(o).origin}catch(e){}function g(){var e=(window.location.pathname.split('/').filter(Boolean).pop()||'').trim();if(/^\\d{5,}$/.test(e))return e;try{for(var t=new URLSearchParams(window.location.search),n=['rid','RID','case_id','caseId','id'],i=0;i<n.length;i++){var o=t.get(n[i]);if(o&&/^\\d{5,}$/.test(o))return o}}catch(e){}var r=(window.location.hash||'').match(/(\\d{5,})/);if(r)return r[1];try{var a=c().match(/\\bRID\\b\\s*[:#]?\\s*(\\d{5,})/i);if(a)return a[1]}catch(e){}return e}var m=g();function p(e){return String(null==e?'':e).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;')}function f(e){var t=encodeURIComponent(JSON.stringify(e));if(t.length>6e3&&e&&e.productName){var n={};for(var i in e)n[i]=e[i];n.productName=String(e.productName).slice(0,300),t=encodeURIComponent(JSON.stringify(n))}return t}var _='sg2_session';function h(e){try{e?localStorage.setItem(_,JSON.stringify(e)):localStorage.removeItem(_)}catch(e){}}function y(e){var t='#sg2='+(e?f(e):'')+'&t='+Date.now(),n=function(){try{var e=JSON.parse(localStorage.getItem(_)||'null');if(e&&e.user&&e.ts&&Date.now()-e.ts<2592e6)return e}catch(e){}return null}();return n&&(t+='&sess='+encodeURIComponent(JSON.stringify(n))),t}function v(e){return t=-1===o.indexOf('?')?'?':'&',o+t+'embed=1'+y(e);var t}function x(e){var t=-1===o.indexOf('?')?'?':'&';return o+t+(e?'data='+f(e):'')}function w(){try{return JSON.parse(localStorage.getItem(l)||'null')}catch(e){return null}}function b(e){try{var t=e.getBoundingClientRect(),n=w()||{},i=e.__sg2IsMin&&e.__sg2IsMin()?n.height||null:t.height,o={left:t.left,top:t.top,width:t.width};i&&(o.height=i),localStorage.setItem(l,JSON.stringify(o))}catch(e){}}function E(e,t){var n=document.getElementById('_sg2_status');n&&(n.textContent=e,n.style.color=t||'#6b7280')}function I(e){var t=document.getElementById('_sg2_frame');if(t&&t.contentWindow)try{t.contentWindow.postMessage({type:'sg2-fill',data:e},'*')}catch(e){}}var S=null;function R(e){S&&clearTimeout(S),S=setTimeout(function(){var t=document.getElementById(s);t&&'1'!==t.getAttribute('data-ready')&&!t.__sg2everLoaded&&function(e,t){var n=document.getElementById('_sg2_fallback');n&&(e=e||null,n.style.display='flex',n.innerHTML='<div style=\"max-width:380px;text-align:center;font-size:13px;color:#374151;line-height:1.6\"><div style=\"font-size:30px;margin-bottom:8px\">\\u26a0\\ufe0f</div><b>'+p(t)+'</b><div style=\"margin-top:6px;color:#6b7280\">Your case data is ready \\u2014 open the generator in its own window instead.</div><button id=\"_sg2_fb_open\" style=\"margin-top:14px;padding:10px 22px;border:none;border-radius:10px;background:#ee4d2d;color:#fff;font-weight:700;font-size:13px;cursor:pointer\">\\u29c9 Open Script Generator 2.0</button></div>',document.getElementById('_sg2_fb_open').onclick=function(){window.open(x(e),'_blank')})}(e||t&&t.__sg2data,'The generator didn\\u2019t load inside DMS.')},12e3)}function B(){try{(window.__sg2log=window.__sg2log||[]).push([(new Date).toISOString()].concat([].slice.call(arguments)).join(' '))}catch(e){}}function k(e,t){if(e&&t){e.__sg2data=t;var n=document.getElementById('_sg2_title_rid');n&&(n.textContent=t.rid?'RID '+t.rid:''),e.__sg2loaded?M(e,t):E('Scanned \\u2713 \\xb7 loading generator\\u2026','#6b7280')}}function M(e,t){var n=document.getElementById('_sg2_frame');if(n){var i=v(t),o=!1;try{n.contentWindow&&n.contentWindow.location&&(n.contentWindow.location.replace(i),o=!0)}catch(e){o=!1}if(!o)try{n.src=i}catch(e){}n.setAttribute('data-sg2-url',i),I(t),E('Connected','#059669'),B('delivered via hash'+('1'===e.getAttribute('data-ready')?'+postMessage':''))}}function N(e){var t=document.getElementById(s);if(t){t.__sg2data=e;var n=document.getElementById('_sg2_title_rid');n&&(n.textContent=e.rid?'RID '+e.rid:'');var i=document.getElementById('_sg2_fallback');i&&(i.style.display='none'),k(t,e),t.__sg2loaded&&(E('Re-scanned \\u2713','#059669'),setTimeout(function(){E('Connected','#059669')},1800))}}function T(e){var t=document.getElementById(s);t&&t.remove();var n=document.getElementById(d);n&&n.remove();var i=w()||{},o=document.createElement('div');o.id=s,o.__sg2data=e,o.setAttribute('data-ready','0'),o.setAttribute('data-build',a),o.style.cssText='position:fixed;top:12px;right:12px;width:560px;height:calc(100vh - 24px);min-width:340px;min-height:200px;z-index:2147483000;background:#fff;border:3px solid #ee4d2d;border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box',i.width&&(o.style.left=Math.max(0,Math.min(i.left,window.innerWidth-100))+'px',o.style.top=Math.max(0,Math.min(i.top,window.innerHeight-60))+'px',o.style.right='auto',o.style.width=Math.min(i.width,window.innerWidth)+'px',i.height&&(o.style.height=Math.min(i.height,window.innerHeight)+'px'));var l=function(e,t,n,i){return'<button id=\"'+e+'\" title=\"'+t+'\" style=\"background:#f3f4f6;border:none;border-radius:8px;height:30px;min-width:30px;padding:0 '+(i?'6':'10')+'px;font-size:'+(i?'20':'12')+'px;font-weight:600;cursor:pointer;color:#374151;line-height:1;font-family:sans-serif\">'+n+'</button>'};o.innerHTML='<div id=\"_sg2_head\" style=\"display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 8px 14px;background:#fff;border-bottom:1px solid #e5e7eb;cursor:move;user-select:none;flex:0 0 auto\"><div style=\"display:flex;align-items:center;gap:8px;min-width:0\"><span style=\"font-weight:800;font-size:14px;color:#ee4d2d;white-space:nowrap\">\\u26a1Script Generator 2.0</span><span id=\"_sg2_ver\" style=\"display:inline-block;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700\">'+r+'</span><span id=\"_sg2_title_rid\" style=\"font-size:12px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\"></span><span id=\"_sg2_status\" style=\"font-size:11px;color:#6b7280;white-space:nowrap\">Loading\\u2026</span></div><div style=\"display:flex;gap:4px;align-items:center;flex:0 0 auto\">'+l('_sg2_rescan','Re-scan this DMS page','\\u21bb Re-scan')+l('_sg2_popout','Open in its own window','\\u29c9')+l('_sg2_min','Minimize','\\u2212',!0)+l('_sg2_close','Close','\\xd7',!0)+'</div></div><div id=\"_sg2_body\" style=\"position:relative;display:flex;flex:1 1 auto;min-height:0;background:#fff\"><iframe id=\"_sg2_frame\" title=\"Script Generator 2.0\" allow=\"clipboard-write; clipboard-read\" style=\"border:0;flex:1 1 auto;min-width:0;min-height:0;align-self:stretch;display:block;background:#fff\"></iframe><div id=\"_sg2_fallback\" style=\"display:none;position:absolute;inset:0;background:#fff;align-items:center;justify-content:center;padding:20px\"></div></div>'+['n','s','w','e','nw','ne','sw','se'].map(function(e){var t='position:absolute;z-index:5;';return'n'===e&&(t+='top:0;left:8px;right:8px;height:8px;cursor:ns-resize'),'s'===e&&(t+='bottom:0;left:8px;right:8px;height:8px;cursor:ns-resize'),'w'===e&&(t+='left:0;top:8px;bottom:8px;width:8px;cursor:ew-resize'),'e'===e&&(t+='right:0;top:8px;bottom:8px;width:8px;cursor:ew-resize'),'nw'===e&&(t+='top:0;left:0;width:14px;height:14px;cursor:nwse-resize;z-index:6'),'ne'===e&&(t+='top:0;right:0;width:14px;height:14px;cursor:nesw-resize;z-index:6'),'sw'===e&&(t+='bottom:0;left:0;width:14px;height:14px;cursor:nesw-resize;z-index:6'),'se'===e&&(t+='bottom:0;right:0;width:14px;height:14px;cursor:nwse-resize;z-index:6'),'<div id=\"_sg2_rs_'+e+'\" style=\"'+t+'\"></div>'}).join(''),document.body.appendChild(o),document.getElementById('_sg2_title_rid').textContent=e&&e.rid?'RID '+e.rid:'';var c=document.getElementById('_sg2_frame');function p(e){c.style.pointerEvents=e?'none':'auto'}['_sg2_rescan','_sg2_popout','_sg2_min','_sg2_close'].forEach(function(e){var t;(t=document.getElementById(e)).addEventListener('mouseenter',function(){this.style.background='#dc2626',this.style.color='#fff'}),t.addEventListener('mouseleave',function(){this.style.background='#f3f4f6',this.style.color='#374151'})}),document.getElementById('_sg2_rescan').onclick=function(){m=g(),E('Scanning\\u2026','#b45309'),O(function(e){N(e)})},document.getElementById('_sg2_popout').onclick=function(){window.open(x(o.__sg2data||null),'_blank')};var f=!1,_='';function y(e){f=!!e,document.getElementById('_sg2_body').style.display=f?'none':'flex',f?(_=o.style.height,o.style.height='auto',o.style.minHeight='0'):(o.style.height=_||'calc(100vh - 24px)',o.style.minHeight='200px');var t=document.getElementById('_sg2_min');t&&(t.textContent=f?'\\u25a1':'\\u2212',t.title=f?'Restore':'Minimize');var n=document.getElementById('_sg2_head');n&&(n.title=f?'Click to restore (or press Esc)':'')}if(o.__sg2ToggleMin=function(){y(!f)},document.getElementById('_sg2_min').onclick=function(){y(!f)},document.getElementById('_sg2_head').addEventListener('click',function(e){f&&'BUTTON'!==e.target.tagName&&y(!1)}),window.__sg2H){try{document.removeEventListener('mousedown',window.__sg2H.mouse,!0)}catch(e){}try{document.removeEventListener('keydown',window.__sg2H.key)}catch(e){}try{window.removeEventListener('message',window.__sg2H.msg,!0)}catch(e){}}window.__sg2H={},document.addEventListener('mousedown',window.__sg2H.mouse=function(e){var t=document.getElementById(s);if(t&&'none'!==t.style.display&&t.__sg2ToggleMin&&(!t.__sg2IsMin||!t.__sg2IsMin())){var n=e.target;t.contains(n)||n&&n.closest&&n.closest('#'+s+',#'+d)||t.__sg2ToggleMin()}},!0),o.__sg2IsMin=function(){return f},document.addEventListener('keydown',window.__sg2H.key=function(e){if('Escape'===e.key&&!e.defaultPrevented){var t=document.getElementById(s);t&&'none'!==t.style.display&&t.__sg2ToggleMin&&t.__sg2ToggleMin()}}),document.getElementById('_sg2_close').onclick=function(){o.style.display='none';var e=document.getElementById(d);e&&e.remove();var t=document.createElement('div');t.id=d,t.style.cssText='position:fixed;top:12px;right:12px;z-index:2147483000;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-radius:12px;background:#ffbb00;color:#3d2b00;font-family:sans-serif;font-size:13px;font-weight:700;cursor:move;box-shadow:0 6px 20px rgba(0,0,0,.3);user-select:none',t.innerHTML='<span style=\"pointer-events:none\">\\u26a1Script Generator 2.0</span><span id=\"_sg2_bub_x\" title=\"Close\" style=\"width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,.12);font-size:20px;line-height:28px;text-align:center;cursor:pointer;flex:0 0 auto\">\\xd7</span>',document.body.appendChild(t);var n=document.getElementById('_sg2_bub_x');n.addEventListener('mouseenter',function(){this.style.background='#dc2626',this.style.color='#fff'}),n.addEventListener('mouseleave',function(){this.style.background='rgba(0,0,0,.12)',this.style.color='#3d2b00'}),n.addEventListener('click',function(e){e.stopPropagation(),t.remove(),o.remove()});var i=!1,r=!1,a=0,s=0;t.addEventListener('mousedown',function(e){if(!e.target||'_sg2_bub_x'!==e.target.id){i=!0,r=!1;var n=t.getBoundingClientRect();a=e.clientX-n.left,s=e.clientY-n.top,t.style.left=n.left+'px',t.style.top=n.top+'px',t.style.right='auto',e.preventDefault()}}),document.addEventListener('mousemove',function(e){i&&(r=!0,t.style.left=Math.min(Math.max(0,e.clientX-a),window.innerWidth-60)+'px',t.style.top=Math.min(Math.max(0,e.clientY-s),window.innerHeight-30)+'px')}),document.addEventListener('mouseup',function(){i=!1}),t.addEventListener('click',function(e){e.target&&'_sg2_bub_x'===e.target.id||(r?r=!1:(t.remove(),o.style.display='flex'))})};var T=document.getElementById('_sg2_head'),C=!1,L=0,z=0;T.addEventListener('mousedown',function(e){if('BUTTON'!==e.target.tagName){C=!0,p(!0);var t=o.getBoundingClientRect();L=e.clientX-t.left,z=e.clientY-t.top,o.style.left=t.left+'px',o.style.top=t.top+'px',o.style.right='auto',e.preventDefault()}}),document.addEventListener('mousemove',function(e){C&&(o.style.left=Math.min(Math.max(0,e.clientX-L),window.innerWidth-60)+'px',o.style.top=Math.min(Math.max(0,e.clientY-z),window.innerHeight-40)+'px')}),document.addEventListener('mouseup',function(){C&&(C=!1,p(!1),b(o))});var A=null;['n','s','w','e','nw','ne','sw','se'].forEach(function(e){document.getElementById('_sg2_rs_'+e).addEventListener('mousedown',function(t){A={dir:e,rect:o.getBoundingClientRect()},p(!0),o.style.left=A.rect.left+'px',o.style.top=A.rect.top+'px',o.style.right='auto',t.preventDefault(),t.stopPropagation()})}),document.addEventListener('mousemove',function(e){if(A){var t=A.rect,n=A.dir,i=t.width,r=t.height,a=t.left,s=t.top;-1!==n.indexOf('e')?i=Math.max(340,e.clientX-t.left):-1!==n.indexOf('w')&&(i=Math.max(340,t.right-e.clientX),a=t.right-i),-1!==n.indexOf('s')?r=Math.max(200,e.clientY-t.top):-1!==n.indexOf('n')&&(r=Math.max(200,t.bottom-e.clientY),s=t.bottom-r),o.style.width=i+'px',o.style.height=r+'px',o.style.left=a+'px',o.style.top=s+'px'}}),document.addEventListener('mouseup',function(){A&&(A=null,p(!1),b(o))}),window.addEventListener('message',window.__sg2H.msg=function(e){var t=e&&e.data;if(t&&'object'==typeof t&&'string'==typeof t.type&&0===t.type.indexOf('sg2-')){var n=document.getElementById(s);if(n){var i=document.getElementById('_sg2_frame');if(i&&i.contentWindow&&e.source===i.contentWindow||u&&e.origin===u)if('sg2-ready'===t.type){var o=!t.doc||n.__sg2doc!==t.doc;B('ready',t.version,t.doc||'',o?'new-doc':'same-doc'),t.doc&&(n.__sg2doc=t.doc),n.setAttribute('data-ready','1');var a=document.getElementById('_sg2_fallback');a&&(a.style.display='none');var d=document.getElementById('_sg2_ver');if(d&&t.version&&(d.textContent=t.version===r?t.version:r+' \\xb7 site '+t.version,d.style.display='inline-block'),!o)return;n.__sg2data?(E('Connected \\u2713','#059669'),n.__sg2loaded&&I(n.__sg2data)):E('Connected \\xb7 scanning DMS\\u2026','#b45309')}else'sg2-esc'===t.type?'none'!==n.style.display&&n.__sg2ToggleMin&&n.__sg2ToggleMin():'sg2-authed'===t.type?(t.user&&t.user.email&&(h({user:t.user,bpo:t.bpo||'',ts:Date.now()}),B('session saved',t.user.email)),E('Signed in \\u2713','#059669')):'sg2-signedout'===t.type?(h(null),B('session cleared')):'sg2-filled'===t.type&&E('Auto-filled \\u2713','#059669');else B('ignored message',t.type,e.origin)}}},!0),c.addEventListener('load',function(){try{if(c.contentWindow&&c.contentWindow.location&&'about:blank'===c.contentWindow.location.href)return void B('ignored about:blank load')}catch(e){}if(c.src&&-1!==c.src.indexOf('embed=1')){o.__sg2loaded=Date.now(),o.__sg2everLoaded=!0,S&&(clearTimeout(S),S=null);var e=document.getElementById('_sg2_fallback');e&&(e.style.display='none'),B('frame load',o.getAttribute('data-ready')),o.__sg2data?M(o,o.__sg2data):E('Generator loaded \\xb7 scanning DMS\\u2026','#b45309')}}),function(){try{for(var e=[u,'https://fonts.googleapis.com','https://fonts.gstatic.com','https://www.gstatic.com','https://cdn.jsdelivr.net'],t=0;t<e.length;t++)if(e[t]&&!document.querySelector('link[data-sg2][href=\"'+e[t]+'\"]')){var n=document.createElement('link');n.rel='preconnect',n.href=e[t],n.setAttribute('data-sg2','1'),'https://fonts.gstatic.com'===e[t]&&(n.crossOrigin='anonymous'),document.head.appendChild(n)}}catch(e){}}(),c.src=v(e),R(e),window.__sg2Follow&&clearInterval(window.__sg2Follow);var D=window.location.pathname,$=!1;window.__sg2Follow=setInterval(function(){var e=document.getElementById(s);if(!e)return clearInterval(window.__sg2Follow),void(window.__sg2Follow=null);if(!$&&window.location.pathname!==D){D=window.location.pathname,m=g(),$=!0,E('New case \\u2014 scanning\\u2026','#b45309');var t=document.getElementById(d);t&&(t.remove(),e.style.display='flex'),O(function(e){$=!1;var t=document.getElementById(s);t&&(e?t.__sg2data&&e.orderSN&&t.__sg2data.orderSN===e.orderSN?E('Same case \\u2713','#059669'):t.__sg2data?N(e):k(t,e):E('Not a case page','#6b7280'))},!0)}},800)}function O(e,t){function n(){if(-1===c().indexOf('Maximum Compensation Amount')){for(var t=null,n=document.querySelectorAll('*'),o=0;o<n.length;o++){var r=n[o];if('View Detail'===(r.innerText||r.textContent||'').trim()&&0===r.children.length){t=r;break}}if(t){t.click();var a=0,s=setInterval(function(){a+=60,(-1!==c().indexOf('Maximum Compensation Amount')||a>=1200)&&(clearInterval(s),e(i(m)))},60)}else e(i(m))}else e(i(m))}var o=0;!function i(){var r=c(),a=/Order SN[\\s]*:[\\s]*[A-Z0-9]{5,}/i.test(r),s=/Request Type[\\s]*:/i.test(r);o++,a&&s?n():o>=40?t&&!a?e(null):n():setTimeout(i,200)}()}var C=document.getElementById(s);if(C&&C.getAttribute('data-build')!==a){window.__sg2Follow&&(clearInterval(window.__sg2Follow),window.__sg2Follow=null),C.remove();var L=document.getElementById(d);L&&L.remove(),C=null}if(C){var z=document.getElementById(d);return z&&(z.remove(),C.style.display='flex'),C.__sg2IsMin&&C.__sg2IsMin()&&C.__sg2ToggleMin&&C.__sg2ToggleMin(),m=g(),E('Scanning\\u2026','#b45309'),void O(function(e){var t=document.getElementById(s);t&&(t.__sg2data&&e.orderSN&&t.__sg2data.orderSN===e.orderSN?E('Same case \\u2713 (use \\u21bb Re-scan to refill)','#059669'):N(e))})}!function(){try{T(null),E('Scanning DMS\\u2026','#b45309'),O(function(e){var t=document.getElementById(s);t&&(B('scan done',e.orderSN),k(t,e))})}catch(t){try{var e=document.createElement('div');e.style.cssText='position:fixed;top:12px;right:12px;width:420px;z-index:2147483000;background:#fff;border:3px solid #dc2626;border-radius:14px;padding:16px;font-family:sans-serif;font-size:13px;box-shadow:0 20px 70px rgba(0,0,0,.35)',e.innerHTML='<b style=\"color:#dc2626\">Script Generator 2.0 \\u2014 error</b><div style=\"margin:8px 0;color:#374151\">'+p(t&&t.message?t.message:String(t))+'</div><button style=\"padding:6px 14px;border:none;border-radius:8px;background:#374151;color:#fff;cursor:pointer\">Close</button>',e.querySelector('button').onclick=function(){e.remove()},document.body.appendChild(e)}catch(e){alert('Script Generator 2.0 error: '+(t&&t.message?t.message:t))}}}()}();";
 function sg2Host(){
   var v = '';
   try{ v = (localStorage.getItem('sg2_host_url')||'').trim(); }catch(e){}
@@ -10520,8 +10589,34 @@ setTimeout(checkUrlParams, 150);
     // fill / ready / Esc handshake lives in the embed-core script at the top of <body>
     if(typeof sgFinishLogin === 'function'){
       var _sg2OrigFinish = sgFinishLogin;
-      sgFinishLogin = function(bpo){ _sg2OrigFinish(bpo); post({type:'sg2-authed'}); };
+      sgFinishLogin = function(bpo){ _sg2OrigFinish(bpo); post({type:'sg2-authed', user: _sgUser ? {name:_sgUser.name, email:_sgUser.email, photo:_sgUser.photo||'', uid:_sgUser.uid||''} : null, bpo: bpo || ''}); };
     }
+    if(typeof sgSignOut === 'function'){
+      var _sg2OrigOut = sgSignOut;
+      sgSignOut = function(){ post({type:'sg2-signedout'}); window.SG2_SESSION = null; _sg2OrigOut(); };
+    }
+    // Diagnostics + direct "Allow site data" button on the sign-in card (panel only)
+    try{
+      var gbtn = document.querySelector('#sg-login-overlay button[onclick*="sgGoogleSignIn"]');
+      if(gbtn && !document.getElementById('sg2-diag')){
+        var dg = document.createElement('div'); dg.id = 'sg2-diag';
+        dg.style.cssText = 'margin-top:12px;font-size:11px;color:#6b7280;line-height:1.7;text-align:left;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px';
+        dg.innerHTML = '<div>Panel storage: <b id="sg2-diag-storage">checking…</b> · Site-data access: <b id="sg2-diag-sa">checking…</b></div>'
+          + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button type="button" id="sg2-diag-btn" style="padding:5px 10px;border-radius:8px;border:1px solid #fed7aa;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔓 Allow site data</button><span id="sg2-diag-msg"></span></div>'
+          + '<div style="margin-top:4px;color:#9ca3af">If storage is blocked, Sign in once — the panel remembers you for 30 days, like the website.</div>';
+        gbtn.parentNode.insertBefore(dg, gbtn.nextSibling);
+        var st = document.getElementById('sg2-diag-storage'); if(st) st.textContent = window.SG2_STORAGE_BLOCKED ? 'blocked by browser' : 'ok';
+        var sa = document.getElementById('sg2-diag-sa');
+        if(!document.requestStorageAccess){ if(sa) sa.textContent = 'not supported'; }
+        else if(window.SG2_STORAGE_ACCESS){ window.SG2_STORAGE_ACCESS.then(function(ok){ if(sa) sa.textContent = ok ? 'granted' : 'not granted'; }); }
+        document.getElementById('sg2-diag-btn').onclick = function(){
+          var msg = document.getElementById('sg2-diag-msg');
+          if(!document.requestStorageAccess){ if(msg) msg.textContent = 'Not supported in this browser'; return; }
+          document.requestStorageAccess().then(function(){ if(msg) msg.textContent = 'Granted — reloading…'; setTimeout(function(){ location.reload(); }, 400); },
+            function(err){ if(msg) msg.textContent = 'Not granted (' + ((err && err.name) || 'denied') + ') — just Sign in; the panel will remember you for 30 days.'; });
+        };
+      }
+    }catch(e){}
     post({type:'sg2-ready', version: SG_APP_VERSION});   // repeat with the exact version now that it is known
   }catch(e){ console.warn('[SG2 embed] init failed', e); }
 })();
