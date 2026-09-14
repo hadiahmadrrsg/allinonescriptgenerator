@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>All in One Generator - v33</title>
+<title>All in One Generator - v34</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -102,14 +102,18 @@ textarea{resize:vertical}
 body.sg2-embed #dms-autofill-wrap{display:none}
 body.sg2-embed #header{padding-top:6px;padding-bottom:6px}
 body.sg2-embed .logo-sub{display:none}
-body.sg2-embed #nav-snip{display:none}
 /* header: collapsed by default behind a slim Menu bar; only logo, title, Script Generator + Evidence tabs and the user name */
 body.sg2-embed #header{display:none;position:static;padding:0 14px}
 body.sg2-embed.sg2-header-open #header{display:block}
 body.sg2-embed #header-inner{min-height:0;padding:8px 0;gap:8px;flex-wrap:wrap}
 body.sg2-embed #nav-adm,body.sg2-embed #sg-prof-email,body.sg2-embed #sg-prof-bpo,body.sg2-embed #sg-profile-bar button,body.sg2-embed #header-refresh-time,body.sg2-embed #header-refresh-status{display:none!important}
 #sg2-header-toggle{display:none}
-body.sg2-embed #sg2-header-toggle{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,#ee4d2d,#ff7337);color:#fff;padding:5px 14px;font-family:Sora,sans-serif;font-size:11px;font-weight:600;cursor:pointer;user-select:none}
+body.sg2-embed #sg2-header-toggle{display:flex;align-items:center;gap:6px;background:linear-gradient(90deg,#ee4d2d,#ff7337);color:#fff;padding:4px 10px;font-family:Sora,sans-serif;font-size:11px;font-weight:600;user-select:none}
+body.sg2-embed #sg2-menu-btn{cursor:pointer;padding:3px 6px;border-radius:8px;opacity:.9}
+body.sg2-embed #sg2-menu-btn:hover{background:rgba(255,255,255,.18)}
+body.sg2-embed #sg2-tabs{display:flex;gap:4px;flex:1;overflow-x:auto}
+body.sg2-embed .sg2-tab{border:none;border-radius:14px;padding:4px 11px;font-size:11px;font-weight:600;font-family:Sora,sans-serif;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.2);color:#fff}
+body.sg2-embed .sg2-tab.active{background:#fff;color:#ee4d2d}
 /* toasts are noise inside the DMS panel */
 body.sg2-embed #sg-toast{display:none!important}
 /* auto-fill banner: title only, click to expand the field list */
@@ -240,6 +244,83 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 </head>
 <body>
+<script>
+/* ══════════════════════════════════════════════════════════════════════
+   EMBED CORE — runs FIRST, before the main app script.
+   Active only when this page is inside the ⚡Script Generator 2.0 DMS panel
+   (?embed=1 or loaded in an iframe). Three jobs:
+   1) Storage shim: in a cross-site iframe with third-party cookies blocked,
+      touching window.localStorage throws SecurityError. That exception could
+      abort the main script (no handshake, no fill). Replace with an in-memory
+      store so the app always runs.
+   2) Handshake with the panel: post sg2-ready immediately, accept sg2-fill
+      (queued until autoFillFromDMS exists), forward Esc.
+   3) Storage Access API: ask Chrome for first-party storage so the Firebase
+      login made on the website carries over into the panel (no re-login).
+   ══════════════════════════════════════════════════════════════════════ */
+(function(){
+  var inFrame = false; try{ inFrame = window.self !== window.top; }catch(e){ inFrame = true; }
+  var embed = false; try{ embed = new URLSearchParams(location.search).get('embed') === '1' || inFrame; }catch(e){}
+  window.SG2_EMBED = embed;
+  if(!embed) return;
+
+  // (1) storage shim
+  function memStorage(){
+    var m = {};
+    return {
+      get length(){ return Object.keys(m).length; },
+      key: function(i){ return Object.keys(m)[i] || null; },
+      getItem: function(k){ return Object.prototype.hasOwnProperty.call(m, k) ? m[k] : null; },
+      setItem: function(k,v){ m[k] = String(v); },
+      removeItem: function(k){ delete m[k]; },
+      clear: function(){ m = {}; }
+    };
+  }
+  window.SG2_STORAGE_BLOCKED = false;
+  ['localStorage','sessionStorage'].forEach(function(name){
+    var ok = false;
+    try{ var s = window[name]; s.getItem('__sg2_probe'); ok = !!s; }catch(e){ ok = false; }
+    if(!ok){
+      window.SG2_STORAGE_BLOCKED = true;
+      try{ Object.defineProperty(window, name, { value: memStorage(), configurable: true, writable: false }); }catch(e){}
+    }
+  });
+
+  // (2) handshake
+  // one id per document, so the panel can tell a reload (needs a refill) from a repeated ready (must not refill)
+  window.__sg2docId = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  function post(msg){ try{ msg.doc = window.__sg2docId; window.parent.postMessage(msg, '*'); }catch(e){} }
+  window.__sg2post = post;
+  var pendingFill = null;
+  function tryFill(){
+    if(!pendingFill) return;
+    if(typeof window.autoFillFromDMS !== 'function') return;   // main script not parsed yet — retried below
+    var d = pendingFill; pendingFill = null;
+    try{ window.autoFillFromDMS(d); post({type:'sg2-filled'}); }catch(e){ console.warn('[SG2 embed] fill failed', e); }
+  }
+  window.addEventListener('message', function(ev){
+    var m = ev && ev.data;
+    if(!m || typeof m !== 'object' || m.type !== 'sg2-fill' || !m.data) return;
+    pendingFill = m.data;
+    tryFill();
+  });
+  var fillPoll = setInterval(function(){ tryFill(); if(typeof window.autoFillFromDMS === 'function' && !pendingFill) clearInterval(fillPoll); }, 100);
+  setTimeout(function(){ clearInterval(fillPoll); }, 60000);
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !e.defaultPrevented) post({type:'sg2-esc'}); });
+  post({type:'sg2-ready', version: (typeof SG_APP_VERSION !== 'undefined' ? SG_APP_VERSION : (document.title.match(/v\d+/)||[''])[0])});
+
+  // (3) storage access (resolves true when we have first-party storage; never rejects)
+  window.SG2_STORAGE_ACCESS = (function(){
+    if(!inFrame || !document.hasStorageAccess || !document.requestStorageAccess) return Promise.resolve(false);
+    return document.hasStorageAccess().then(function(has){
+      if(has) return true;
+      // Without a user gesture this only succeeds if Chrome already remembers a grant for this site pair
+      return document.requestStorageAccess().then(function(){ return true; }, function(){ return false; });
+    }).catch(function(){ return false; });
+  })();
+})();
+</script>
+
 
 <!-- ═══ LOGIN GATE OVERLAY (Google sign-in, Shopee domains only) ═══ -->
 <div id="sg-login-overlay" style="position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,#fff7ed 0%,#fef3c7 50%,#fff7ed 100%);display:flex;align-items:center;justify-content:center;padding:20px">
@@ -288,14 +369,22 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 </div>
 
 <!-- Embed-mode menu bar (only visible inside the DMS bookmarklet panel) -->
-<div id="sg2-header-toggle" onclick="sg2ToggleHeader()"><span>☰ Menu</span><span id="sg2-header-chev">▸</span></div>
+<div id="sg2-header-toggle">
+  <span id="sg2-menu-btn" onclick="sg2ToggleHeader()" title="Show / hide header">☰ <span id="sg2-header-chev">▸</span></span>
+  <div id="sg2-tabs">
+    <button class="sg2-tab active" data-v="generator" onclick="switchView('generator')">⚡Script Generator</button>
+    <button class="sg2-tab" data-v="evidence" onclick="switchView('evidence')">📋 Evidence</button>
+    <button class="sg2-tab" data-v="snippets" onclick="switchView('snippets')">📝 Snippets</button>
+    <button class="sg2-tab" data-v="notes" onclick="switchView('notes')">🗒️ Notes</button>
+  </div>
+</div>
 <!-- HEADER -->
 <div id="header">
   <div id="header-inner">
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Generator - v33</div>
+        <div class="logo-title">All in One Generator - v34</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -308,6 +397,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <button class="nav-btn active" id="nav-gen" onclick="switchView('generator')">⚡Script Generator 2.0</button>
       <button class="nav-btn inactive" id="nav-ev" onclick="switchView('evidence')">📋 Evidence Collection</button>
       <button class="nav-btn inactive" id="nav-snip" onclick="switchView('snippets')">📝 Snippets</button>
+      <button class="nav-btn inactive" id="nav-notes" onclick="switchView('notes')">🗒️ Notes</button>
       <button class="nav-btn inactive" id="nav-adm" onclick="switchView('admin')">⚙️ Admin</button>
       <!-- ═══ USER PROFILE — nav-style pills, same size as nav buttons ═══ -->
       <div id="sg-profile-bar" class="hidden" style="display:flex;gap:8px;align-items:center">
@@ -726,6 +816,307 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 
 
 <!-- ADMIN VIEW - Panel -->
+<!-- ═══════════ NOTES (personal, this browser only) ═══════════ -->
+<div id="view-notes" class="hidden">
+<div class="snip-panel" style="max-width:900px;margin:0 auto;padding:24px">
+  <div class="flex-between" style="margin-bottom:14px;gap:10px;flex-wrap:wrap">
+    <div>
+      <div style="font-weight:700;font-size:20px;color:#1a1a1a">🗒️ My Notes</div>
+      <div style="color:#9ca3af;font-size:13px" id="notes-count">0 notes</div>
+    </div>
+    <button class="btn-orange" id="notes-new-btn" onclick="notesNew()">+ New note</button>
+  </div>
+
+  <div id="notes-storage-warn" class="hidden" style="background:#fef2f2;border:1.5px solid #fecaca;border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:#991b1b;line-height:1.6">
+    ⚠️ <strong>Not signed in and your browser is blocking storage for this panel</strong> — notes written now will not be kept. Sign in with Google inside the panel so your notes sync to your account.
+  </div>
+
+  <div style="display:flex;gap:8px;margin-bottom:14px">
+    <div style="flex:1;position:relative">
+      <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:14px">🔍</span>
+      <input id="notes-search" type="search" placeholder="Search subject or content…" oninput="notesRender()" style="width:100%;padding:10px 12px 10px 36px;border-radius:12px;border:1.5px solid #e5e7eb;font-size:13px;font-family:'Sora',sans-serif;color:#374151;box-sizing:border-box">
+    </div>
+  </div>
+
+  <!-- editor (hidden until New / Edit) -->
+  <div id="notes-editor" class="hidden" style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:14px;padding:14px 16px;margin-bottom:14px">
+    <div style="font-size:11px;font-weight:700;color:#c2410c;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px" id="notes-editor-title">New note</div>
+    <input id="notes-ed-subject" type="text" maxlength="120" placeholder="Subject" style="width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:13px;font-weight:600;font-family:'Sora',sans-serif;color:#1a1a1a;box-sizing:border-box;margin-bottom:8px">
+    <textarea id="notes-ed-content" rows="7" maxlength="5000" placeholder="Paste your template, reminder, checklist… (plain text)" style="width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid #e5e7eb;font-size:13px;font-family:'Sora',sans-serif;color:#374151;box-sizing:border-box;resize:vertical;line-height:1.6"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;gap:8px;flex-wrap:wrap">
+      <span id="notes-ed-count" style="font-size:11px;color:#9ca3af">0 / 5000</span>
+      <div style="display:flex;gap:6px">
+        <button onclick="notesCancel()" style="padding:8px 14px;border-radius:10px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-size:12px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">Cancel</button>
+        <button class="btn-orange" onclick="notesSave()" style="padding:8px 16px">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="notes-list"></div>
+</div>
+</div>
+
+<style>
+.note-card{background:white;border:1.5px solid #e5e7eb;border-radius:14px;padding:12px 14px;margin-bottom:10px;transition:border-color .15s}
+.note-card:hover{border-color:#fdba74}
+.note-card.pinned{background:#fff8f0;border-color:#fed7aa}
+.note-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.note-subject{font-weight:700;font-size:14px;color:#1a1a1a;cursor:pointer;line-height:1.4;word-break:break-word;flex:1}
+.note-actions{display:flex;gap:4px;flex:0 0 auto}
+.note-btn{border:none;border-radius:8px;background:#f3f4f6;color:#374151;font-size:12px;font-weight:600;padding:6px 9px;cursor:pointer;font-family:'Sora',sans-serif;line-height:1}
+.note-btn:hover{background:#e5e7eb}
+.note-btn.copy{background:#ee4d2d;color:white;padding:6px 12px}
+.note-btn.copy:hover{background:#d63b1c}
+.note-btn.copy.done{background:#10b981}
+.note-btn.pin.on{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+.note-body{margin-top:8px;font-size:13px;color:#4b5563;line-height:1.65;white-space:pre-wrap;word-break:break-word;cursor:pointer}
+.note-body.clamped{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.note-meta{margin-top:8px;font-size:11px;color:#9ca3af;display:flex;gap:10px;align-items:center}
+.note-hl{background:#fef08a;border-radius:3px;padding:0 1px}
+body.sg2-embed #view-notes .snip-panel{padding:12px 14px}
+body.sg2-embed .note-card{padding:10px 12px}
+</style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// NOTES — personal notes/templates (subject + plain text). Stored like Snippets:
+//   • Supabase table `notes` is the source of truth, keyed by the same user id as Snippets (sg_snip_user_id,
+//     set from the Google login name) → notes follow the agent to any browser and into the DMS panel.
+//   • localStorage (sg_my_notes_v1) is a fast cache for instant render and offline use.
+//   • If the cloud is unavailable (offline, or the `notes` table is missing), notes keep working locally
+//     and a slim notice says so. Not visible to Admin.
+// ═══════════════════════════════════════════════════════════════
+const NOTES_KEY = 'sg_my_notes_v1';
+const NOTES_MAX = 100;
+let _notes = null;           // [{id, subject, content, pinned, updated, _sbId}]
+let _notesEditing = null;    // id being edited, or null for new
+let _notesExpanded = {};     // id -> true when the full body is shown
+let _notesUndo = null;       // {note, timer}
+let _notesCloudUid = null;   // user id the cloud copy was loaded for
+let _notesCloudState = 'idle'; // idle | loading | synced | offline | notable
+let _notesCloudErr = '';
+
+function notesUid(){
+  try{ return (typeof getSnipUserId==='function' && getSnipUserId()) || (window._sgUser && _sgUser.name) || ''; }catch(e){ return ''; }
+}
+function notesLoad(){
+  if(_notes) return _notes;
+  try{ _notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '[]'); if(!Array.isArray(_notes)) _notes = []; }
+  catch(e){ _notes = []; }
+  return _notes;
+}
+function notesPersist(){
+  try{ localStorage.setItem(NOTES_KEY, JSON.stringify(_notes)); }
+  catch(e){ console.warn('[Notes] cache failed', e); }
+}
+
+// ── Supabase (same client as Snippets) ──
+function _nbCloudOk(){ return typeof _sb !== 'undefined' && _sb && !!notesUid(); }
+function _nbRow(r){ return { id: String(r.id), _sbId: r.id, subject: r.subject||'', content: r.content||'', pinned: !!r.pinned, updated: r.updated_at ? new Date(r.updated_at).getTime() : Date.now() }; }
+function _nbErr(e){
+  const msg = (e && e.message) || String(e);
+  _notesCloudErr = msg;
+  _notesCloudState = /relation|does not exist|Could not find the table|schema cache|42P01/i.test(msg) ? 'notable' : 'offline';
+  console.warn('[Notes] cloud:', msg);
+}
+async function nbLoad(uid){
+  const { data, error } = await _sb.from('notes').select('*').eq('user_id', uid).order('updated_at', { ascending:false });
+  if(error) throw new Error(error.message);
+  return (data||[]).map(_nbRow);
+}
+async function nbUpsert(uid, n){
+  const body = { user_id: uid, subject: n.subject||'', content: n.content||'', pinned: !!n.pinned, updated_at: new Date(n.updated||Date.now()).toISOString() };
+  if(n._sbId){
+    const { data, error } = await _sb.from('notes').update(body).eq('id', n._sbId).select();
+    if(error) throw new Error(error.message);
+    return data?.[0];
+  }
+  body.created_at = new Date().toISOString();
+  const { data, error } = await _sb.from('notes').insert(body).select();
+  if(error) throw new Error(error.message);
+  return data?.[0];
+}
+async function nbDelete(sbId){
+  const { error } = await _sb.from('notes').delete().eq('id', sbId);
+  if(error) throw new Error(error.message);
+}
+
+// Load from cloud (source of truth). First time for a user with local-only notes → push them up (migration).
+async function notesCloudSync(force){
+  if(!_nbCloudOk()) return;
+  const uid = notesUid();
+  if(!force && _notesCloudUid === uid && _notesCloudState === 'synced') return;
+  _notesCloudState = 'loading'; notesRenderStatus();
+  try{
+    const local = notesLoad();
+    let cloud = await nbLoad(uid);
+    const localOnly = local.filter(n => !n._sbId);
+    if(localOnly.length){
+      for(const n of localOnly){ const row = await nbUpsert(uid, n); if(row){ n._sbId = row.id; n.id = String(row.id); } }
+      cloud = await nbLoad(uid);
+    }
+    _notes = cloud;
+    _notesCloudUid = uid; _notesCloudState = 'synced'; _notesCloudErr = '';
+    notesPersist();
+  }catch(e){ _nbErr(e); }
+  notesRender();
+}
+function notesCloudPush(n){
+  if(!_nbCloudOk() || _notesCloudState === 'notable') return;
+  nbUpsert(notesUid(), n).then(row => { if(row && !n._sbId){ n._sbId = row.id; n.id = String(row.id); notesPersist(); notesRender(); } if(_notesCloudState!=='synced'){ _notesCloudState='synced'; notesRenderStatus(); } })
+    .catch(e => { _nbErr(e); notesRenderStatus(); });
+}
+function notesCloudRemove(n){
+  if(!_nbCloudOk() || !n._sbId || _notesCloudState === 'notable') return;
+  nbDelete(n._sbId).catch(e => { _nbErr(e); notesRenderStatus(); });
+}
+
+function notesFmtTime(ts){
+  if(!ts) return '';
+  const d = Date.now() - ts, m = Math.round(d/60000), h = Math.round(d/3600000), day = Math.round(d/86400000);
+  if(m < 1) return 'just now'; if(m < 60) return m + ' min ago'; if(h < 24) return h + ' h ago'; if(day < 7) return day + ' d ago';
+  return new Date(ts).toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+}
+function notesHighlight(text, q){
+  const safe = esc(text);
+  if(!q) return safe;
+  const re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'ig');
+  return safe.replace(re, '<span class="note-hl">$1</span>');
+}
+
+function notesRenderStatus(){
+  const cnt = document.getElementById('notes-count'); if(!cnt) return;
+  const notes = notesLoad(); const uid = notesUid();
+  let cloud;
+  if(!uid) cloud = '<span style="color:#9ca3af">saved in this browser · sign in to sync</span>';
+  else if(_notesCloudState === 'loading') cloud = '<span style="color:#b45309">☁️ syncing…</span>';
+  else if(_notesCloudState === 'synced') cloud = '<span style="color:#059669">☁️ synced as <b>' + esc(uid) + '</b></span>';
+  else if(_notesCloudState === 'notable') cloud = '<span style="color:#dc2626" title="' + esc(_notesCloudErr) + '">☁️ cloud table missing — saved locally (admin: see Docs → My Notes)</span>';
+  else if(_notesCloudState === 'offline') cloud = '<span style="color:#dc2626" title="' + esc(_notesCloudErr) + '">☁️ offline — saved locally</span>';
+  else cloud = '<span style="color:#9ca3af">saved locally</span>';
+  cnt.innerHTML = notes.length + (notes.length === 1 ? ' note' : ' notes') + ' · ' + cloud;
+}
+
+function notesRender(){
+  const list = document.getElementById('notes-list'); if(!list) return;
+  const notes = notesLoad();
+  const q = (document.getElementById('notes-search')?.value || '').trim().toLowerCase();
+  const warn = document.getElementById('notes-storage-warn');
+  // storage warning only matters when there is no cloud user to fall back on
+  if(warn) warn.classList.toggle('hidden', !(window.SG2_STORAGE_BLOCKED && !notesUid()));
+  notesRenderStatus();
+  if(_notesCloudState === 'idle' && _nbCloudOk()) notesCloudSync(false);
+
+  let rows = notes.filter(n => !q || (n.subject||'').toLowerCase().includes(q) || (n.content||'').toLowerCase().includes(q));
+  rows.sort((a,b) => (b.pinned?1:0) - (a.pinned?1:0) || (b.updated||0) - (a.updated||0));
+
+  if(!rows.length){
+    list.innerHTML = '<div style="text-align:center;padding:36px 16px;color:#9ca3af;font-size:13px;line-height:1.7">'
+      + (notes.length ? '🔍 No notes match "<b>' + esc(q) + '</b>"' : '🗒️ No notes yet.<br>Click <b>+ New note</b> to save a template, a reminder, or anything you paste often.')
+      + '</div>';
+    return;
+  }
+  list.innerHTML = rows.map(n => {
+    const open = !!_notesExpanded[n.id] || !!q;
+    return '<div class="note-card' + (n.pinned ? ' pinned' : '') + '" data-id="' + esc(n.id) + '">'
+      + '<div class="note-head">'
+        + '<div class="note-subject" onclick="notesToggle(\'' + esc(n.id) + '\')">' + (n.pinned ? '📌 ' : '') + notesHighlight(n.subject || '(no subject)', q) + '</div>'
+        + '<div class="note-actions">'
+          + '<button class="note-btn copy" onclick="notesCopy(\'' + esc(n.id) + '\', this)" title="Copy content">📋 Copy</button>'
+          + '<button class="note-btn pin' + (n.pinned ? ' on' : '') + '" onclick="notesPin(\'' + esc(n.id) + '\')" title="' + (n.pinned ? 'Unpin' : 'Pin to top') + '">📌</button>'
+          + '<button class="note-btn" onclick="notesEdit(\'' + esc(n.id) + '\')" title="Edit">✏️</button>'
+          + '<button class="note-btn" onclick="notesDelete(\'' + esc(n.id) + '\')" title="Delete">🗑</button>'
+        + '</div>'
+      + '</div>'
+      + '<div class="note-body' + (open ? '' : ' clamped') + '" onclick="notesToggle(\'' + esc(n.id) + '\')">' + notesHighlight(n.content || '', q) + '</div>'
+      + '<div class="note-meta"><span>' + (n.content||'').length + ' chars</span><span>·</span><span>' + notesFmtTime(n.updated) + '</span>' + (open ? '' : '<span>·</span><span style="color:#ee4d2d;cursor:pointer" onclick="notesToggle(\'' + esc(n.id) + '\')">show all</span>') + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function notesToggle(id){ _notesExpanded[id] = !_notesExpanded[id]; notesRender(); }
+
+function notesNew(){
+  if(notesLoad().length >= NOTES_MAX){ showToast('You have reached the limit of ' + NOTES_MAX + ' notes. Delete some first.', 'warn'); return; }
+  _notesEditing = null;
+  document.getElementById('notes-editor-title').textContent = 'New note';
+  document.getElementById('notes-ed-subject').value = '';
+  document.getElementById('notes-ed-content').value = '';
+  notesEdCount();
+  document.getElementById('notes-editor').classList.remove('hidden');
+  document.getElementById('notes-ed-subject').focus();
+}
+function notesEdit(id){
+  const n = notesLoad().find(x => x.id === id); if(!n) return;
+  _notesEditing = id;
+  document.getElementById('notes-editor-title').textContent = 'Edit note';
+  document.getElementById('notes-ed-subject').value = n.subject || '';
+  document.getElementById('notes-ed-content').value = n.content || '';
+  notesEdCount();
+  const ed = document.getElementById('notes-editor');
+  ed.classList.remove('hidden');
+  if(ed.scrollIntoView) ed.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('notes-ed-content').focus();
+}
+function notesCancel(){ _notesEditing = null; document.getElementById('notes-editor').classList.add('hidden'); }
+function notesEdCount(){
+  const c = document.getElementById('notes-ed-content'), o = document.getElementById('notes-ed-count');
+  if(c && o) o.textContent = c.value.length + ' / 5000';
+}
+function notesSave(){
+  const subject = document.getElementById('notes-ed-subject').value.trim();
+  const content = document.getElementById('notes-ed-content').value.replace(/\r\n/g, '\n');
+  if(!subject && !content.trim()){ document.getElementById('notes-ed-subject').focus(); return; }
+  const notes = notesLoad();
+  let n;
+  if(_notesEditing){
+    n = notes.find(x => x.id === _notesEditing);
+    if(n){ n.subject = subject || 'Untitled'; n.content = content; n.updated = Date.now(); }
+  } else {
+    n = { id: 'n' + Date.now().toString(36) + Math.random().toString(36).slice(2,6), subject: subject || 'Untitled', content, pinned: false, updated: Date.now() };
+    notes.unshift(n);
+  }
+  notesPersist();
+  notesCancel();
+  notesRender();
+  if(n) notesCloudPush(n);
+  if(!window.SG2_EMBED) showToast('🗒️ Note saved', 'success');
+}
+function notesPin(id){
+  const n = notesLoad().find(x => x.id === id); if(!n) return;
+  n.pinned = !n.pinned; n.updated = n.updated || Date.now(); notesPersist(); notesRender(); notesCloudPush(n);
+}
+function notesDelete(id){
+  const notes = notesLoad(); const i = notes.findIndex(x => x.id === id); if(i < 0) return;
+  const [removed] = notes.splice(i, 1); notesPersist(); notesRender(); notesCloudRemove(removed);
+  if(_notesUndo && _notesUndo.timer) clearTimeout(_notesUndo.timer);
+  _notesUndo = { note: removed, timer: setTimeout(() => { _notesUndo = null; const b = document.getElementById('notes-undo-bar'); if(b) b.remove(); }, 6000) };
+  const list = document.getElementById('notes-list');
+  const bar = document.createElement('div'); bar.id = 'notes-undo-bar';
+  bar.style.cssText = 'background:#1f2937;color:white;border-radius:10px;padding:8px 14px;font-size:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:10px';
+  bar.innerHTML = '<span>Deleted “' + esc(removed.subject || 'Untitled') + '”</span><button onclick="notesUndo()" style="background:#ee4d2d;color:white;border:none;border-radius:8px;padding:5px 12px;font-weight:700;font-size:12px;cursor:pointer;font-family:\'Sora\',sans-serif">Undo</button>';
+  const old = document.getElementById('notes-undo-bar'); if(old) old.remove();
+  list.parentNode.insertBefore(bar, list);
+}
+function notesUndo(){
+  if(!_notesUndo) return;
+  clearTimeout(_notesUndo.timer);
+  const n = _notesUndo.note; n._sbId = null; // re-insert as a new cloud row (the old one is gone)
+  notesLoad().unshift(n); _notesUndo = null; notesPersist(); notesRender(); notesCloudPush(n);
+  const b = document.getElementById('notes-undo-bar'); if(b) b.remove();
+}
+function notesCopy(id, btn){
+  const n = notesLoad().find(x => x.id === id); if(!n) return;
+  _sgCopyToClipboard(n.content || '', () => {
+    if(btn){ const t = btn.textContent; btn.textContent = '✅ Copied'; btn.classList.add('done'); setTimeout(() => { btn.textContent = t; btn.classList.remove('done'); }, 1800); }
+  }, () => { if(btn){ btn.textContent = '⚠️ Failed'; setTimeout(() => { btn.textContent = '📋 Copy'; }, 1800); } });
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const c = document.getElementById('notes-ed-content'); if(c) c.addEventListener('input', notesEdCount);
+  document.getElementById('notes-editor')?.addEventListener('keydown', e => { if((e.ctrlKey || e.metaKey) && e.key === 'Enter'){ e.preventDefault(); notesSave(); } });
+});
+</script>
+
 <div id="view-admin-panel" class="hidden">
 <div class="admin-panel">
 
@@ -779,7 +1170,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <button onclick="document.getElementById('bm-host-url').value='';sg2SetHost('')" style="padding:8px 12px;border-radius:8px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">Reset</button>
     </div>
     <div style="margin-bottom:12px;text-align:center">
-      <button onclick="generateBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif">⚡ Generate Bookmarklet</button>
+      <button id="bm-generate-btn" onclick="generateAndCopyBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif">⚡ Generate Bookmarklet</button>
     </div>
     <div id="bm-output" class="hidden">
       <!-- Step-by-step instructions -->
@@ -1044,6 +1435,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   /* ================= SCRIPT GENERATOR 2.0 — PANEL ================= */
   var HOST = "__SG2_HOST__";
   var BM_VERSION = "__SG2_VER__"; /* replaced with the generator version at generation time */
+  var BUILD = "__SG2_BUILD__";    /* content hash of this bookmarklet, stamped at build time */
   var PID = "_sg2_panel", BID = "_sg2_pill", LS = "sg2_panel_geom";
   /* DMS page text WITHOUT our own panel/pill, so a re-scan never reads our own panel text back */
   function pageText() {
@@ -1051,6 +1443,9 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     for (var i = 0; i &lt; kids.length; i++) {
       var k = kids[i];
       if (k.id === PID || k.id === BID) continue;
+      var tag = k.tagName;
+      if (tag === "SCRIPT" || tag === "STYLE" || tag === "TEMPLATE" || tag === "NOSCRIPT" || tag === "LINK" || tag === "META") continue;
+      try { if (window.getComputedStyle(k).display === "none") continue; } catch (e) {}
       var tx = k.innerText; if (tx === undefined || tx === null) tx = k.textContent || "";
       if (tx) out.push(tx);
     }
@@ -1098,7 +1493,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       var origins = [HOST_ORIGIN, "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://www.gstatic.com", "https://cdn.jsdelivr.net"];
       for (var i = 0; i &lt; origins.length; i++) {
         if (!origins[i] || document.querySelector('link[data-sg2][href="' + origins[i] + '"]')) continue;
-        var l = document.createElement("link"); l.rel = "preconnect"; l.href = origins[i]; l.crossOrigin = "anonymous"; l.setAttribute("data-sg2", "1");
+        var l = document.createElement("link"); l.rel = "preconnect"; l.href = origins[i]; l.setAttribute("data-sg2", "1");
+        if (origins[i] === "https://fonts.gstatic.com") l.crossOrigin = "anonymous";
         document.head.appendChild(l);
       }
     } catch (e) {}
@@ -1107,7 +1503,11 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   function saveGeom(p) {
     try {
       var r = p.getBoundingClientRect();
-      localStorage.setItem(LS, JSON.stringify({ left: r.left, top: r.top, width: r.width, height: r.height }));
+      var g = loadGeom() || {};
+      var h = (p.__sg2IsMin &amp;&amp; p.__sg2IsMin()) ? (g.height || null) : r.height;
+      var o = { left: r.left, top: r.top, width: r.width };
+      if (h) o.height = h;
+      localStorage.setItem(LS, JSON.stringify(o));
     } catch (e) {}
   }
 
@@ -1140,7 +1540,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     if (_readyTimer) clearTimeout(_readyTimer);
     _readyTimer = setTimeout(function () {
       var p = document.getElementById(PID);
-      if (p &amp;&amp; p.getAttribute("data-ready") !== "1" &amp;&amp; !p.__sg2loaded) showFallback(d || (p &amp;&amp; p.__sg2data), "The generator didn\u2019t load inside DMS.");
+      if (p &amp;&amp; p.getAttribute("data-ready") !== "1" &amp;&amp; !p.__sg2everLoaded) showFallback(d || (p &amp;&amp; p.__sg2data), "The generator didn\u2019t load inside DMS.");
     }, 12000);
   }
   function dbg() { try { (window.__sg2log = window.__sg2log || []).push([new Date().toISOString()].concat([].slice.call(arguments)).join(" ")); } catch (e) {} }
@@ -1161,6 +1561,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     if (!f || !p.__sg2data) return;
     p.__sg2urlMode = true;
     p.__sg2loaded = 0;
+    p.setAttribute("data-ready", "0");
     f.src = embedUrl(p.__sg2data);
     setStatus("Connected \u00b7 compat", "#059669");
     dbg("delivered via URL (no handshake)");
@@ -1195,13 +1596,14 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     panel.id = PID;
     panel.__sg2data = d;
     panel.setAttribute("data-ready", "0");
+    panel.setAttribute("data-build", BUILD);
     panel.style.cssText = "position:fixed;top:12px;right:12px;width:560px;height:calc(100vh - 24px);min-width:340px;min-height:200px;z-index:2147483000;background:#fff;border:3px solid #ee4d2d;border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box";
     if (g.width) {
       panel.style.left = Math.max(0, Math.min(g.left, window.innerWidth - 100)) + "px";
       panel.style.top = Math.max(0, Math.min(g.top, window.innerHeight - 60)) + "px";
       panel.style.right = "auto";
       panel.style.width = Math.min(g.width, window.innerWidth) + "px";
-      panel.style.height = Math.min(g.height, window.innerHeight) + "px";
+      if (g.height) panel.style.height = Math.min(g.height, window.innerHeight) + "px";
     }
 
     var btn = function (id, title, txt, big) {
@@ -1279,10 +1681,27 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     document.getElementById("_sg2_head").addEventListener("click", function (e) {
       if (minimized &amp;&amp; e.target.tagName !== "BUTTON") setMinimized(false);
     });
+    /* global handlers: (re)bound every run so a newer bookmarklet replaces an older one's closures */
+    if (window.__sg2H) {
+      try { document.removeEventListener("mousedown", window.__sg2H.mouse, true); } catch (e) {}
+      try { document.removeEventListener("keydown", window.__sg2H.key); } catch (e) {}
+      try { window.removeEventListener("message", window.__sg2H.msg); } catch (e) {}
+    }
+    window.__sg2H = {};
+    /* click anywhere on the DMS page (outside the panel) minimizes it; click the bar or press Esc to restore */
+    {
+      document.addEventListener("mousedown", window.__sg2H.mouse = function (e) {
+        var p = document.getElementById(PID);
+        if (!p || p.style.display === "none" || !p.__sg2ToggleMin || p.__sg2IsMin &amp;&amp; p.__sg2IsMin()) return;
+        var t = e.target;
+        if (p.contains(t) || (t &amp;&amp; t.closest &amp;&amp; t.closest("#" + PID + ",#" + BID))) return;
+        p.__sg2ToggleMin();
+      }, true);
+    }
+    panel.__sg2IsMin = function () { return minimized; };
     /* Esc toggles minimize — from the DMS page, or forwarded by the embedded generator while typing inside it */
-    if (!window.__sg2EscBound) {
-      window.__sg2EscBound = true;
-      document.addEventListener("keydown", function (e) {
+    {
+      document.addEventListener("keydown", window.__sg2H.key = function (e) {
         if (e.key !== "Escape" || e.defaultPrevented) return;
         var p = document.getElementById(PID);
         if (!p || p.style.display === "none" || !p.__sg2ToggleMin) return;
@@ -1367,9 +1786,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     document.addEventListener("mouseup", function () { if (rs) { rs = null; frameInert(false); saveGeom(panel); } });
 
     /* handshake with the embedded generator */
-    if (!window.__sg2MsgBound) {
-      window.__sg2MsgBound = true;
-      window.addEventListener("message", function (ev) {
+    {
+      window.addEventListener("message", window.__sg2H.msg = function (ev) {
         var m = ev &amp;&amp; ev.data;
         if (!m || typeof m !== "object" || typeof m.type !== "string" || m.type.indexOf("sg2-") !== 0) return;
         var p = document.getElementById(PID);
@@ -1378,11 +1796,14 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
         var fromOurFrame = fr &amp;&amp; fr.contentWindow &amp;&amp; ev.source === fr.contentWindow;
         if (!fromOurFrame &amp;&amp; !(HOST_ORIGIN &amp;&amp; ev.origin === HOST_ORIGIN)) { dbg("ignored message", m.type, ev.origin); return; }
         if (m.type === "sg2-ready") {
-          dbg("ready", m.version);
+          var newDoc = !m.doc || p.__sg2doc !== m.doc;
+          dbg("ready", m.version, m.doc || "", newDoc ? "new-doc" : "same-doc");
+          if (m.doc) p.__sg2doc = m.doc;
           p.setAttribute("data-ready", "1");
           var fb = document.getElementById("_sg2_fallback"); if (fb) fb.style.display = "none";
           var v = document.getElementById("_sg2_ver");
-          if (v) { v.textContent = m.version ? (m.version === BM_VERSION ? m.version : BM_VERSION + " \u00b7 site " + m.version) : BM_VERSION; v.style.display = "inline-block"; }
+          if (v &amp;&amp; m.version) { v.textContent = (m.version === BM_VERSION ? m.version : BM_VERSION + " \u00b7 site " + m.version); v.style.display = "inline-block"; }
+          if (!newDoc) return;
           if (p.__sg2data) { setStatus("Connected", "#059669"); sendToFrame(p.__sg2data); }
           else setStatus("Connected \u00b7 scanning DMS\u2026", "#b45309");
         } else if (m.type === "sg2-esc") {
@@ -1396,7 +1817,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     }
 
     frame.addEventListener("load", function () {
-      panel.__sg2loaded = Date.now();
+      panel.__sg2loaded = Date.now(); panel.__sg2everLoaded = true;
       dbg("frame load", panel.getAttribute("data-ready"), panel.__sg2urlMode ? "urlMode" : "");
       if (panel.__sg2urlMode) { if (panel.getAttribute("data-ready") !== "1") setStatus("Connected \u00b7 compat", "#059669"); return; }
       setTimeout(function () {
@@ -1470,16 +1891,24 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 
   /* ---------- entry: second click re-scans / reopens instead of duplicating ---------- */
   var existing = document.getElementById(PID);
+  if (existing &amp;&amp; existing.getAttribute("data-build") !== BUILD) {
+    /* a newer bookmarklet was clicked while an older panel is open: start fresh with the new code */
+    if (window.__sg2Follow) { clearInterval(window.__sg2Follow); window.__sg2Follow = null; }
+    existing.remove();
+    var oldPill = document.getElementById(BID); if (oldPill) oldPill.remove();
+    existing = null;
+  }
   if (existing) {
     var pill = document.getElementById(BID);
     if (pill) { pill.remove(); existing.style.display = "flex"; }
+    if (existing.__sg2IsMin &amp;&amp; existing.__sg2IsMin() &amp;&amp; existing.__sg2ToggleMin) existing.__sg2ToggleMin();
     rid = findRid();
     setStatus("Scanning\u2026", "#b45309");
     startScan(function (nd) {
       var cur = document.getElementById(PID);
       if (!cur) return;
       var same = cur.__sg2data &amp;&amp; nd.orderSN &amp;&amp; cur.__sg2data.orderSN === nd.orderSN;
-      if (same &amp;&amp; cur.getAttribute("data-ready") === "1") { setStatus("Same case \u2713 (use \u21bb Re-scan to refill)", "#059669"); return; }
+      if (same) { setStatus("Same case \u2713 (use \u21bb Re-scan to refill)", "#059669"); return; }
       refreshPanel(nd);
     });
     return;
@@ -1522,7 +1951,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
           <li>Generate → Copy → paste into DMS. Done.</li>
         </ol>
         <div style="font-weight:600;color:#374151;margin-bottom:4px">Panel controls:</div>
-        <div style="line-height:2"><strong>↻ Re-scan</strong> re-reads the DMS page without closing · <strong>⧉</strong> opens the same filled generator in its own window (use this if DMS ever blocks the panel) · <strong>−</strong> or <strong>Esc</strong> minimizes (Esc again or click the bar to restore) · <strong>×</strong> collapses to a yellow pill. Drag the header to move, drag any edge to resize; the position is remembered. Clicking the bookmark again re-scans instead of opening a second panel.</div>
+        <div style="line-height:2"><strong>↻ Re-scan</strong> re-reads the DMS page without closing · <strong>⧉</strong> opens the same filled generator in its own window (use this if DMS ever blocks the panel) · <strong>−</strong>, <strong>Esc</strong>, or clicking anywhere on the DMS page minimizes (Esc again or click the bar to restore) · <strong>×</strong> collapses to a yellow pill. Drag the header to move, drag any edge to resize; the position is remembered. Clicking the bookmark again re-scans instead of opening a second panel.</div>
       </div>
     </div>
   </div>
@@ -1838,6 +2267,27 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   </div>
 
   <!-- ═══════════════════════════════════════ -->
+  <!-- SECTION 4b: NOTES -->
+  <div id="guide-notes" style="margin-bottom:40px">
+    <div style="font-size:22px;font-weight:800;color:#7c3aed;margin-bottom:16px;display:flex;align-items:center;gap:10px">🗒️ My Notes</div>
+    <p style="font-size:14px;color:#374151;line-height:1.7;margin-bottom:20px">A private notepad for your own templates, reminders and checklists — plain text you search and copy. Synced to your account like Snippets, so the same notes appear on the website and inside the DMS panel (🗒️ Notes tab in the orange bar).</p>
+    <div style="background:white;border:1.5px solid #e5e7eb;border-radius:14px;padding:20px;margin-bottom:16px">
+      <div style="font-weight:700;font-size:14px;color:#1a1a1a;margin-bottom:12px">How to use</div>
+      <ol style="margin:0;padding-left:18px;font-size:13px;color:#374151;line-height:2">
+        <li>Open the <strong>🗒️ Notes</strong> tab → <strong>+ New note</strong></li>
+        <li>Give it a <strong>Subject</strong>, paste the <strong>content</strong> → <strong>💾 Save</strong> (or <kbd style="background:#374151;color:white;padding:1px 6px;border-radius:4px;font-size:10px">Ctrl+Enter</kbd>)</li>
+        <li>Find it later with the <strong>🔍 search</strong> box — it matches subject and content and highlights the match</li>
+        <li>Click <strong>📋 Copy</strong> to copy the content; <strong>📌</strong> pins a note to the top; <strong>✏️</strong> edits; <strong>🗑</strong> deletes (with a 6-second Undo)</li>
+      </ol>
+    </div>
+    <div style="background:#fff8f0;border:1.5px solid #fed7aa;border-radius:14px;padding:16px 20px;font-size:13px;color:#374151;line-height:1.8">
+      <strong>Good to know</strong><br>
+      • Notes are saved to your account (same as Snippets) — they follow you to any computer and into the DMS panel. Not visible to Admin.<br>
+      • Notes ≠ Snippets: Snippets are shortcodes that expand inside the script; Notes are text you read and copy.<br>
+      • Inside the DMS panel, sign in with Google first so your notes load — the status line under the title shows <strong>☁️ synced as &lt;you&gt;</strong> when they are.
+    </div>
+  </div>
+
   <!-- SECTION 5: CHEAT SHEET -->
   <!-- ═══════════════════════════════════════ -->
   <div id="guide-cheatsheet" style="margin-bottom:40px">
@@ -2255,6 +2705,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <a class="docs-nav-item" onclick="scrollToDoc('dms')" id="dnav-dms"><span class="ddot" style="background:#f87171"></span>DMS Auto-Fill</a>
       <a class="docs-nav-item" onclick="scrollToDoc('evidence')" id="dnav-evidence"><span class="ddot" style="background:#059669"></span>Evidence Collection</a>
       <a class="docs-nav-item" onclick="scrollToDoc('snippets')" id="dnav-snippets"><span class="ddot" style="background:#f59e0b"></span>Snippet Library</a>
+      <a class="docs-nav-item" onclick="scrollToDoc('notes')" id="dnav-notes"><span class="ddot" style="background:#7c3aed"></span>My Notes</a>
       <a class="docs-nav-item" onclick="scrollToDoc('admin')" id="dnav-admin"><span class="ddot" style="background:#22d3a0"></span>Admin Panel</a>
       <a class="docs-nav-item" onclick="scrollToDoc('sheetsync')" id="dnav-sheetsync"><span class="ddot" style="background:#d97706"></span>Firebase Setup Guide</a>
     </div>
@@ -2641,6 +3092,30 @@ EVIDENCE_DB = {
   <hr class="ddiv">
 
   <!-- SNIPPET LIBRARY -->
+  <div class="dsection" id="notes">
+    <h2><span class="icon">🗒️</span> My Notes</h2>
+    <p>A per-agent notepad (subject + plain-text content) with live search, copy, pin, edit and delete-with-undo. Rendered by <code>notesRender()</code> in <code>#view-notes</code>; the same view is used on the website and inside the DMS panel.</p>
+    <h3>Storage — same model as Snippets</h3>
+    <p>Supabase table <code>notes</code> is the source of truth, keyed by <code>user_id</code> = the same id Snippets use (<code>sg_snip_user_id</code>, set from the Google login name). <code>localStorage</code> (<code>sg_my_notes_v1</code>) is a cache for instant render and offline use. On first sync, local-only notes are pushed to the cloud. Every save/pin/delete writes locally first, then to Supabase. Limits: 100 notes, 120-char subject, 5,000-char content. Not visible to Admin.</p>
+    <h3>One-time setup (admin): create the table in Supabase</h3>
+    <p>Supabase → SQL Editor → run once. Until this exists, the tab shows “☁️ cloud table missing — saved locally” and keeps working locally.</p>
+    <pre style="background:#0f172a;color:#e2e8f0;border-radius:10px;padding:14px 16px;font-size:12px;line-height:1.6;overflow-x:auto">create table if not exists public.notes (
+  id         uuid primary key default gen_random_uuid(),
+  user_id    text not null,
+  subject    text not null default '',
+  content    text not null default '',
+  pinned     boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists notes_user_id_idx on public.notes (user_id);
+alter table public.notes enable row level security;
+create policy "notes_anon_all" on public.notes
+  for all to anon using (true) with check (true);</pre>
+    <h3>Inside the DMS panel</h3>
+    <p>Because notes come from Supabase once the agent is signed in, they work in the panel even when Chrome blocks the iframe's storage (the embed-core in-memory shim only affects the cache). The red warning appears only when the agent is <em>not</em> signed in and storage is blocked — the one case where nothing can be kept.</p>
+  </div>
+
   <div class="dsection" id="snippets">
     <h2><span class="icon">📝</span> Snippet Library</h2>
     <p>The Snippet Library lets agents save, organize, and quickly insert reusable text into the generated script output. Snippets support dynamic placeholders and can be triggered via keyboard shortcuts.</p>
@@ -3020,7 +3495,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v33')" id="vnav-v33"><span class="ddot" style="background:#ee4d2d"></span>v33 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v34')" id="vnav-v34"><span class="ddot" style="background:#ee4d2d"></span>v34 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v33')" id="vnav-v33"><span class="ddot" style="background:#6b7280"></span>v33</a>
     <a class="docs-nav-item" onclick="scrollToVer('v32')" id="vnav-v32"><span class="ddot" style="background:#6b7280"></span>v32</a>
     <a class="docs-nav-item" onclick="scrollToVer('v31')" id="vnav-v31"><span class="ddot" style="background:#6b7280"></span>v31</a>
     <a class="docs-nav-item" onclick="scrollToVer('v30')" id="vnav-v30"><span class="ddot" style="background:#6b7280"></span>v30</a>
@@ -3064,11 +3540,39 @@ setTimeout(function(){
       <!-- Cards injected by sgRenderUpdateNotes() -->
     </div>
 
+      <!-- v34 -->
+      <div id="vsec-v34" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v34 &mdash; Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">14 Sep 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div style="margin-bottom:16px">
+          <div style="font-size:12px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#10024; New</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>🗒️ Notes tab</strong> &mdash; personal notes/templates with subject + content, live search (subject and content, matches highlighted), one-click Copy, pin to top, edit, delete with undo. Plain text. Stored like Snippets: Supabase table <code>notes</code> keyed by the agent's login id (source of truth) + localStorage cache — so notes follow the agent to any browser and into the DMS panel. Not visible to admin. <strong>Admin one-time setup:</strong> create the <code>notes</code> table (SQL in Docs → My Notes); until then notes stay local and the tab says so. The panel's slim bar is now a tab strip (⚡Script Generator · 📋 Evidence · 📝 Snippets · 🗒️ Notes) so Notes is always one click away.</li>
+            <li><strong>Click outside to minimize</strong> &mdash; clicking anywhere on the DMS page collapses the panel to its bar; click the bar or press Esc to bring it back.</li>
+          </ul>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128295; Fixed</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Stays signed in inside DMS</strong> &mdash; an embed-core script now runs first: it shims <code>localStorage</code>/<code>sessionStorage</code> when Chrome blocks third-party storage in the DMS iframe (so the app never crashes on startup), and uses the Storage Access API so the Google login made on the website carries into the panel. The Sign-in click asks Chrome for first-party storage once (a small permission prompt may appear); after that, no re-login.</li>
+            <li><strong>Snippets &amp; Notes follow the account</strong> &mdash; the snippet/notes user id is saved on the account (Firebase <code>sg/users/&lt;email&gt;/snipUserId</code>) and adopted on every device and inside the DMS panel, and both are (re)loaded right after sign-in. Before, the panel started with the default snippets until the manual sync button was pressed, and a custom id chosen on the website was not carried over.</li>
+            <li><strong>Generate Bookmarklet</strong> now also copies the code to the clipboard in the same click (📋 Copy Code remains as a fallback).</li>
+            <li><strong>Snippets</strong> unchanged and back in the DMS panel tab strip, placed before Notes; Notes uses the 🗒️ icon so the two are distinguishable.</li>
+          </ul>
+        </div>
+      </div>
+        </div>
+      </div>
+
       <!-- v33 -->
       <div id="vsec-v33" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v33 &mdash; Current</div>
+      <div style="background:linear-gradient(90deg,#6b7280,#9ca3af);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v33</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">11 Sep 2026</div>
       </div>
       <div style="padding:20px">
@@ -3086,7 +3590,7 @@ setTimeout(function(){
             <li><strong>Always live</strong> &mdash; the panel embeds the hosted generator (<code>hadiahmadrrsg.github.io/allinonescriptgenerator/</code>), so scripts and evidence updates reach every agent instantly. Hosted URL is editable in Admin → Bookmarklet.</li>
             <li><strong>No RID prompt</strong> &mdash; the RID is read from the DMS URL.</li>
                         <li><strong>Header buttons</strong> &mdash; ↻ Re-scan, ⧉ Pop out (opens the same filled generator in its own window if DMS blocks the panel), − Minimize, × Close. Version pill shows the version (e.g. <code>v33 · site v34</code> when the installed bookmark is older than the hosted site).</li>
-            <li><strong>Embed mode</strong> in the generator (<code>?embed=1</code> / iframe): hides the DMS Auto-Fill button, Snippets, Admin, toasts and profile details; collapses the header behind a ☰ Menu bar and the auto-fill banner to its title line (click to expand); and talks to the panel via <code>postMessage</code> (<code>sg2-ready</code> / <code>sg2-fill</code> / <code>sg2-filled</code> / <code>sg2-authed</code>).</li>
+            <li><strong>Embed mode</strong> in the generator (<code>?embed=1</code> / iframe): hides the DMS Auto-Fill button, Admin, toasts and profile details; collapses the header behind a ☰ Menu bar and the auto-fill banner to its title line (click to expand); and talks to the panel via <code>postMessage</code> (<code>sg2-ready</code> / <code>sg2-fill</code> / <code>sg2-filled</code> / <code>sg2-authed</code>).</li>
           </ul>
         </div>
         <div style="margin-bottom:16px">
@@ -4324,8 +4828,8 @@ const _FLOW_META = {
 // Change SG_APP_VERSION here and the header, page title, browser tab,
 // and Download-Self filename all update automatically.
 // ═══════════════════════════════════════════════════════════════
-const SG_APP_VERSION = 'v33';
-const SG_APP_VERSION_DATE = '11 Sep 2026';
+const SG_APP_VERSION = 'v34';
+const SG_APP_VERSION_DATE = '14 Sep 2026';
 
 // Master Google Sheet — single source for Scripts, Evidence (tab "Claude Export/Import Sheet") and Updates
 const SG_MASTER_SHEET_ID  = '11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ';
@@ -6138,6 +6642,16 @@ function _sgAuthShowError(msg){
 }
 
 function initSgAuth(){
+  // Inside the DMS panel: give the Storage Access request a moment to settle first, so Firebase
+  // initialises against first-party storage and the website login carries over (no re-login).
+  if(window.SG2_EMBED && window.SG2_STORAGE_ACCESS && !window.__sg2AuthWaited){
+    window.__sg2AuthWaited = true;
+    let done = false;
+    const go = ()=>{ if(done) return; done = true; initSgAuth(); };
+    window.SG2_STORAGE_ACCESS.then(go, go);
+    setTimeout(go, 1500);
+    return;
+  }
   try{
     if(typeof firebase === 'undefined' || typeof firebase.auth !== 'function'){
       console.warn('[SG Auth] auth SDK unavailable');
@@ -6175,6 +6689,21 @@ function initSgAuth(){
 function sgGoogleSignIn(){
   if(!_sgAuth){ _sgAuthStep('error'); return; }
   document.getElementById('sg-auth-error')?.classList.add('hidden');
+  // Inside the DMS panel: this click is a user gesture, so we can ask Chrome for first-party storage.
+  // If it is newly granted, reload once — Firebase then sees the website's session and signs in by itself,
+  // and the grant is remembered for future panel opens.
+  if(window.SG2_EMBED && document.requestStorageAccess && !window.__sg2SaTried){
+    window.__sg2SaTried = true;
+    document.hasStorageAccess().then(has=>{
+      if(has) return _sg2DoGoogleSignIn();
+      return document.requestStorageAccess().then(()=>{ location.reload(); }, ()=>_sg2DoGoogleSignIn());
+    }).catch(()=>_sg2DoGoogleSignIn());
+    return;
+  }
+  _sg2DoGoogleSignIn();
+}
+function _sg2DoGoogleSignIn(){
+  if(!_sgAuth){ _sgAuthStep('error'); return; }
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   _sgAuth.signInWithPopup(provider).catch(err=>{
@@ -6237,10 +6766,11 @@ function sgFinishLogin(bpo){
   document.getElementById('sg-profile-bar')?.classList.remove('hidden');
   _sgAuthStep(null); // hide overlay → app unlocked
 
-  // Adopt Google name as the profile / snippets user ID if not set yet
-  if(!localStorage.getItem('sg_snip_user_id')){
-    localStorage.setItem('sg_snip_user_id', _sgUser.name);
-  }
+  // Snippets/Notes user ID: keep ONE id per account across devices and inside the DMS panel.
+  // The id is saved in Firebase (sg/users/<email>/snipUserId). On login: if this browser has no id,
+  // adopt the saved one (or the Google name if nothing is saved yet); then (re)load snippets + notes,
+  // because they were first loaded before the login and the panel starts with empty storage.
+  sgSyncSnipUserId();
 
   // Record the login + BPO in Firebase (sg/users) for admin visibility
   try{
@@ -6253,6 +6783,23 @@ function sgFinishLogin(bpo){
       });
     }
   }catch(e){ console.warn('[SG Auth] could not save user profile to Firebase:', e); }
+}
+
+function sgSyncSnipUserId(){
+  const local = (localStorage.getItem('sg_snip_user_id')||'').trim();
+  const key = (_sgUser && _sgUser.email || '').replace(/\./g, ',');
+  const finish = (id)=>{
+    if(id && id !== local) localStorage.setItem('sg_snip_user_id', id);
+    try{ if(typeof loadSnippets === 'function') loadSnippets(); }catch(e){}
+    try{ if(typeof notesCloudSync === 'function') notesCloudSync(true); }catch(e){}
+  };
+  if(!(_sgFbReady && _sgFbDB && key)){ finish(local || (_sgUser && _sgUser.name) || ''); return; }
+  const ref = _sgFbDB.ref('sg/users/' + key + '/snipUserId');
+  ref.once('value').then(snap=>{
+    const saved = (snap && snap.val() || '').toString().trim();
+    if(saved){ finish(saved); if(local && local !== saved) console.info('[SG] snippet id: using account id "' + saved + '" (this browser had "' + local + '")'); }
+    else { const id = local || _sgUser.name; ref.set(id).catch(()=>{}); finish(id); }
+  }).catch(()=>finish(local || (_sgUser && _sgUser.name) || ''));
 }
 
 function sgSignOut(){
@@ -6842,6 +7389,9 @@ function switchView(v){
   document.getElementById('view-evidence').classList.add('hidden');
   document.getElementById('view-snippets').classList.toggle('hidden',v!=='snippets');
   document.getElementById('view-admin-panel').classList.toggle('hidden',v!=='admin');
+  document.getElementById('view-notes')?.classList.toggle('hidden',v!=='notes');
+  if(v==='notes' && typeof notesRender==='function') notesRender();
+  document.querySelectorAll('#sg2-tabs .sg2-tab').forEach(t=>t.classList.toggle('active', t.getAttribute('data-v')===v));
   if(v==='evidence'){ document.getElementById('view-evidence').classList.remove('hidden'); evSetCat(evState.cat||'B'); }
   if(v==='snippets'){
     if(!getSnipUserId()){
@@ -6854,6 +7404,7 @@ function switchView(v){
   document.getElementById('nav-gen').className='nav-btn '+(v==='generator'?'active':'inactive');
   document.getElementById('nav-ev').className='nav-btn '+(v==='evidence'?'active':'inactive');
   document.getElementById('nav-snip').className='nav-btn '+(v==='snippets'?'active':'inactive');
+  const _nn=document.getElementById('nav-notes'); if(_nn) _nn.className='nav-btn '+(v==='notes'?'active':'inactive');
   document.getElementById('nav-adm').className='nav-btn '+(v==='admin'?'active':'inactive');
 }
 
@@ -7878,7 +8429,7 @@ function copyAll(){
 // Readable source: Admin → Bookmarklet → "View readable source".
 // ═══════════════════════════════════════════════════════════════
 const SG2_DEFAULT_HOST = 'https://hadiahmadrrsg.github.io/allinonescriptgenerator/';
-const SG2_BM_TEMPLATE = "javascript:!function(){function e(e){return!(-1===e.indexOf('Returnable Status')&&-1===e.indexOf('dms_new_rr_returnable_status')||-1===e.indexOf('Products')&&-1===e.indexOf('dms_general_products'))}function t(e){return!(-1===e.indexOf('dms_general_parcel')&&-1===e.indexOf('Parcel')||-1===e.indexOf('dms_general_products')&&-1===e.indexOf('Products')||-1===e.indexOf('cs_portal_bundle_id')&&-1===e.indexOf('Bundle ID'))}function n(e){for(var t=1;t<e.length;t++){var n=e[t].trim();if(/^Variation\\s*:/i.test(n))return n.replace(/^Variation\\s*:\\s*/i,'').trim();if(/^dms_general_variation\\s*:/i.test(n))return n.replace(/^dms_general_variation\\s*:\\s*/i,'').trim()}return''}function i(i){var r=l(),o=function(e){if(0===e.length)return'Info';if(1===e.length)return e[0].name;for(var t={},n=0;n<e.length;n++)t[e[n].name]=(t[e[n].name]||0)+1;for(var i=[],r=0;r<e.length;r++){var o=e[r];t[o.name]>1&&o.variation?i.push('- '+o.name+' ('+o.variation+')'):i.push('- '+o.name)}return i.join('\\n')}(function(){for(var i=[],r=document.querySelectorAll('tr'),o=!1,a=0;a<r.length;a++){var s=r[a],d=s.innerText.trim();if(o){if(t(d))break;if(-1!==s.className.indexOf('ant-table-row')&&-1===s.className.indexOf('measure')){var l=d.split(/\\n/),c=l[0].trim().replace(/\\s+X\\d+\\s*$/g,'').trim(),u=n(l).replace(/\\s*[A-Z0-9]{6,}(\\s|_|$)/g,' ').replace(/[_]/g,' ').replace(/\\s+/g,' ').trim();c.length>10&&i.push({name:c,variation:u})}}else e(d)&&(o=!0)}return i}()),a=(r.match(/Request Type[\\s]*:[\\s]*(.*?)(?=\\n|$)/i)||[])[1]||'',s=(r.match(/Request Proposal[\\s]*:?[\\s]*(.+?)(?=\\s{2,}|Refund Amount|\\t|\\n|$)/i)||[])[1]||'',d='',c=r.match(/Seller 1st Dispute[\\s\\S]*?Dispute Reason[\\s]*:[\\s]*(.+?)(?=\\n|$)/i);c&&(d=c[1].trim()),'-'!==d&&'None'!==d&&''!==d||(d='');var u=!1;(/^\\s*Seller\\s*Dispute/i.test(a)||d&&d.length>2&&!/Buyer\\s*Request/i.test(a))&&(u=!0);var g='';/without\\s*buyer/i.test(a)?g='Without Buyer':(/with\\s*buyer/i.test(a)||u)&&(g='With Buyer');var p='Buyer',m='';u?(p='Seller',m='Seller Dispute'):s.match(/Return\\s*[&]\\s*Refund/i)||s.match(/Return\\s*and\\s*Refund/i)||'Return&Refund'===s?m='Return & Refund':s.match(/Refund\\s*Only/i)&&(m='Refund Only');for(var f='',h=[/Real Return Reason[\\s]*:[\\s]*(.+?)(?=\\t|\\n|$)/i,/Real Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=\\s{2,}|\\t|\\n|$)/i,/Real\\s+Return\\s+Reason\\s*[:\\-]?\\s*(.+?)$/im],_=0;_<h.length;_++){var y=r.match(h[_]);if(y&&y[1]&&'-'!==y[1].trim()&&'None'!==y[1].trim()&&'Not Available'!==y[1].trim()&&y[1].trim().length>3){f=y[1].trim();break}}if(!f||'-'===f)for(var x=[/(?:^|\\n|\\t)Return Reason[\\s]*:[\\s]*(.+?)(?=\\s{2,}|Real Return|\\t|\\n|$)/i,/Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=Return Reason Remark|Real Return|\\t{2,}|\\n|$)/i],v=0;v<x.length;v++){var w=r.match(x[v]);if(w&&w[1]&&'-'!==w[1].trim()&&'None'!==w[1].trim()&&'Not Available'!==w[1].trim()&&w[1].trim().length>3){f=w[1].trim();break}}f=(f=(f=f.replace(/\\s*Auto[- ]?Approve.*$/i,'').trim()).replace(/\\s*Images and Videos.*$/i,'').trim()).replace(/\\s*Return Reason Remark.*$/i,'').trim();var b;b=((r.match(/Grand Total[:\\s\\n]*\\$?([\\d,]+\\.?\\d*)/i)||[])[1]||'').replace(/,/g,'');var E='',R=r.match(/Maximum Compensation Amount[:\\s]*\\$?([\\d]+\\.?\\d*)/gi);if(R)for(var I=0;I<R.length;I++){var S=(R[I].match(/([\\d]+\\.?\\d*)$/)||[])[1]||'';if(S&&parseFloat(S)>0){E=S;break}}return{rid:i,orderSN:(r.match(/Order SN[:\\s]*([A-Z0-9]+)/i)||[])[1]||'',userType:p,requestType:m,buyerUsername:((r.match(/Buyer Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\\s*(?:Buyer|Seller)?\\s*$/i,'').trim(),sellerUsername:((r.match(/Seller Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\\s*(?:Buyer|Seller)?\\s*$/i,'').trim(),shopName:(r.match(/Shop Name[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',requestProposal:s,returnReason:f,refundAmount:b,buyerCategory:(r.match(/Buyer Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerCategory:(r.match(/Seller Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerDisputeReason:d,slaWallet:E,sellerSubType:g,productName:o}}var r='__SG2_HOST__',o='__SG2_VER__',a='_sg2_panel',s='_sg2_pill',d='sg2_panel_geom';function l(){for(var e=[],t=document.body.children,n=0;n<t.length;n++){var i=t[n];if(i.id!==a&&i.id!==s){var r=i.innerText;null==r&&(r=i.textContent||''),r&&e.push(r)}}return e.join('\\n')}var c='';try{c=new URL(r).origin}catch(e){}function u(){var e=(window.location.pathname.split('/').filter(Boolean).pop()||'').trim();if(/^\\d{5,}$/.test(e))return e;try{for(var t=new URLSearchParams(window.location.search),n=['rid','RID','case_id','caseId','id'],i=0;i<n.length;i++){var r=t.get(n[i]);if(r&&/^\\d{5,}$/.test(r))return r}}catch(e){}var o=(window.location.hash||'').match(/(\\d{5,})/);if(o)return o[1];try{var a=l().match(/\\bRID\\s*[:#]?\\s*(\\d{5,})/i);if(a)return a[1]}catch(e){}return e}var g=u();function p(e){return String(null==e?'':e).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;')}function m(e){var t=encodeURIComponent(JSON.stringify(e));if(t.length>6e3&&e&&e.productName){var n={};for(var i in e)n[i]=e[i];n.productName=String(e.productName).slice(0,300),t=encodeURIComponent(JSON.stringify(n))}return t}function f(e){var t=-1===r.indexOf('?')?'?':'&';return r+t+'embed=1'+(e?'&data='+m(e):'')}function h(e){var t=-1===r.indexOf('?')?'?':'&';return r+t+(e?'data='+m(e):'')}function _(e){try{var t=e.getBoundingClientRect();localStorage.setItem(d,JSON.stringify({left:t.left,top:t.top,width:t.width,height:t.height}))}catch(e){}}function y(e,t){var n=document.getElementById('_sg2_status');n&&(n.textContent=e,n.style.color=t||'#6b7280')}function x(e){var t=document.getElementById('_sg2_frame');if(t&&t.contentWindow)try{t.contentWindow.postMessage({type:'sg2-fill',data:e},'*')}catch(e){}}var v=null;function w(e){v&&clearTimeout(v),v=setTimeout(function(){var t=document.getElementById(a);t&&'1'!==t.getAttribute('data-ready')&&!t.__sg2loaded&&function(e,t){var n=document.getElementById('_sg2_fallback');n&&(e=e||null,n.style.display='flex',n.innerHTML='<div style=\"max-width:380px;text-align:center;font-size:13px;color:#374151;line-height:1.6\"><div style=\"font-size:30px;margin-bottom:8px\">\\u26a0\\ufe0f</div><b>'+p(t)+'</b><div style=\"margin-top:6px;color:#6b7280\">Your case data is ready \\u2014 open the generator in its own window instead.</div><button id=\"_sg2_fb_open\" style=\"margin-top:14px;padding:10px 22px;border:none;border-radius:10px;background:#ee4d2d;color:#fff;font-weight:700;font-size:13px;cursor:pointer\">\\u29c9 Open Script Generator 2.0</button></div>',document.getElementById('_sg2_fb_open').onclick=function(){window.open(h(e),'_blank')})}(e||t&&t.__sg2data,'The generator didn\\u2019t load inside DMS.')},12e3)}function b(){try{(window.__sg2log=window.__sg2log||[]).push([(new Date).toISOString()].concat([].slice.call(arguments)).join(' '))}catch(e){}}function E(e,t){if(e&&t){e.__sg2data=t;var n=document.getElementById('_sg2_title_rid');if(n&&(n.textContent=t.rid?'RID '+t.rid:''),'1'===e.getAttribute('data-ready'))return x(t),y('Connected','#059669'),void b('delivered via postMessage');e.__sg2loaded?R(e):y('Scanned \\u2713 \\xb7 loading generator\\u2026','#6b7280')}}function R(e){var t=document.getElementById('_sg2_frame');t&&e.__sg2data&&(e.__sg2urlMode=!0,e.__sg2loaded=0,t.src=f(e.__sg2data),y('Connected \\xb7 compat','#059669'),b('delivered via URL (no handshake)'))}function I(e){var t=document.getElementById(a);if(t){t.__sg2data=e;var n=document.getElementById('_sg2_title_rid');n&&(n.textContent=e.rid?'RID '+e.rid:'');var i=document.getElementById('_sg2_fallback');i&&(i.style.display='none'),'1'===t.getAttribute('data-ready')?(x(e),y('Re-scanned \\u2713','#059669'),setTimeout(function(){y('Connected','#059669')},1800)):t.__sg2loaded||t.__sg2urlMode?R(t):(E(t,e),w(e))}}function S(e){var t=document.getElementById(a);t&&t.remove();var n=document.getElementById(s);n&&n.remove();var i=function(){try{return JSON.parse(localStorage.getItem(d)||'null')}catch(e){return null}}()||{},r=document.createElement('div');r.id=a,r.__sg2data=e,r.setAttribute('data-ready','0'),r.style.cssText='position:fixed;top:12px;right:12px;width:560px;height:calc(100vh - 24px);min-width:340px;min-height:200px;z-index:2147483000;background:#fff;border:3px solid #ee4d2d;border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box',i.width&&(r.style.left=Math.max(0,Math.min(i.left,window.innerWidth-100))+'px',r.style.top=Math.max(0,Math.min(i.top,window.innerHeight-60))+'px',r.style.right='auto',r.style.width=Math.min(i.width,window.innerWidth)+'px',r.style.height=Math.min(i.height,window.innerHeight)+'px');var l=function(e,t,n,i){return'<button id=\"'+e+'\" title=\"'+t+'\" style=\"background:#f3f4f6;border:none;border-radius:8px;height:30px;min-width:30px;padding:0 '+(i?'6':'10')+'px;font-size:'+(i?'20':'12')+'px;font-weight:600;cursor:pointer;color:#374151;line-height:1;font-family:sans-serif\">'+n+'</button>'};r.innerHTML='<div id=\"_sg2_head\" style=\"display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 8px 14px;background:#fff;border-bottom:1px solid #e5e7eb;cursor:move;user-select:none;flex:0 0 auto\"><div style=\"display:flex;align-items:center;gap:8px;min-width:0\"><span style=\"font-weight:800;font-size:14px;color:#ee4d2d;white-space:nowrap\">\\u26a1Script Generator 2.0</span><span id=\"_sg2_ver\" style=\"display:inline-block;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700\">'+o+'</span><span id=\"_sg2_title_rid\" style=\"font-size:12px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\"></span><span id=\"_sg2_status\" style=\"font-size:11px;color:#6b7280;white-space:nowrap\">Loading\\u2026</span></div><div style=\"display:flex;gap:4px;align-items:center;flex:0 0 auto\">'+l('_sg2_rescan','Re-scan this DMS page','\\u21bb Re-scan')+l('_sg2_popout','Open in its own window','\\u29c9')+l('_sg2_min','Minimize','\\u2212',!0)+l('_sg2_close','Close','\\xd7',!0)+'</div></div><div id=\"_sg2_body\" style=\"position:relative;display:flex;flex:1 1 auto;min-height:0;background:#fff\"><iframe id=\"_sg2_frame\" title=\"Script Generator 2.0\" allow=\"clipboard-write; clipboard-read\" style=\"border:0;flex:1 1 auto;min-width:0;min-height:0;align-self:stretch;display:block;background:#fff\"></iframe><div id=\"_sg2_fallback\" style=\"display:none;position:absolute;inset:0;background:#fff;align-items:center;justify-content:center;padding:20px\"></div></div>'+['n','s','w','e','nw','ne','sw','se'].map(function(e){var t='position:absolute;z-index:5;';return'n'===e&&(t+='top:0;left:8px;right:8px;height:8px;cursor:ns-resize'),'s'===e&&(t+='bottom:0;left:8px;right:8px;height:8px;cursor:ns-resize'),'w'===e&&(t+='left:0;top:8px;bottom:8px;width:8px;cursor:ew-resize'),'e'===e&&(t+='right:0;top:8px;bottom:8px;width:8px;cursor:ew-resize'),'nw'===e&&(t+='top:0;left:0;width:14px;height:14px;cursor:nwse-resize;z-index:6'),'ne'===e&&(t+='top:0;right:0;width:14px;height:14px;cursor:nesw-resize;z-index:6'),'sw'===e&&(t+='bottom:0;left:0;width:14px;height:14px;cursor:nesw-resize;z-index:6'),'se'===e&&(t+='bottom:0;right:0;width:14px;height:14px;cursor:nwse-resize;z-index:6'),'<div id=\"_sg2_rs_'+e+'\" style=\"'+t+'\"></div>'}).join(''),document.body.appendChild(r),document.getElementById('_sg2_title_rid').textContent=e&&e.rid?'RID '+e.rid:'';var p=document.getElementById('_sg2_frame');function m(e){p.style.pointerEvents=e?'none':'auto'}['_sg2_rescan','_sg2_popout','_sg2_min','_sg2_close'].forEach(function(e){var t;(t=document.getElementById(e)).addEventListener('mouseenter',function(){this.style.background='#dc2626',this.style.color='#fff'}),t.addEventListener('mouseleave',function(){this.style.background='#f3f4f6',this.style.color='#374151'})}),document.getElementById('_sg2_rescan').onclick=function(){g=u(),y('Scanning\\u2026','#b45309'),B(function(e){I(e)})},document.getElementById('_sg2_popout').onclick=function(){window.open(h(r.__sg2data||null),'_blank')};var v=!1,S='';function k(e){v=!!e,document.getElementById('_sg2_body').style.display=v?'none':'flex',v?(S=r.style.height,r.style.height='auto',r.style.minHeight='0'):(r.style.height=S||'calc(100vh - 24px)',r.style.minHeight='200px');var t=document.getElementById('_sg2_min');t&&(t.textContent=v?'\\u25a1':'\\u2212',t.title=v?'Restore':'Minimize');var n=document.getElementById('_sg2_head');n&&(n.title=v?'Click to restore (or press Esc)':'')}r.__sg2ToggleMin=function(){k(!v)},document.getElementById('_sg2_min').onclick=function(){k(!v)},document.getElementById('_sg2_head').addEventListener('click',function(e){v&&'BUTTON'!==e.target.tagName&&k(!1)}),window.__sg2EscBound||(window.__sg2EscBound=!0,document.addEventListener('keydown',function(e){if('Escape'===e.key&&!e.defaultPrevented){var t=document.getElementById(a);t&&'none'!==t.style.display&&t.__sg2ToggleMin&&t.__sg2ToggleMin()}})),document.getElementById('_sg2_close').onclick=function(){r.style.display='none';var e=document.getElementById(s);e&&e.remove();var t=document.createElement('div');t.id=s,t.style.cssText='position:fixed;top:12px;right:12px;z-index:2147483000;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-radius:12px;background:#ffbb00;color:#3d2b00;font-family:sans-serif;font-size:13px;font-weight:700;cursor:move;box-shadow:0 6px 20px rgba(0,0,0,.3);user-select:none',t.innerHTML='<span style=\"pointer-events:none\">\\u26a1Script Generator 2.0</span><span id=\"_sg2_bub_x\" title=\"Close\" style=\"width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,.12);font-size:20px;line-height:28px;text-align:center;cursor:pointer;flex:0 0 auto\">\\xd7</span>',document.body.appendChild(t);var n=document.getElementById('_sg2_bub_x');n.addEventListener('mouseenter',function(){this.style.background='#dc2626',this.style.color='#fff'}),n.addEventListener('mouseleave',function(){this.style.background='rgba(0,0,0,.12)',this.style.color='#3d2b00'}),n.addEventListener('click',function(e){e.stopPropagation(),t.remove(),r.remove()});var i=!1,o=!1,a=0,d=0;t.addEventListener('mousedown',function(e){if(!e.target||'_sg2_bub_x'!==e.target.id){i=!0,o=!1;var n=t.getBoundingClientRect();a=e.clientX-n.left,d=e.clientY-n.top,t.style.left=n.left+'px',t.style.top=n.top+'px',t.style.right='auto',e.preventDefault()}}),document.addEventListener('mousemove',function(e){i&&(o=!0,t.style.left=Math.min(Math.max(0,e.clientX-a),window.innerWidth-60)+'px',t.style.top=Math.min(Math.max(0,e.clientY-d),window.innerHeight-30)+'px')}),document.addEventListener('mouseup',function(){i=!1}),t.addEventListener('click',function(e){e.target&&'_sg2_bub_x'===e.target.id||(o?o=!1:(t.remove(),r.style.display='flex'))})};var M=document.getElementById('_sg2_head'),N=!1,O=0,C=0;M.addEventListener('mousedown',function(e){if('BUTTON'!==e.target.tagName){N=!0,m(!0);var t=r.getBoundingClientRect();O=e.clientX-t.left,C=e.clientY-t.top,r.style.left=t.left+'px',r.style.top=t.top+'px',r.style.right='auto',e.preventDefault()}}),document.addEventListener('mousemove',function(e){N&&(r.style.left=Math.min(Math.max(0,e.clientX-O),window.innerWidth-60)+'px',r.style.top=Math.min(Math.max(0,e.clientY-C),window.innerHeight-40)+'px')}),document.addEventListener('mouseup',function(){N&&(N=!1,m(!1),_(r))});var T=null;['n','s','w','e','nw','ne','sw','se'].forEach(function(e){document.getElementById('_sg2_rs_'+e).addEventListener('mousedown',function(t){T={dir:e,rect:r.getBoundingClientRect()},m(!0),r.style.left=T.rect.left+'px',r.style.top=T.rect.top+'px',r.style.right='auto',t.preventDefault(),t.stopPropagation()})}),document.addEventListener('mousemove',function(e){if(T){var t=T.rect,n=T.dir,i=t.width,o=t.height,a=t.left,s=t.top;-1!==n.indexOf('e')?i=Math.max(340,e.clientX-t.left):-1!==n.indexOf('w')&&(i=Math.max(340,t.right-e.clientX),a=t.right-i),-1!==n.indexOf('s')?o=Math.max(200,e.clientY-t.top):-1!==n.indexOf('n')&&(o=Math.max(200,t.bottom-e.clientY),s=t.bottom-o),r.style.width=i+'px',r.style.height=o+'px',r.style.left=a+'px',r.style.top=s+'px'}}),document.addEventListener('mouseup',function(){T&&(T=null,m(!1),_(r))}),window.__sg2MsgBound||(window.__sg2MsgBound=!0,window.addEventListener('message',function(e){var t=e&&e.data;if(t&&'object'==typeof t&&'string'==typeof t.type&&0===t.type.indexOf('sg2-')){var n=document.getElementById(a);if(n){var i=document.getElementById('_sg2_frame');if(i&&i.contentWindow&&e.source===i.contentWindow||c&&e.origin===c)if('sg2-ready'===t.type){b('ready',t.version),n.setAttribute('data-ready','1');var r=document.getElementById('_sg2_fallback');r&&(r.style.display='none');var s=document.getElementById('_sg2_ver');s&&(s.textContent=t.version?t.version===o?t.version:o+' \\xb7 site '+t.version:o,s.style.display='inline-block'),n.__sg2data?(y('Connected','#059669'),x(n.__sg2data)):y('Connected \\xb7 scanning DMS\\u2026','#b45309')}else'sg2-esc'===t.type?'none'!==n.style.display&&n.__sg2ToggleMin&&n.__sg2ToggleMin():'sg2-authed'===t.type?y('Signed in \\u2713','#059669'):'sg2-filled'===t.type&&y('Auto-filled \\u2713','#059669');else b('ignored message',t.type,e.origin)}}})),p.addEventListener('load',function(){r.__sg2loaded=Date.now(),b('frame load',r.getAttribute('data-ready'),r.__sg2urlMode?'urlMode':''),r.__sg2urlMode?'1'!==r.getAttribute('data-ready')&&y('Connected \\xb7 compat','#059669'):setTimeout(function(){var e=document.getElementById(a);e&&'1'!==e.getAttribute('data-ready')&&!e.__sg2urlMode&&(e.__sg2data?R(e):y('Generator loaded \\xb7 scanning DMS\\u2026','#b45309'))},1500)}),function(){try{for(var e=[c,'https://fonts.googleapis.com','https://fonts.gstatic.com','https://www.gstatic.com','https://cdn.jsdelivr.net'],t=0;t<e.length;t++)if(e[t]&&!document.querySelector('link[data-sg2][href=\"'+e[t]+'\"]')){var n=document.createElement('link');n.rel='preconnect',n.href=e[t],n.crossOrigin='anonymous',n.setAttribute('data-sg2','1'),document.head.appendChild(n)}}catch(e){}}(),p.src=f(e),w(e),window.__sg2Follow&&clearInterval(window.__sg2Follow);var z=window.location.pathname,L=!1;window.__sg2Follow=setInterval(function(){var e=document.getElementById(a);if(!e)return clearInterval(window.__sg2Follow),void(window.__sg2Follow=null);if(!L&&window.location.pathname!==z){z=window.location.pathname,g=u(),L=!0,y('New case \\u2014 scanning\\u2026','#b45309');var t=document.getElementById(s);t&&(t.remove(),e.style.display='flex'),B(function(e){L=!1;var t=document.getElementById(a);t&&(e?t.__sg2data&&e.orderSN&&t.__sg2data.orderSN===e.orderSN?y('Same case \\u2713','#059669'):t.__sg2data?I(e):E(t,e):y('Not a case page','#6b7280'))},!0)}},800)}function B(e,t){function n(){if(-1===l().indexOf('Maximum Compensation Amount')){for(var t=null,n=document.querySelectorAll('*'),r=0;r<n.length;r++){var o=n[r];if('View Detail'===(o.innerText||o.textContent||'').trim()&&0===o.children.length){t=o;break}}if(t){t.click();var a=0,s=setInterval(function(){a+=60,(-1!==l().indexOf('Maximum Compensation Amount')||a>=1200)&&(clearInterval(s),e(i(g)))},60)}else e(i(g))}else e(i(g))}var r=0;!function i(){var o=l(),a=/Order SN[\\s]*:[\\s]*[A-Z0-9]{5,}/i.test(o),s=/Request Type[\\s]*:/i.test(o);r++,a&&s?n():r>=40?t&&!a?e(null):n():setTimeout(i,200)}()}var k=document.getElementById(a);if(k){var M=document.getElementById(s);return M&&(M.remove(),k.style.display='flex'),g=u(),y('Scanning\\u2026','#b45309'),void B(function(e){var t=document.getElementById(a);t&&(t.__sg2data&&e.orderSN&&t.__sg2data.orderSN===e.orderSN&&'1'===t.getAttribute('data-ready')?y('Same case \\u2713 (use \\u21bb Re-scan to refill)','#059669'):I(e))})}!function(){try{S(null),y('Scanning DMS\\u2026','#b45309'),B(function(e){var t=document.getElementById(a);t&&(b('scan done',e.orderSN),E(t,e))})}catch(t){try{var e=document.createElement('div');e.style.cssText='position:fixed;top:12px;right:12px;width:420px;z-index:2147483000;background:#fff;border:3px solid #dc2626;border-radius:14px;padding:16px;font-family:sans-serif;font-size:13px;box-shadow:0 20px 70px rgba(0,0,0,.35)',e.innerHTML='<b style=\"color:#dc2626\">Script Generator 2.0 \\u2014 error</b><div style=\"margin:8px 0;color:#374151\">'+p(t&&t.message?t.message:String(t))+'</div><button style=\"padding:6px 14px;border:none;border-radius:8px;background:#374151;color:#fff;cursor:pointer\">Close</button>',e.querySelector('button').onclick=function(){e.remove()},document.body.appendChild(e)}catch(e){alert('Script Generator 2.0 error: '+(t&&t.message?t.message:t))}}}()}();";
+const SG2_BM_TEMPLATE = "javascript:!function(){function e(e){return!(-1===e.indexOf('Returnable Status')&&-1===e.indexOf('dms_new_rr_returnable_status')||-1===e.indexOf('Products')&&-1===e.indexOf('dms_general_products'))}function t(e){return!(-1===e.indexOf('dms_general_parcel')&&-1===e.indexOf('Parcel')||-1===e.indexOf('dms_general_products')&&-1===e.indexOf('Products')||-1===e.indexOf('cs_portal_bundle_id')&&-1===e.indexOf('Bundle ID'))}function n(e){for(var t=1;t<e.length;t++){var n=e[t].trim();if(/^Variation\\s*:/i.test(n))return n.replace(/^Variation\\s*:\\s*/i,'').trim();if(/^dms_general_variation\\s*:/i.test(n))return n.replace(/^dms_general_variation\\s*:\\s*/i,'').trim()}return''}function i(i){var o=c(),r=function(e){if(0===e.length)return'Info';if(1===e.length)return e[0].name;for(var t={},n=0;n<e.length;n++)t[e[n].name]=(t[e[n].name]||0)+1;for(var i=[],o=0;o<e.length;o++){var r=e[o];t[r.name]>1&&r.variation?i.push('- '+r.name+' ('+r.variation+')'):i.push('- '+r.name)}return i.join('\\n')}(function(){for(var i=[],o=document.querySelectorAll('tr'),r=!1,a=0;a<o.length;a++){var s=o[a],d=s.innerText.trim();if(r){if(t(d))break;if(-1!==s.className.indexOf('ant-table-row')&&-1===s.className.indexOf('measure')){var l=d.split(/\\n/),c=l[0].trim().replace(/\\s+X\\d+\\s*$/g,'').trim(),u=n(l).replace(/\\s*[A-Z0-9]{6,}(\\s|_|$)/g,' ').replace(/[_]/g,' ').replace(/\\s+/g,' ').trim();c.length>10&&i.push({name:c,variation:u})}}else e(d)&&(r=!0)}return i}()),a=(o.match(/Request Type[\\s]*:[\\s]*(.*?)(?=\\n|$)/i)||[])[1]||'',s=(o.match(/Request Proposal[\\s]*:?[\\s]*(.+?)(?=\\s{2,}|Refund Amount|\\t|\\n|$)/i)||[])[1]||'',d='',l=o.match(/Seller 1st Dispute[\\s\\S]*?Dispute Reason[\\s]*:[\\s]*(.+?)(?=\\n|$)/i);l&&(d=l[1].trim()),'-'!==d&&'None'!==d&&''!==d||(d='');var u=!1;(/^\\s*Seller\\s*Dispute/i.test(a)||d&&d.length>2&&!/Buyer\\s*Request/i.test(a))&&(u=!0);var g='';/without\\s*buyer/i.test(a)?g='Without Buyer':(/with\\s*buyer/i.test(a)||u)&&(g='With Buyer');var m='Buyer',p='';u?(m='Seller',p='Seller Dispute'):s.match(/Return\\s*[&]\\s*Refund/i)||s.match(/Return\\s*and\\s*Refund/i)||'Return&Refund'===s?p='Return & Refund':s.match(/Refund\\s*Only/i)&&(p='Refund Only');for(var f='',_=[/Real Return Reason[\\s]*:[\\s]*(.+?)(?=\\t|\\n|$)/i,/Real Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=\\s{2,}|\\t|\\n|$)/i,/Real\\s+Return\\s+Reason\\s*[:\\-]?\\s*(.+?)$/im],h=0;h<_.length;h++){var y=o.match(_[h]);if(y&&y[1]&&'-'!==y[1].trim()&&'None'!==y[1].trim()&&'Not Available'!==y[1].trim()&&y[1].trim().length>3){f=y[1].trim();break}}if(!f||'-'===f)for(var v=[/(?:^|\\n|\\t)Return Reason[\\s]*:[\\s]*(.+?)(?=\\s{2,}|Real Return|\\t|\\n|$)/i,/Return Reason[\\s]*[:\\-][\\s]*(.+?)(?=Return Reason Remark|Real Return|\\t{2,}|\\n|$)/i],x=0;x<v.length;x++){var w=o.match(v[x]);if(w&&w[1]&&'-'!==w[1].trim()&&'None'!==w[1].trim()&&'Not Available'!==w[1].trim()&&w[1].trim().length>3){f=w[1].trim();break}}f=(f=(f=f.replace(/\\s*Auto[- ]?Approve.*$/i,'').trim()).replace(/\\s*Images and Videos.*$/i,'').trim()).replace(/\\s*Return Reason Remark.*$/i,'').trim();var b;b=((o.match(/Grand Total[:\\s\\n]*\\$?([\\d,]+\\.?\\d*)/i)||[])[1]||'').replace(/,/g,'');var E='',I=o.match(/Maximum Compensation Amount[:\\s]*\\$?([\\d]+\\.?\\d*)/gi);if(I)for(var S=0;S<I.length;S++){var R=(I[S].match(/([\\d]+\\.?\\d*)$/)||[])[1]||'';if(R&&parseFloat(R)>0){E=R;break}}return{rid:i,orderSN:(o.match(/Order SN[:\\s]*([A-Z0-9]+)/i)||[])[1]||'',userType:m,requestType:p,buyerUsername:((o.match(/Buyer Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\\s*(?:Buyer|Seller)?\\s*$/i,'').trim(),sellerUsername:((o.match(/Seller Username[:\\s]*(\\S+)/i)||[])[1]||'').replace(/(?:Good|Fraud|VIP|Normal|New)\\s*(?:Buyer|Seller)?\\s*$/i,'').trim(),shopName:(o.match(/Shop Name[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',requestProposal:s,returnReason:f,refundAmount:b,buyerCategory:(o.match(/Buyer Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerCategory:(o.match(/Seller Category[:\\s]*(.+?)(?=\\n|$)/i)||[])[1]||'',sellerDisputeReason:d,slaWallet:E,sellerSubType:g,productName:r}}var o='__SG2_HOST__',r='__SG2_VER__',a='a87125ac',s='_sg2_panel',d='_sg2_pill',l='sg2_panel_geom';function c(){for(var e=[],t=document.body.children,n=0;n<t.length;n++){var i=t[n];if(i.id!==s&&i.id!==d){var o=i.tagName;if('SCRIPT'!==o&&'STYLE'!==o&&'TEMPLATE'!==o&&'NOSCRIPT'!==o&&'LINK'!==o&&'META'!==o){try{if('none'===window.getComputedStyle(i).display)continue}catch(e){}var r=i.innerText;null==r&&(r=i.textContent||''),r&&e.push(r)}}}return e.join('\\n')}var u='';try{u=new URL(o).origin}catch(e){}function g(){var e=(window.location.pathname.split('/').filter(Boolean).pop()||'').trim();if(/^\\d{5,}$/.test(e))return e;try{for(var t=new URLSearchParams(window.location.search),n=['rid','RID','case_id','caseId','id'],i=0;i<n.length;i++){var o=t.get(n[i]);if(o&&/^\\d{5,}$/.test(o))return o}}catch(e){}var r=(window.location.hash||'').match(/(\\d{5,})/);if(r)return r[1];try{var a=c().match(/\\bRID\\s*[:#]?\\s*(\\d{5,})/i);if(a)return a[1]}catch(e){}return e}var m=g();function p(e){return String(null==e?'':e).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;')}function f(e){var t=encodeURIComponent(JSON.stringify(e));if(t.length>6e3&&e&&e.productName){var n={};for(var i in e)n[i]=e[i];n.productName=String(e.productName).slice(0,300),t=encodeURIComponent(JSON.stringify(n))}return t}function _(e){var t=-1===o.indexOf('?')?'?':'&';return o+t+'embed=1'+(e?'&data='+f(e):'')}function h(e){var t=-1===o.indexOf('?')?'?':'&';return o+t+(e?'data='+f(e):'')}function y(){try{return JSON.parse(localStorage.getItem(l)||'null')}catch(e){return null}}function v(e){try{var t=e.getBoundingClientRect(),n=y()||{},i=e.__sg2IsMin&&e.__sg2IsMin()?n.height||null:t.height,o={left:t.left,top:t.top,width:t.width};i&&(o.height=i),localStorage.setItem(l,JSON.stringify(o))}catch(e){}}function x(e,t){var n=document.getElementById('_sg2_status');n&&(n.textContent=e,n.style.color=t||'#6b7280')}function w(e){var t=document.getElementById('_sg2_frame');if(t&&t.contentWindow)try{t.contentWindow.postMessage({type:'sg2-fill',data:e},'*')}catch(e){}}var b=null;function E(e){b&&clearTimeout(b),b=setTimeout(function(){var t=document.getElementById(s);t&&'1'!==t.getAttribute('data-ready')&&!t.__sg2everLoaded&&function(e,t){var n=document.getElementById('_sg2_fallback');n&&(e=e||null,n.style.display='flex',n.innerHTML='<div style=\"max-width:380px;text-align:center;font-size:13px;color:#374151;line-height:1.6\"><div style=\"font-size:30px;margin-bottom:8px\">\\u26a0\\ufe0f</div><b>'+p(t)+'</b><div style=\"margin-top:6px;color:#6b7280\">Your case data is ready \\u2014 open the generator in its own window instead.</div><button id=\"_sg2_fb_open\" style=\"margin-top:14px;padding:10px 22px;border:none;border-radius:10px;background:#ee4d2d;color:#fff;font-weight:700;font-size:13px;cursor:pointer\">\\u29c9 Open Script Generator 2.0</button></div>',document.getElementById('_sg2_fb_open').onclick=function(){window.open(h(e),'_blank')})}(e||t&&t.__sg2data,'The generator didn\\u2019t load inside DMS.')},12e3)}function I(){try{(window.__sg2log=window.__sg2log||[]).push([(new Date).toISOString()].concat([].slice.call(arguments)).join(' '))}catch(e){}}function S(e,t){if(e&&t){e.__sg2data=t;var n=document.getElementById('_sg2_title_rid');if(n&&(n.textContent=t.rid?'RID '+t.rid:''),'1'===e.getAttribute('data-ready'))return w(t),x('Connected','#059669'),void I('delivered via postMessage');e.__sg2loaded?R(e):x('Scanned \\u2713 \\xb7 loading generator\\u2026','#6b7280')}}function R(e){var t=document.getElementById('_sg2_frame');t&&e.__sg2data&&(e.__sg2urlMode=!0,e.__sg2loaded=0,e.setAttribute('data-ready','0'),t.src=_(e.__sg2data),x('Connected \\xb7 compat','#059669'),I('delivered via URL (no handshake)'))}function B(e){var t=document.getElementById(s);if(t){t.__sg2data=e;var n=document.getElementById('_sg2_title_rid');n&&(n.textContent=e.rid?'RID '+e.rid:'');var i=document.getElementById('_sg2_fallback');i&&(i.style.display='none'),'1'===t.getAttribute('data-ready')?(w(e),x('Re-scanned \\u2713','#059669'),setTimeout(function(){x('Connected','#059669')},1800)):t.__sg2loaded||t.__sg2urlMode?R(t):(S(t,e),E(e))}}function M(e){var t=document.getElementById(s);t&&t.remove();var n=document.getElementById(d);n&&n.remove();var i=y()||{},o=document.createElement('div');o.id=s,o.__sg2data=e,o.setAttribute('data-ready','0'),o.setAttribute('data-build',a),o.style.cssText='position:fixed;top:12px;right:12px;width:560px;height:calc(100vh - 24px);min-width:340px;min-height:200px;z-index:2147483000;background:#fff;border:3px solid #ee4d2d;border-radius:16px;box-shadow:0 20px 70px rgba(0,0,0,.35);font-family:sans-serif;display:flex;flex-direction:column;overflow:hidden;box-sizing:border-box',i.width&&(o.style.left=Math.max(0,Math.min(i.left,window.innerWidth-100))+'px',o.style.top=Math.max(0,Math.min(i.top,window.innerHeight-60))+'px',o.style.right='auto',o.style.width=Math.min(i.width,window.innerWidth)+'px',i.height&&(o.style.height=Math.min(i.height,window.innerHeight)+'px'));var l=function(e,t,n,i){return'<button id=\"'+e+'\" title=\"'+t+'\" style=\"background:#f3f4f6;border:none;border-radius:8px;height:30px;min-width:30px;padding:0 '+(i?'6':'10')+'px;font-size:'+(i?'20':'12')+'px;font-weight:600;cursor:pointer;color:#374151;line-height:1;font-family:sans-serif\">'+n+'</button>'};o.innerHTML='<div id=\"_sg2_head\" style=\"display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px 8px 14px;background:#fff;border-bottom:1px solid #e5e7eb;cursor:move;user-select:none;flex:0 0 auto\"><div style=\"display:flex;align-items:center;gap:8px;min-width:0\"><span style=\"font-weight:800;font-size:14px;color:#ee4d2d;white-space:nowrap\">\\u26a1Script Generator 2.0</span><span id=\"_sg2_ver\" style=\"display:inline-block;background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;border-radius:999px;padding:1px 8px;font-size:11px;font-weight:700\">'+r+'</span><span id=\"_sg2_title_rid\" style=\"font-size:12px;color:#6b7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis\"></span><span id=\"_sg2_status\" style=\"font-size:11px;color:#6b7280;white-space:nowrap\">Loading\\u2026</span></div><div style=\"display:flex;gap:4px;align-items:center;flex:0 0 auto\">'+l('_sg2_rescan','Re-scan this DMS page','\\u21bb Re-scan')+l('_sg2_popout','Open in its own window','\\u29c9')+l('_sg2_min','Minimize','\\u2212',!0)+l('_sg2_close','Close','\\xd7',!0)+'</div></div><div id=\"_sg2_body\" style=\"position:relative;display:flex;flex:1 1 auto;min-height:0;background:#fff\"><iframe id=\"_sg2_frame\" title=\"Script Generator 2.0\" allow=\"clipboard-write; clipboard-read\" style=\"border:0;flex:1 1 auto;min-width:0;min-height:0;align-self:stretch;display:block;background:#fff\"></iframe><div id=\"_sg2_fallback\" style=\"display:none;position:absolute;inset:0;background:#fff;align-items:center;justify-content:center;padding:20px\"></div></div>'+['n','s','w','e','nw','ne','sw','se'].map(function(e){var t='position:absolute;z-index:5;';return'n'===e&&(t+='top:0;left:8px;right:8px;height:8px;cursor:ns-resize'),'s'===e&&(t+='bottom:0;left:8px;right:8px;height:8px;cursor:ns-resize'),'w'===e&&(t+='left:0;top:8px;bottom:8px;width:8px;cursor:ew-resize'),'e'===e&&(t+='right:0;top:8px;bottom:8px;width:8px;cursor:ew-resize'),'nw'===e&&(t+='top:0;left:0;width:14px;height:14px;cursor:nwse-resize;z-index:6'),'ne'===e&&(t+='top:0;right:0;width:14px;height:14px;cursor:nesw-resize;z-index:6'),'sw'===e&&(t+='bottom:0;left:0;width:14px;height:14px;cursor:nesw-resize;z-index:6'),'se'===e&&(t+='bottom:0;right:0;width:14px;height:14px;cursor:nwse-resize;z-index:6'),'<div id=\"_sg2_rs_'+e+'\" style=\"'+t+'\"></div>'}).join(''),document.body.appendChild(o),document.getElementById('_sg2_title_rid').textContent=e&&e.rid?'RID '+e.rid:'';var c=document.getElementById('_sg2_frame');function p(e){c.style.pointerEvents=e?'none':'auto'}['_sg2_rescan','_sg2_popout','_sg2_min','_sg2_close'].forEach(function(e){var t;(t=document.getElementById(e)).addEventListener('mouseenter',function(){this.style.background='#dc2626',this.style.color='#fff'}),t.addEventListener('mouseleave',function(){this.style.background='#f3f4f6',this.style.color='#374151'})}),document.getElementById('_sg2_rescan').onclick=function(){m=g(),x('Scanning\\u2026','#b45309'),k(function(e){B(e)})},document.getElementById('_sg2_popout').onclick=function(){window.open(h(o.__sg2data||null),'_blank')};var f=!1,b='';function M(e){f=!!e,document.getElementById('_sg2_body').style.display=f?'none':'flex',f?(b=o.style.height,o.style.height='auto',o.style.minHeight='0'):(o.style.height=b||'calc(100vh - 24px)',o.style.minHeight='200px');var t=document.getElementById('_sg2_min');t&&(t.textContent=f?'\\u25a1':'\\u2212',t.title=f?'Restore':'Minimize');var n=document.getElementById('_sg2_head');n&&(n.title=f?'Click to restore (or press Esc)':'')}if(o.__sg2ToggleMin=function(){M(!f)},document.getElementById('_sg2_min').onclick=function(){M(!f)},document.getElementById('_sg2_head').addEventListener('click',function(e){f&&'BUTTON'!==e.target.tagName&&M(!1)}),window.__sg2H){try{document.removeEventListener('mousedown',window.__sg2H.mouse,!0)}catch(e){}try{document.removeEventListener('keydown',window.__sg2H.key)}catch(e){}try{window.removeEventListener('message',window.__sg2H.msg)}catch(e){}}window.__sg2H={},document.addEventListener('mousedown',window.__sg2H.mouse=function(e){var t=document.getElementById(s);if(t&&'none'!==t.style.display&&t.__sg2ToggleMin&&(!t.__sg2IsMin||!t.__sg2IsMin())){var n=e.target;t.contains(n)||n&&n.closest&&n.closest('#'+s+',#'+d)||t.__sg2ToggleMin()}},!0),o.__sg2IsMin=function(){return f},document.addEventListener('keydown',window.__sg2H.key=function(e){if('Escape'===e.key&&!e.defaultPrevented){var t=document.getElementById(s);t&&'none'!==t.style.display&&t.__sg2ToggleMin&&t.__sg2ToggleMin()}}),document.getElementById('_sg2_close').onclick=function(){o.style.display='none';var e=document.getElementById(d);e&&e.remove();var t=document.createElement('div');t.id=d,t.style.cssText='position:fixed;top:12px;right:12px;z-index:2147483000;display:flex;align-items:center;gap:10px;padding:8px 10px 8px 14px;border-radius:12px;background:#ffbb00;color:#3d2b00;font-family:sans-serif;font-size:13px;font-weight:700;cursor:move;box-shadow:0 6px 20px rgba(0,0,0,.3);user-select:none',t.innerHTML='<span style=\"pointer-events:none\">\\u26a1Script Generator 2.0</span><span id=\"_sg2_bub_x\" title=\"Close\" style=\"width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,.12);font-size:20px;line-height:28px;text-align:center;cursor:pointer;flex:0 0 auto\">\\xd7</span>',document.body.appendChild(t);var n=document.getElementById('_sg2_bub_x');n.addEventListener('mouseenter',function(){this.style.background='#dc2626',this.style.color='#fff'}),n.addEventListener('mouseleave',function(){this.style.background='rgba(0,0,0,.12)',this.style.color='#3d2b00'}),n.addEventListener('click',function(e){e.stopPropagation(),t.remove(),o.remove()});var i=!1,r=!1,a=0,s=0;t.addEventListener('mousedown',function(e){if(!e.target||'_sg2_bub_x'!==e.target.id){i=!0,r=!1;var n=t.getBoundingClientRect();a=e.clientX-n.left,s=e.clientY-n.top,t.style.left=n.left+'px',t.style.top=n.top+'px',t.style.right='auto',e.preventDefault()}}),document.addEventListener('mousemove',function(e){i&&(r=!0,t.style.left=Math.min(Math.max(0,e.clientX-a),window.innerWidth-60)+'px',t.style.top=Math.min(Math.max(0,e.clientY-s),window.innerHeight-30)+'px')}),document.addEventListener('mouseup',function(){i=!1}),t.addEventListener('click',function(e){e.target&&'_sg2_bub_x'===e.target.id||(r?r=!1:(t.remove(),o.style.display='flex'))})};var T=document.getElementById('_sg2_head'),N=!1,C=0,L=0;T.addEventListener('mousedown',function(e){if('BUTTON'!==e.target.tagName){N=!0,p(!0);var t=o.getBoundingClientRect();C=e.clientX-t.left,L=e.clientY-t.top,o.style.left=t.left+'px',o.style.top=t.top+'px',o.style.right='auto',e.preventDefault()}}),document.addEventListener('mousemove',function(e){N&&(o.style.left=Math.min(Math.max(0,e.clientX-C),window.innerWidth-60)+'px',o.style.top=Math.min(Math.max(0,e.clientY-L),window.innerHeight-40)+'px')}),document.addEventListener('mouseup',function(){N&&(N=!1,p(!1),v(o))});var O=null;['n','s','w','e','nw','ne','sw','se'].forEach(function(e){document.getElementById('_sg2_rs_'+e).addEventListener('mousedown',function(t){O={dir:e,rect:o.getBoundingClientRect()},p(!0),o.style.left=O.rect.left+'px',o.style.top=O.rect.top+'px',o.style.right='auto',t.preventDefault(),t.stopPropagation()})}),document.addEventListener('mousemove',function(e){if(O){var t=O.rect,n=O.dir,i=t.width,r=t.height,a=t.left,s=t.top;-1!==n.indexOf('e')?i=Math.max(340,e.clientX-t.left):-1!==n.indexOf('w')&&(i=Math.max(340,t.right-e.clientX),a=t.right-i),-1!==n.indexOf('s')?r=Math.max(200,e.clientY-t.top):-1!==n.indexOf('n')&&(r=Math.max(200,t.bottom-e.clientY),s=t.bottom-r),o.style.width=i+'px',o.style.height=r+'px',o.style.left=a+'px',o.style.top=s+'px'}}),document.addEventListener('mouseup',function(){O&&(O=null,p(!1),v(o))}),window.addEventListener('message',window.__sg2H.msg=function(e){var t=e&&e.data;if(t&&'object'==typeof t&&'string'==typeof t.type&&0===t.type.indexOf('sg2-')){var n=document.getElementById(s);if(n){var i=document.getElementById('_sg2_frame');if(i&&i.contentWindow&&e.source===i.contentWindow||u&&e.origin===u)if('sg2-ready'===t.type){var o=!t.doc||n.__sg2doc!==t.doc;I('ready',t.version,t.doc||'',o?'new-doc':'same-doc'),t.doc&&(n.__sg2doc=t.doc),n.setAttribute('data-ready','1');var a=document.getElementById('_sg2_fallback');a&&(a.style.display='none');var d=document.getElementById('_sg2_ver');if(d&&t.version&&(d.textContent=t.version===r?t.version:r+' \\xb7 site '+t.version,d.style.display='inline-block'),!o)return;n.__sg2data?(x('Connected','#059669'),w(n.__sg2data)):x('Connected \\xb7 scanning DMS\\u2026','#b45309')}else'sg2-esc'===t.type?'none'!==n.style.display&&n.__sg2ToggleMin&&n.__sg2ToggleMin():'sg2-authed'===t.type?x('Signed in \\u2713','#059669'):'sg2-filled'===t.type&&x('Auto-filled \\u2713','#059669');else I('ignored message',t.type,e.origin)}}}),c.addEventListener('load',function(){o.__sg2loaded=Date.now(),o.__sg2everLoaded=!0,I('frame load',o.getAttribute('data-ready'),o.__sg2urlMode?'urlMode':''),o.__sg2urlMode?'1'!==o.getAttribute('data-ready')&&x('Connected \\xb7 compat','#059669'):setTimeout(function(){var e=document.getElementById(s);e&&'1'!==e.getAttribute('data-ready')&&!e.__sg2urlMode&&(e.__sg2data?R(e):x('Generator loaded \\xb7 scanning DMS\\u2026','#b45309'))},1500)}),function(){try{for(var e=[u,'https://fonts.googleapis.com','https://fonts.gstatic.com','https://www.gstatic.com','https://cdn.jsdelivr.net'],t=0;t<e.length;t++)if(e[t]&&!document.querySelector('link[data-sg2][href=\"'+e[t]+'\"]')){var n=document.createElement('link');n.rel='preconnect',n.href=e[t],n.setAttribute('data-sg2','1'),'https://fonts.gstatic.com'===e[t]&&(n.crossOrigin='anonymous'),document.head.appendChild(n)}}catch(e){}}(),c.src=_(e),E(e),window.__sg2Follow&&clearInterval(window.__sg2Follow);var z=window.location.pathname,A=!1;window.__sg2Follow=setInterval(function(){var e=document.getElementById(s);if(!e)return clearInterval(window.__sg2Follow),void(window.__sg2Follow=null);if(!A&&window.location.pathname!==z){z=window.location.pathname,m=g(),A=!0,x('New case \\u2014 scanning\\u2026','#b45309');var t=document.getElementById(d);t&&(t.remove(),e.style.display='flex'),k(function(e){A=!1;var t=document.getElementById(s);t&&(e?t.__sg2data&&e.orderSN&&t.__sg2data.orderSN===e.orderSN?x('Same case \\u2713','#059669'):t.__sg2data?B(e):S(t,e):x('Not a case page','#6b7280'))},!0)}},800)}function k(e,t){function n(){if(-1===c().indexOf('Maximum Compensation Amount')){for(var t=null,n=document.querySelectorAll('*'),o=0;o<n.length;o++){var r=n[o];if('View Detail'===(r.innerText||r.textContent||'').trim()&&0===r.children.length){t=r;break}}if(t){t.click();var a=0,s=setInterval(function(){a+=60,(-1!==c().indexOf('Maximum Compensation Amount')||a>=1200)&&(clearInterval(s),e(i(m)))},60)}else e(i(m))}else e(i(m))}var o=0;!function i(){var r=c(),a=/Order SN[\\s]*:[\\s]*[A-Z0-9]{5,}/i.test(r),s=/Request Type[\\s]*:/i.test(r);o++,a&&s?n():o>=40?t&&!a?e(null):n():setTimeout(i,200)}()}var T=document.getElementById(s);if(T&&T.getAttribute('data-build')!==a){window.__sg2Follow&&(clearInterval(window.__sg2Follow),window.__sg2Follow=null),T.remove();var N=document.getElementById(d);N&&N.remove(),T=null}if(T){var C=document.getElementById(d);return C&&(C.remove(),T.style.display='flex'),T.__sg2IsMin&&T.__sg2IsMin()&&T.__sg2ToggleMin&&T.__sg2ToggleMin(),m=g(),x('Scanning\\u2026','#b45309'),void k(function(e){var t=document.getElementById(s);t&&(t.__sg2data&&e.orderSN&&t.__sg2data.orderSN===e.orderSN?x('Same case \\u2713 (use \\u21bb Re-scan to refill)','#059669'):B(e))})}!function(){try{M(null),x('Scanning DMS\\u2026','#b45309'),k(function(e){var t=document.getElementById(s);t&&(I('scan done',e.orderSN),S(t,e))})}catch(t){try{var e=document.createElement('div');e.style.cssText='position:fixed;top:12px;right:12px;width:420px;z-index:2147483000;background:#fff;border:3px solid #dc2626;border-radius:14px;padding:16px;font-family:sans-serif;font-size:13px;box-shadow:0 20px 70px rgba(0,0,0,.35)',e.innerHTML='<b style=\"color:#dc2626\">Script Generator 2.0 \\u2014 error</b><div style=\"margin:8px 0;color:#374151\">'+p(t&&t.message?t.message:String(t))+'</div><button style=\"padding:6px 14px;border:none;border-radius:8px;background:#374151;color:#fff;cursor:pointer\">Close</button>',e.querySelector('button').onclick=function(){e.remove()},document.body.appendChild(e)}catch(e){alert('Script Generator 2.0 error: '+(t&&t.message?t.message:t))}}}()}();";
 function sg2Host(){
   var v = '';
   try{ v = (localStorage.getItem('sg2_host_url')||'').trim(); }catch(e){}
@@ -7923,6 +8474,22 @@ function generateBookmarklet(){
   const sz = document.getElementById('bm-code-size'); if(sz) sz.textContent = Math.round(state.bookmarkletCode.length/1024) + ' KB · points to ' + sg2Host();
   const lg = document.getElementById('bm-legacy-code-text'); if(lg) lg.value = bmCodeLegacy;
   document.getElementById('bm-output').classList.remove('hidden');
+}
+// Generate + copy in one click (the Generate button). The code is regenerated from the current
+// hosted URL and version, shown in the box below, and put on the clipboard immediately.
+function generateAndCopyBookmarklet(){
+  generateBookmarklet();
+  const btn = document.getElementById('bm-generate-btn');
+  const orig = btn ? btn.innerHTML : '';
+  _sgCopyToClipboard(state.bookmarkletCode, ()=>{
+    if(btn){ btn.innerHTML = '✅ Generated &amp; copied!'; btn.style.background = '#10b981'; setTimeout(()=>{ btn.innerHTML = orig; btn.style.background = '#ee4d2d'; }, 2500); }
+    const status = document.getElementById('bm-copy-status');
+    if(status) status.textContent = '✅ Code copied — right-click bookmark bar → Add page → paste as URL';
+    setTimeout(()=>{ if(status) status.textContent=''; }, 6000);
+  }, ()=>{
+    const status = document.getElementById('bm-copy-status');
+    if(status) status.textContent = '⚠️ Auto-copy blocked by the browser — use 📋 Copy Code below';
+  });
 }
 function copyBookmarklet(){
   if(!state.bookmarkletCode) return;
@@ -9122,6 +9689,13 @@ function getSnipUserId(){
 }
 function setSnipUserId(id){
   localStorage.setItem('sg_snip_user_id', id.trim());
+  // remember the choice on the account so every device / the DMS panel uses the same id
+  try{
+    if(_sgFbReady && _sgFbDB && _sgUser && _sgUser.email){
+      _sgFbDB.ref('sg/users/' + _sgUser.email.replace(/\./g, ',') + '/snipUserId').set(id.trim()).catch(()=>{});
+    }
+  }catch(e){}
+  if(typeof notesCloudSync === 'function') notesCloudSync(true);
 }
 
 // Prompt for user ID if not set
@@ -9932,33 +10506,23 @@ setTimeout(checkUrlParams, 150);
 // ═══════════════════════════════════════════════════════════════
 (function sg2EmbedInit(){
   try{
-    var params = new URLSearchParams(window.location.search);
-    var inFrame = false; try{ inFrame = window.self !== window.top; }catch(e){ inFrame = true; }
-    var embed = params.get('embed') === '1' || inFrame;
-    if(!embed) return;
-    window.SG2_EMBED = true;
+    if(!window.SG2_EMBED) return;   // decided by the embed-core script at the top of <body>
     document.body.classList.add('sg2-embed');
     window.sg2ToggleHeader = function(){
       var open = document.body.classList.toggle('sg2-header-open');
       var ch = document.getElementById('sg2-header-chev'); if(ch) ch.textContent = open ? '▾' : '▸';
     };
-    ['nav-adm','nav-snip','sg-prof-email','sg-prof-bpo','header-refresh-time','header-refresh-status','dms-autofill-wrap'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
+    ['nav-adm','sg-prof-email','sg-prof-bpo','header-refresh-time','header-refresh-status','dms-autofill-wrap'].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display='none'; });
     document.querySelectorAll('#sg-profile-bar button').forEach(function(el){ el.style.display='none'; });
-    // Esc while typing inside the generator → let the panel minimize/restore
-    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && !e.defaultPrevented) post({type:'sg2-esc'}); });
     var bn = document.getElementById('dms-banner');
     if(bn) bn.addEventListener('click', function(e){ if(e.target && e.target.closest('button')) return; bn.classList.toggle('sg2-open'); });
-    function post(msg){ try{ window.parent.postMessage(msg, '*'); }catch(e){} }
-    window.addEventListener('message', function(ev){
-      var m = ev && ev.data;
-      if(!m || typeof m !== 'object' || m.type !== 'sg2-fill' || !m.data) return;
-      try{ autoFillFromDMS(m.data); post({type:'sg2-filled'}); }catch(e){ console.warn('[SG2 embed] fill failed', e); }
-    });
+    function post(msg){ try{ msg.doc = window.__sg2docId; window.parent.postMessage(msg, '*'); }catch(e){} }
+    // fill / ready / Esc handshake lives in the embed-core script at the top of <body>
     if(typeof sgFinishLogin === 'function'){
       var _sg2OrigFinish = sgFinishLogin;
       sgFinishLogin = function(bpo){ _sg2OrigFinish(bpo); post({type:'sg2-authed'}); };
     }
-    post({type:'sg2-ready', version: SG_APP_VERSION});
+    post({type:'sg2-ready', version: SG_APP_VERSION});   // repeat with the exact version now that it is known
   }catch(e){ console.warn('[SG2 embed] init failed', e); }
 })();
 // Safety re-render — ensures UI is populated even if first call had a timing issue
