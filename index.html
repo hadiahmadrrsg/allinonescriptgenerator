@@ -103,14 +103,11 @@ body.sg2-embed #dms-autofill-wrap{display:none}
 body.sg2-embed #header{padding-top:6px;padding-bottom:6px}
 body.sg2-embed .logo-sub{display:none}
 /* header: collapsed by default behind a slim Menu bar; only logo, title, Script Generator + Evidence tabs and the user name */
-body.sg2-embed #header{display:none;position:static;padding:0 14px}
-body.sg2-embed.sg2-header-open #header{display:block}
+body.sg2-embed #header{display:none!important}
 body.sg2-embed #header-inner{min-height:0;padding:8px 0;gap:8px;flex-wrap:wrap}
 body.sg2-embed #nav-adm,body.sg2-embed #sg-prof-email,body.sg2-embed #sg-prof-bpo,body.sg2-embed #sg-profile-bar button,body.sg2-embed #header-refresh-time,body.sg2-embed #header-refresh-status{display:none!important}
 #sg2-header-toggle{display:none}
 body.sg2-embed #sg2-header-toggle{display:flex;align-items:center;gap:6px;background:linear-gradient(90deg,#ee4d2d,#ff7337);color:#fff;padding:4px 10px;font-family:Sora,sans-serif;font-size:11px;font-weight:600;user-select:none}
-body.sg2-embed #sg2-menu-btn{cursor:pointer;padding:3px 6px;border-radius:8px;opacity:.9}
-body.sg2-embed #sg2-menu-btn:hover{background:rgba(255,255,255,.18)}
 body.sg2-embed #sg2-tabs{display:flex;gap:4px;flex:1;overflow-x:auto}
 body.sg2-embed .sg2-tab{border:none;border-radius:14px;padding:4px 11px;font-size:11px;font-weight:600;font-family:Sora,sans-serif;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.2);color:#fff}
 body.sg2-embed .sg2-tab.active{background:#fff;color:#ee4d2d}
@@ -136,6 +133,8 @@ body.sg2-embed #sg-prof-name{max-width:120px}
 
 body.sg2-embed #sg2-diag-tab{border:none;border-radius:14px;padding:3px 8px;font-size:12px;cursor:pointer;background:rgba(255,255,255,.2);color:#fff;flex:0 0 auto;line-height:1.4}
 body.sg2-embed #sg2-diag-tab:hover{background:#fff}
+
+body.sg2-embed #sg2-strip-name{display:none;flex:0 0 auto;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fff;color:#111;border-radius:14px;padding:3px 10px;font-size:11px;font-weight:600;line-height:1.5}
 @keyframes evPulse{0%,100%{transform:scale(1);box-shadow:none}50%{transform:scale(1.12);box-shadow:0 0 12px rgba(220,38,38,.5)}}
 /* Detail on the case section */
 #section-detail{background:#fafafa;border-radius:12px;padding:12px;border:1px dashed #e5e7eb}
@@ -394,13 +393,13 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
 
 <!-- Embed-mode menu bar (only visible inside the DMS bookmarklet panel) -->
 <div id="sg2-header-toggle">
-  <span id="sg2-menu-btn" onclick="sg2ToggleHeader()" title="Show / hide header">☰ <span id="sg2-header-chev">▸</span></span>
   <div id="sg2-tabs">
     <button class="sg2-tab active" data-v="generator" onclick="switchView('generator')">⚡Script Generator</button>
     <button class="sg2-tab" data-v="evidence" onclick="switchView('evidence')">📋 Evidence</button>
     <button class="sg2-tab" data-v="snippets" onclick="switchView('snippets')">📝 Snippets</button>
     <button class="sg2-tab" data-v="notes" onclick="switchView('notes')">🗒️ Notes</button>
   </div>
+  <span id="sg2-strip-name" title="Signed in"></span>
   <button id="sg2-diag-tab" onclick="sgdOpen()" title="Run diagnostics for this panel">🩺</button>
 </div>
 <!-- HEADER -->
@@ -3823,7 +3822,7 @@ setTimeout(function(){
             <li><strong>Always live</strong> &mdash; the panel embeds the hosted generator (<code>hadiahmadrrsg.github.io/allinonescriptgenerator/</code>), so scripts and evidence updates reach every agent instantly. Hosted URL is editable in Admin → Bookmarklet.</li>
             <li><strong>No RID prompt</strong> &mdash; the RID is read from the DMS URL.</li>
                         <li><strong>Header buttons</strong> &mdash; ↻ Re-scan, ⧉ Pop out (opens the same filled generator in its own window if DMS blocks the panel), − Minimize, × Close. Version pill shows the version (e.g. <code>v33 · site v34</code> when the installed bookmark is older than the hosted site).</li>
-            <li><strong>Embed mode</strong> in the generator (<code>?embed=1</code> / iframe): hides the DMS Auto-Fill button, Admin, toasts and profile details; collapses the header behind a ☰ Menu bar and the auto-fill banner to its title line (click to expand); and talks to the panel via <code>postMessage</code> (<code>sg2-ready</code> / <code>sg2-fill</code> / <code>sg2-filled</code> / <code>sg2-authed</code>).</li>
+            <li><strong>Embed mode</strong> in the generator (<code>?embed=1</code> / iframe): hides the DMS Auto-Fill button, Admin, toasts and profile details; replaces the header with a slim tab strip (tabs · signed-in name · 🩺) and collapses the auto-fill banner to its title line (click to expand); and talks to the panel via <code>postMessage</code> (<code>sg2-ready</code> / <code>sg2-fill</code> / <code>sg2-filled</code> / <code>sg2-authed</code>).</li>
           </ul>
         </div>
         <div style="margin-bottom:16px">
@@ -10820,7 +10819,7 @@ setTimeout(checkUrlParams, 150);
     // fill / ready / Esc handshake lives in the embed-core script at the top of <body>
     if(typeof sgFinishLogin === 'function'){
       var _sg2OrigFinish = sgFinishLogin;
-      sgFinishLogin = function(bpo){ _sg2OrigFinish(bpo); post({type:'sg2-authed', user: _sgUser ? {name:_sgUser.name, email:_sgUser.email, photo:_sgUser.photo||'', uid:_sgUser.uid||''} : null, bpo: bpo || ''}); };
+      sgFinishLogin = function(bpo){ _sg2OrigFinish(bpo); try{ var np=document.getElementById('sg2-strip-name'); if(np && _sgUser){ np.textContent = '👤 ' + (_sgUser.name||_sgUser.email); np.style.display='inline-block'; } }catch(e){} post({type:'sg2-authed', user: _sgUser ? {name:_sgUser.name, email:_sgUser.email, photo:_sgUser.photo||'', uid:_sgUser.uid||''} : null, bpo: bpo || ''}); };
     }
     if(typeof sgSignOut === 'function'){
       var _sg2OrigOut = sgSignOut;
