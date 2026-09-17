@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>All in One Generator - v35</title>
+<title>All in One Generator - v36</title>
   <!-- v13 -->
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -262,6 +262,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   var inFrame = false; try{ inFrame = window.self !== window.top; }catch(e){ inFrame = true; }
   var embed = false; try{ embed = new URLSearchParams(location.search).get('embed') === '1' || inFrame; }catch(e){}
   window.SG2_EMBED = embed;
+  try{ window.SG2_LOGIN_TAB = !inFrame && new URLSearchParams(location.search).get('sg2login') === '1'; }catch(e){ window.SG2_LOGIN_TAB = false; }
   if(!embed) return;
 
   // (1) storage shim
@@ -401,7 +402,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <div class="logo-wrap">
       <div class="logo-box" style="font-size:10px;font-weight:800;letter-spacing:-0.5px;margin-top:2px">Shopee</div>
       <div class="logo-text">
-        <div class="logo-title">All in One Generator - v35</div>
+        <div class="logo-title">All in One Generator - v36</div>
         <div class="logo-sub">Judging Template · Return &amp; Refund</div>
         <div id="header-refresh-time" style="color:rgba(255,255,255,.7);font-size:10px;margin-top:1px"></div>
         <div id="header-refresh-status" style="display:inline-flex;align-items:center;gap:4px;margin-top:3px;padding:1px 8px;border-radius:20px;font-size:10px;font-weight:700;background:rgba(239,68,68,.25);color:#fca5a5;border:1px solid rgba(239,68,68,.4)">
@@ -3522,7 +3523,8 @@ setTimeout(function(){
 
     <div class="docs-nav-group">
       <div class="docs-nav-label">Versions</div>
-    <a class="docs-nav-item active" onclick="scrollToVer('v35')" id="vnav-v35"><span class="ddot" style="background:#ee4d2d"></span>v35 — Current</a>
+    <a class="docs-nav-item active" onclick="scrollToVer('v36')" id="vnav-v36"><span class="ddot" style="background:#ee4d2d"></span>v36 — Current</a>
+    <a class="docs-nav-item" onclick="scrollToVer('v35')" id="vnav-v35"><span class="ddot" style="background:#6b7280"></span>v35</a>
     <a class="docs-nav-item" onclick="scrollToVer('v34')" id="vnav-v34"><span class="ddot" style="background:#6b7280"></span>v34</a>
     <a class="docs-nav-item" onclick="scrollToVer('v33')" id="vnav-v33"><span class="ddot" style="background:#6b7280"></span>v33</a>
     <a class="docs-nav-item" onclick="scrollToVer('v32')" id="vnav-v32"><span class="ddot" style="background:#6b7280"></span>v32</a>
@@ -3568,11 +3570,32 @@ setTimeout(function(){
       <!-- Cards injected by sgRenderUpdateNotes() -->
     </div>
 
+      <!-- v36 -->
+      <div id="vsec-v36" class="dcard" style="margin-bottom:28px">
+        <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
+      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v36 &mdash; Current</div>
+        <div style="color:rgba(255,255,255,.8);font-size:12px">17 Sep 2026</div>
+      </div>
+      <div style="padding:20px">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128295; Fixed &mdash; Google sign-in inside DMS</div>
+          <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
+            <li><strong>Root cause found:</strong> a Google sign-in popup opened from inside the DMS panel (a cross-site iframe) loses its state under Chrome's storage partitioning &mdash; Firebase's popup shows <em>"Unable to process request due to missing initial state"</em> and Google shows <em>"Something went wrong"</em>. A browser limitation, not a DMS setting.</li>
+            <li><strong>Sign-in now runs on the website in a normal tab.</strong> Clicking <em>Sign in with Google</em> in the panel opens the website (<code>?sg2login=1</code>); the agent signs in there (top-level, works as before), the tab reports back to the panel (same origin) and closes itself. If the agent is already signed in on the website, this takes about a second with no clicks. The panel then keeps the 30-day session pass for all later cases.</li>
+            <li><strong>Website fallback:</strong> if the popup sign-in fails silently on the website, an <em>↪ Sign in via redirect</em> option appears.</li>
+            <li><strong>Reminder:</strong> the header pill must read <code>v36</code>; <code>v33/v34 · compat</code> is an old bookmark &mdash; regenerate and replace it.</li>
+          </ul>
+        </div>
+      </div>
+        </div>
+      </div>
+
       <!-- v35 -->
       <div id="vsec-v35" class="dcard" style="margin-bottom:28px">
         <div style="margin-bottom:28px;border:1.5px solid #e5e7eb;border-radius:14px;overflow:hidden">
-      <div style="background:linear-gradient(90deg,#ee4d2d,#ff7337);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
-        <div style="color:white;font-weight:800;font-size:16px">v35 &mdash; Current</div>
+      <div style="background:linear-gradient(90deg,#6b7280,#9ca3af);padding:14px 20px;display:flex;align-items:center;justify-content:space-between">
+        <div style="color:white;font-weight:800;font-size:16px">v35</div>
         <div style="color:rgba(255,255,255,.8);font-size:12px">14 Sep 2026</div>
       </div>
       <div style="padding:20px">
@@ -4876,8 +4899,8 @@ const _FLOW_META = {
 // Change SG_APP_VERSION here and the header, page title, browser tab,
 // and Download-Self filename all update automatically.
 // ═══════════════════════════════════════════════════════════════
-const SG_APP_VERSION = 'v35';
-const SG_APP_VERSION_DATE = '14 Sep 2026';
+const SG_APP_VERSION = 'v36';
+const SG_APP_VERSION_DATE = '17 Sep 2026';
 
 // Master Google Sheet — single source for Scripts, Evidence (tab "Claude Export/Import Sheet") and Updates
 const SG_MASTER_SHEET_ID  = '11KARpabPeMcOG8p7NIGt5kavumRxWApeczREFUgpThQ';
@@ -6736,19 +6759,12 @@ function initSgAuth(){
 }
 
 function sgGoogleSignIn(){
-  if(!_sgAuth){ _sgAuthStep('error'); return; }
   document.getElementById('sg-auth-error')?.classList.add('hidden');
-  // Inside the DMS panel: this click is a user gesture, so we can ask Chrome for first-party storage.
-  // If it is newly granted, reload once — Firebase then sees the website's session and signs in by itself,
-  // and the grant is remembered for future panel opens.
-  if(window.SG2_EMBED && document.requestStorageAccess && !window.__sg2SaTried){
-    window.__sg2SaTried = true;
-    document.hasStorageAccess().then(has=>{
-      if(has) return _sg2DoGoogleSignIn();
-      return document.requestStorageAccess().then(()=>{ location.reload(); }, ()=>_sg2DoGoogleSignIn());
-    }).catch(()=>_sg2DoGoogleSignIn());
-    return;
-  }
+  if(!window.SG2_EMBED && !_sgAuth){ _sgAuthStep('error'); return; }
+  // Inside the DMS panel the generator is a cross-site iframe: a Google sign-in popup opened from here loses
+  // its state in Chrome's storage partitioning ("missing initial state"). So sign in on the website in a normal
+  // tab instead; that tab hands the login back to this frame and closes itself.
+  if(window.SG2_EMBED){ sg2OpenLoginTab(); return; }
   _sg2DoGoogleSignIn();
 }
 function _sg2DoGoogleSignIn(){
@@ -6756,7 +6772,18 @@ function _sg2DoGoogleSignIn(){
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
   _sgAuth.signInWithPopup(provider).catch(err=>{
-    if(err && err.code === 'auth/popup-closed-by-user') return;
+    if(err && err.code === 'auth/popup-closed-by-user'){
+      _sgAuthShowError('Sign-in did not complete. If the Google window showed an error, try the redirect sign-in instead.');
+      const box = document.getElementById('sg-auth-error');
+      if(box && !document.getElementById('sg-auth-redirect-btn')){
+        const btn = document.createElement('button'); btn.id = 'sg-auth-redirect-btn'; btn.type = 'button';
+        btn.textContent = '↪ Sign in via redirect';
+        btn.style.cssText = 'margin-top:8px;padding:7px 12px;border-radius:8px;border:1px solid #fecaca;background:white;color:#b91c1c;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit';
+        btn.onclick = ()=>{ try{ _sgAuth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); }catch(e){ _sgAuthShowError('Redirect sign-in failed: ' + (e && e.message || e)); } };
+        box.appendChild(btn);
+      }
+      return;
+    }
     console.error('[SG Auth] sign-in error:', err);
     _sgAuthShowError('Sign-in failed: ' + (err && err.message || err) + (err && err.code === 'auth/unauthorized-domain' ? '\nAdd this site to Firebase Console → Authentication → Settings → Authorized domains.' : ''));
   });
@@ -6820,6 +6847,7 @@ function sgFinishLogin(bpo){
   // adopt the saved one (or the Google name if nothing is saved yet); then (re)load snippets + notes,
   // because they were first loaded before the login and the panel starts with empty storage.
   sgSyncSnipUserId();
+  sg2LoginTabDone(bpo);
 
   // Record the login + BPO in Firebase (sg/users) for admin visibility
   try{
@@ -6832,6 +6860,45 @@ function sgFinishLogin(bpo){
       });
     }
   }catch(e){ console.warn('[SG Auth] could not save user profile to Firebase:', e); }
+}
+
+// ── Sign-in via the website tab (used by the DMS panel) ────────────────────────────────────────
+function sg2OpenLoginTab(){
+  const url = location.origin + location.pathname + '?sg2login=1';
+  let win = null;
+  try{ win = window.open(url, 'sg2login'); }catch(e){ win = null; }
+  const hint = document.getElementById('sg2-login-hint');
+  if(!win){
+    _sgAuthShowError('Chrome blocked the sign-in tab. Click the "pop-up blocked" icon in the address bar, allow pop-ups for hadiahmadrrsg.github.io, then try again.');
+    return;
+  }
+  window.__sg2LoginWin = win;
+  if(hint){ hint.style.display = 'block'; hint.textContent = '↗ Finish signing in in the new tab — this panel unlocks by itself when you are done.'; }
+}
+// The website tab reports back (same origin → reliable)
+window.addEventListener('message', ev=>{
+  try{
+    if(ev.origin !== location.origin) return;
+    const m = ev && ev.data;
+    if(!m || m.type !== 'sg2-login-done' || !m.user || !m.user.email) return;
+    window.SG2_SESSION = { user: m.user, bpo: m.bpo || '', ts: Date.now() };
+    if(!_sgUser) sg2TrySessionPass();
+  }catch(e){}
+});
+// Running as the website tab that the panel opened: after login, report to the opener and close
+function sg2LoginTabDone(bpo){
+  try{
+    if(!window.SG2_LOGIN_TAB || !window.opener || !_sgUser) return;
+    window.opener.postMessage({ type:'sg2-login-done', user:{ name:_sgUser.name, email:_sgUser.email, photo:_sgUser.photo||'', uid:_sgUser.uid||'' }, bpo: bpo||'' }, location.origin);
+    const ov = document.getElementById('sg-login-overlay');
+    if(ov){
+      ov.style.display = 'flex';
+      ov.innerHTML = '<div style="background:white;border-radius:20px;padding:36px 32px;max-width:400px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.15);font-family:Sora,sans-serif">'
+        + '<div style="font-size:44px;margin-bottom:10px">✅</div><div style="font-weight:800;font-size:20px;color:#1a1a1a">Signed in</div>'
+        + '<div style="color:#6b7280;font-size:13px;margin-top:8px;line-height:1.7">Hi ' + esc(_sgUser.name) + ' — the DMS panel is unlocked.<br>This tab closes by itself; if it stays open, just close it.</div></div>';
+    }
+    setTimeout(()=>{ try{ window.close(); }catch(e){} }, 1200);
+  }catch(e){}
 }
 
 function sgSyncSnipUserId(){
@@ -10585,6 +10652,8 @@ setTimeout(checkUrlParams, 150);
     document.querySelectorAll('#sg-profile-bar button').forEach(function(el){ el.style.display='none'; });
     var bn = document.getElementById('dms-banner');
     if(bn) bn.addEventListener('click', function(e){ if(e.target && e.target.closest('button')) return; bn.classList.toggle('sg2-open'); });
+    // a session pass arriving later via the fragment (e.g. after signing in on the website) unlocks the panel
+    window.addEventListener('hashchange', function(){ try{ if(!_sgUser && window.SG2_SESSION) sg2TrySessionPass(); }catch(e){} });
     function post(msg){ try{ msg.doc = window.__sg2docId; window.parent.postMessage(msg, '*'); }catch(e){} }
     // fill / ready / Esc handshake lives in the embed-core script at the top of <body>
     if(typeof sgFinishLogin === 'function'){
@@ -10603,8 +10672,12 @@ setTimeout(checkUrlParams, 150);
         dg.style.cssText = 'margin-top:12px;font-size:11px;color:#6b7280;line-height:1.7;text-align:left;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px';
         dg.innerHTML = '<div>Panel storage: <b id="sg2-diag-storage">checking…</b> · Site-data access: <b id="sg2-diag-sa">checking…</b></div>'
           + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button type="button" id="sg2-diag-btn" style="padding:5px 10px;border-radius:8px;border:1px solid #fed7aa;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔓 Allow site data</button><span id="sg2-diag-msg"></span></div>'
-          + '<div style="margin-top:4px;color:#9ca3af">If storage is blocked, Sign in once — the panel remembers you for 30 days, like the website.</div>';
+          + '<div style="margin-top:4px;color:#9ca3af">Sign-in happens on the website in a new tab (Google sign-in cannot run inside DMS). You stay signed in for 30 days, like the website.</div>';
         gbtn.parentNode.insertBefore(dg, gbtn.nextSibling);
+        var hint = document.createElement('div'); hint.id = 'sg2-login-hint';
+        hint.style.cssText = 'display:none;margin-top:10px;font-size:12px;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:8px 10px;line-height:1.6;text-align:left';
+        gbtn.parentNode.insertBefore(hint, gbtn.nextSibling);
+        gbtn.innerHTML = gbtn.innerHTML.replace('Sign in with Google', 'Sign in with Google <span style="opacity:.7;font-weight:500">(opens a tab)</span>');
         var st = document.getElementById('sg2-diag-storage'); if(st) st.textContent = window.SG2_STORAGE_BLOCKED ? 'blocked by browser' : 'ok';
         var sa = document.getElementById('sg2-diag-sa');
         if(!document.requestStorageAccess){ if(sa) sa.textContent = 'not supported'; }
