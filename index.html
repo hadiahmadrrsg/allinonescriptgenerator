@@ -133,6 +133,9 @@ body.sg2-embed #header-inner > .flex-gap{display:flex;flex-wrap:nowrap!important
 body.sg2-embed #sg-profile-bar{margin-left:auto}
 body.sg2-embed #sg-profile-bar .nav-btn{padding:6px 10px}
 body.sg2-embed #sg-prof-name{max-width:120px}
+
+body.sg2-embed #sg2-diag-tab{border:none;border-radius:14px;padding:3px 8px;font-size:12px;cursor:pointer;background:rgba(255,255,255,.2);color:#fff;flex:0 0 auto;line-height:1.4}
+body.sg2-embed #sg2-diag-tab:hover{background:#fff}
 @keyframes evPulse{0%,100%{transform:scale(1);box-shadow:none}50%{transform:scale(1.12);box-shadow:0 0 12px rgba(220,38,38,.5)}}
 /* Detail on the case section */
 #section-detail{background:#fafafa;border-radius:12px;padding:12px;border:1px dashed #e5e7eb}
@@ -398,6 +401,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     <button class="sg2-tab" data-v="snippets" onclick="switchView('snippets')">📝 Snippets</button>
     <button class="sg2-tab" data-v="notes" onclick="switchView('notes')">🗒️ Notes</button>
   </div>
+  <button id="sg2-diag-tab" onclick="sgdOpen()" title="Run diagnostics for this panel">🩺</button>
 </div>
 <!-- HEADER -->
 <div id="header">
