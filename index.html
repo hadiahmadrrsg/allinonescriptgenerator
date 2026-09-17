@@ -287,6 +287,8 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     }
   });
 
+  window.__sg2embedLog = [];
+  function elog(){ try{ window.__sg2embedLog.push([].slice.call(arguments).join(' ')); }catch(e){} }
   // (2) handshake
   // one id per document, so the panel can tell a reload (needs a refill) from a repeated ready (must not refill)
   window.__sg2docId = 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2,8);
@@ -296,7 +298,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   function queueFill(d){
     var key = ''; try{ key = JSON.stringify(d); }catch(e){}
     if(key && key === lastFillKey) return;          // same case arrived twice (hash + postMessage) — fill once
-    lastFillKey = key; pendingFill = d; tryFill();
+    lastFillKey = key; pendingFill = d; elog('fill queued', d && d.orderSN); tryFill();
   }
   function tryFill(){
     if(!pendingFill) return;
@@ -310,7 +312,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
     try{
       var h = (location.hash || '').replace(/^#/, ''); if(!h) return;
       var q = new URLSearchParams(h);
-      var sess = q.get('sess'); if(sess){ try{ window.SG2_SESSION = JSON.parse(sess); }catch(e){} }
+      var sess = q.get('sess'); if(sess){ try{ window.SG2_SESSION = JSON.parse(sess); elog('session pass in hash'); }catch(e){} }
       var raw = q.get('sg2'); if(raw){ try{ queueFill(JSON.parse(raw)); }catch(e){ console.warn('[SG2 embed] bad hash data', e); } }
     }catch(e){}
   }
@@ -325,6 +327,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
   var fillPoll = setInterval(function(){ tryFill(); if(typeof window.autoFillFromDMS === 'function' && !pendingFill) clearInterval(fillPoll); }, 100);
   setTimeout(function(){ clearInterval(fillPoll); }, 60000);
   document.addEventListener('keydown', function(e){ if(e.key === 'Escape' && !e.defaultPrevented) post({type:'sg2-esc'}); });
+  elog('storage', window.SG2_STORAGE_BLOCKED ? 'blocked' : 'ok');
   post({type:'sg2-ready', version: (typeof SG_APP_VERSION !== 'undefined' ? SG_APP_VERSION : (document.title.match(/v\d+/)||[''])[0])});
 
   // (3) storage access (resolves true when we have first-party storage; never rejects)
@@ -1135,6 +1138,154 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+<!-- ═══════════ 🩺 DIAGNOSTICS (works signed-out, top-level or inside the DMS panel) ═══════════ -->
+<style>
+#sg2-diag-view{position:fixed;inset:0;z-index:10050;background:rgba(17,24,39,.55);display:none;align-items:flex-start;justify-content:center;padding:18px;overflow:auto;font-family:'Sora',sans-serif}
+#sg2-diag-view.open{display:flex}
+.sgd-card{background:white;border-radius:16px;max-width:860px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.35);overflow:hidden}
+.sgd-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 18px;background:linear-gradient(90deg,#ee4d2d,#ff7337);color:white}
+.sgd-head b{font-size:16px}
+.sgd-btn{border:none;border-radius:10px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+.sgd-btn.w{background:white;color:#ee4d2d}.sgd-btn.g{background:#f3f4f6;color:#374151}.sgd-btn.o{background:#ee4d2d;color:white}
+.sgd-body{padding:14px 18px;font-size:12.5px;color:#374151}
+.sgd-row{display:grid;grid-template-columns:22px 210px 1fr;gap:8px;padding:6px 0;border-bottom:1px dashed #f1f5f9;align-items:start}
+.sgd-row .k{color:#6b7280}.sgd-row .v{word-break:break-word}
+.sgd-sec{font-weight:800;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#ee4d2d;margin:14px 0 4px}
+.sgd-pre{background:#0f172a;color:#e2e8f0;border-radius:10px;padding:12px;font-size:11px;line-height:1.55;white-space:pre-wrap;word-break:break-word;max-height:260px;overflow:auto;margin-top:10px}
+body.sg2-embed .sgd-row{grid-template-columns:20px 130px 1fr}
+</style>
+<div id="sg2-diag-view" role="dialog" aria-label="Diagnostics">
+  <div class="sgd-card">
+    <div class="sgd-head">
+      <b>🩺 Diagnostics</b>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="sgd-btn g" id="sgd-popup-btn" onclick="sgdTestPopup()">🪟 Test pop-up</button>
+        <button class="sgd-btn g" onclick="sgdRun()">↻ Re-run</button>
+        <button class="sgd-btn w" id="sgd-copy-btn" onclick="sgdCopy()">📋 Copy report</button>
+        <button class="sgd-btn g" onclick="sgdClose()" title="Close">✕</button>
+      </div>
+    </div>
+    <div class="sgd-body">
+      <div style="color:#6b7280;margin-bottom:6px">Runs in <b>this</b> browser and page. Send the copied report to the admin — it contains no passwords or case data.</div>
+      <div id="sgd-rows"></div>
+      <div class="sgd-pre" id="sgd-report">Running…</div>
+    </div>
+  </div>
+</div>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DIAGNOSTICS — environment checks with a copyable plain-text report.
+// Open with ?diag=1, the 🩺 button on the sign-in card, or Admin → Bookmarklet → 🩺 Run diagnostics.
+// Works before login, on the website and inside the DMS panel (embed).
+// ═══════════════════════════════════════════════════════════════
+const SGD_TARGETS = [
+  ['Generator site (GitHub Pages)', location.origin + location.pathname],
+  ['Google accounts',               'https://accounts.google.com/favicon.ico'],
+  ['Firebase auth handler',         'https://allinone-generator.firebaseapp.com/__/auth/iframe'],
+  ['Firebase SDK (gstatic)',        'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js'],
+  ['Firebase database',             'https://allinone-generator-default-rtdb.asia-southeast1.firebasedatabase.app/.json?shallow=true'],
+  ['Supabase (snippets/notes)',     (typeof _SB_PROJECT_URL!=='undefined' ? _SB_PROJECT_URL : 'https://imbiekajejqjsplzirxf.supabase.co') + '/rest/v1/'],
+  ['jsDelivr CDN',                  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/package.json'],
+  ['Google Fonts',                  'https://fonts.googleapis.com/css2?family=Sora&display=swap']
+];
+let _sgdRows = [], _sgdReport = '';
+function sgdOpen(){ const v = document.getElementById('sg2-diag-view'); if(!v) return; v.classList.add('open'); sgdRun(); }
+function sgdClose(){ const v = document.getElementById('sg2-diag-view'); if(v) v.classList.remove('open'); if(new URLSearchParams(location.search).get('diag')==='1'){ try{ history.replaceState(null,'',location.pathname); }catch(e){} } }
+function sgdAdd(status, key, val){ _sgdRows.push({status, key, val: String(val)}); sgdPaint(); }
+function sgdSec(title){ _sgdRows.push({sec:title}); sgdPaint(); }
+function sgdPaint(){
+  const box = document.getElementById('sgd-rows'); if(!box) return;
+  box.innerHTML = _sgdRows.map(r => r.sec ? '<div class="sgd-sec">'+esc(r.sec)+'</div>'
+    : '<div class="sgd-row"><span>'+r.status+'</span><span class="k">'+esc(r.key)+'</span><span class="v">'+esc(r.val)+'</span></div>').join('');
+  _sgdReport = '=== All in One Generator diagnostics ===\n' + _sgdRows.map(r => r.sec ? '\n## '+r.sec : (r.status+' '+r.key+': '+r.val)).join('\n');
+  const pre = document.getElementById('sgd-report'); if(pre) pre.textContent = _sgdReport;
+}
+async function sgdTimed(url){
+  const t0 = performance.now();
+  try{
+    const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort(), 8000);
+    // no-cors: an opaque response still proves the host is reachable and not blocked
+    const r = await fetch(url, { mode:'no-cors', cache:'no-store', signal: ctrl.signal, credentials:'omit' });
+    clearTimeout(to);
+    return { ok:true, ms: Math.round(performance.now()-t0), type: r.type };
+  }catch(e){ return { ok:false, ms: Math.round(performance.now()-t0), err: (e && e.name==='AbortError') ? 'timeout (8s)' : (e && e.message || String(e)) }; }
+}
+async function sgdRun(){
+  _sgdRows = [];
+  const p = new URLSearchParams(location.search);
+  const embed = !!window.SG2_EMBED;
+  sgdSec('Context');
+  sgdAdd('ℹ️','Time', new Date().toString());
+  sgdAdd('ℹ️','Generator version', (typeof SG_APP_VERSION!=='undefined' ? SG_APP_VERSION : (document.title.match(/v\d+/)||['?'])[0]) + ' · ' + location.origin + location.pathname);
+  sgdAdd('ℹ️','Where', embed ? 'Inside the DMS panel (iframe)' + (document.referrer ? ' · host page: ' + (()=>{try{return new URL(document.referrer).origin}catch(e){return document.referrer}})() : '') : 'Website (top-level tab)');
+  sgdAdd('ℹ️','Query', location.search ? location.search.replace(/data=[^&]*/,'data=…') : '(none)');
+  sgdSec('Browser');
+  const ua = navigator.userAgent; const chrome = (ua.match(/Chrome\/(\d+)/)||[])[1]; const edge = (ua.match(/Edg\/(\d+)/)||[])[1];
+  sgdAdd(chrome ? '✅' : '⚠️','Browser', edge ? 'Edge ' + edge : chrome ? 'Chrome ' + chrome : ua);
+  try{ const d = navigator.userAgentData; if(d){ sgdAdd('ℹ️','Platform', d.platform + (d.mobile?' (mobile)':'') + ' · brands: ' + d.brands.map(b=>b.brand+' '+b.version).join(', ')); } }catch(e){}
+  sgdAdd('ℹ️','User agent', ua);
+  sgdAdd('ℹ️','Language / online', navigator.language + ' · ' + (navigator.onLine ? 'online' : 'OFFLINE'));
+  sgdAdd('ℹ️','Screen / window', screen.width+'×'+screen.height+' · '+window.innerWidth+'×'+window.innerHeight+' · zoom≈'+Math.round(window.devicePixelRatio*100)+'%');
+  sgdAdd(navigator.cookieEnabled ? '✅' : '❌','Cookies enabled (browser)', navigator.cookieEnabled);
+  sgdSec('Storage in this context');
+  let lsReal = 'unknown';
+  if(embed && window.SG2_STORAGE_BLOCKED){ lsReal = 'BLOCKED by browser (in-memory shim active — nothing persists here)'; sgdAdd('❌','localStorage', lsReal); }
+  else { try{ localStorage.setItem('__sgd','1'); localStorage.removeItem('__sgd'); sgdAdd('✅','localStorage','available' + (embed ? ' (partitioned to this DMS site)' : '')); }catch(e){ sgdAdd('❌','localStorage','blocked: ' + e.message); } }
+  try{ sessionStorage.setItem('__sgd','1'); sessionStorage.removeItem('__sgd'); sgdAdd('✅','sessionStorage','available'); }catch(e){ sgdAdd('❌','sessionStorage','blocked: ' + e.message); }
+  try{ document.cookie='__sgd=1; SameSite=Lax; path=/'; const ok=document.cookie.indexOf('__sgd=1')!==-1; document.cookie='__sgd=; Max-Age=0; path=/'; sgdAdd(ok?'✅':'❌','Cookies (this site)', ok?'writable':'NOT writable (blocked or partitioned)'); }catch(e){ sgdAdd('❌','Cookies (this site)','error: '+e.message); }
+  await new Promise(res=>{ try{ const rq = indexedDB.open('__sgd_probe'); rq.onsuccess=()=>{ try{ rq.result.close(); indexedDB.deleteDatabase('__sgd_probe'); }catch(e){} sgdAdd('✅','IndexedDB (Firebase login store)','available'); res(); }; rq.onerror=()=>{ sgdAdd('❌','IndexedDB (Firebase login store)','error: '+(rq.error&&rq.error.message)); res(); }; rq.onblocked=()=>{ sgdAdd('⚠️','IndexedDB','blocked'); res(); }; }catch(e){ sgdAdd('❌','IndexedDB (Firebase login store)','exception: '+e.message); res(); } });
+  if(document.hasStorageAccess){ try{ const has = await document.hasStorageAccess(); sgdAdd(has?'✅':(embed?'⚠️':'ℹ️'),'Storage Access API', (has?'granted':'not granted') + (embed?'':' (only matters inside DMS)')); }catch(e){ sgdAdd('⚠️','Storage Access API','error: '+e.message); } } else sgdAdd('ℹ️','Storage Access API','not supported');
+  try{ if(navigator.storage && navigator.storage.estimate){ const est = await navigator.storage.estimate(); sgdAdd('ℹ️','Storage quota', Math.round((est.usage||0)/1024)+' KB used of '+Math.round((est.quota||0)/1048576)+' MB'); } }catch(e){}
+  sgdSec('Sign-in state');
+  sgdAdd(typeof firebase!=='undefined' ? '✅':'❌','Firebase SDK loaded', typeof firebase!=='undefined' ? 'yes' : 'NO — check gstatic reachability below');
+  sgdAdd((typeof _sgFbReady!=='undefined' && _sgFbReady) ? '✅':'⚠️','Firebase database ready', (typeof _sgFbReady!=='undefined' && _sgFbReady) ? 'yes' : 'no');
+  const fbUser = (typeof _sgAuth!=='undefined' && _sgAuth && _sgAuth.currentUser) ? _sgAuth.currentUser.email : null;
+  sgdAdd(fbUser?'✅':'ℹ️','Firebase user in this context', fbUser || 'none');
+  sgdAdd((typeof _sgUser!=='undefined' && _sgUser)?'✅':'ℹ️','App signed in as', (typeof _sgUser!=='undefined' && _sgUser) ? _sgUser.email + (_sgUser.uid && String(_sgUser.uid).startsWith('pass:') ? ' (via DMS panel session pass)' : ' (Firebase)') : 'not signed in');
+  if(embed){ const s = window.SG2_SESSION; sgdAdd(s?'✅':'ℹ️','Session pass from panel', s ? (s.user && s.user.email) + ' · age ' + Math.round((Date.now()-(s.ts||0))/3600000) + ' h' : 'none in URL'); }
+  try{ sgdAdd('ℹ️','Snippets/Notes user id', localStorage.getItem('sg_snip_user_id') || '(not set)'); }catch(e){}
+  sgdAdd(typeof _sb!=='undefined' && _sb ? '✅':'❌','Supabase client', typeof _sb!=='undefined' && _sb ? 'created' : 'missing');
+  if(embed){
+    sgdSec('DMS panel');
+    sgdAdd('ℹ️','Embed core log', (window.__sg2embedLog||[]).join(' | ') || '(empty)');
+    sgdAdd('ℹ️','Case data in URL', (location.hash||'').indexOf('sg2=%7B')!==-1 || (location.hash||'').indexOf('sg2={')!==-1 ? 'present' : 'none yet');
+    sgdAdd('ℹ️','Bookmark version', 'read the pill in the panel header (must match generator version above)');
+  }
+  sgdSec('Network reachability (no-cors probe, 8 s timeout)');
+  await Promise.all(SGD_TARGETS.map(async ([name,url])=>{ const r = await sgdTimed(url); sgdAdd(r.ok ? (r.ms>3000?'⚠️':'✅') : '❌', name, r.ok ? 'reachable · '+r.ms+' ms' : 'FAILED · '+r.err+' · '+r.ms+' ms'); }));
+  try{ if(typeof _sb!=='undefined' && _sb){ const t0=performance.now(); const { error } = await _sb.from('snippets').select('id').limit(1); sgdAdd(error?'❌':'✅','Supabase query', error ? 'error: '+error.message : 'ok · '+Math.round(performance.now()-t0)+' ms'); } }catch(e){ sgdAdd('❌','Supabase query','exception: '+e.message); }
+  sgdSec('Pop-ups');
+  sgdAdd('ℹ️','Pop-up allowed?', 'click 🪟 Test pop-up (needs a click) — required for sign-in from the panel');
+  sgdPaint();
+}
+function sgdTestPopup(){
+  let w = null; try{ w = window.open('about:blank','sgd_popup','width=320,height=200'); }catch(e){}
+  const idx = _sgdRows.findIndex(r=>r.key==='Pop-up allowed?');
+  const row = w ? {status:'✅',key:'Pop-up allowed?',val:'yes — a small window opened (closed automatically)'} : {status:'❌',key:'Pop-up allowed?',val:'BLOCKED — click the pop-up icon in the address bar and allow pop-ups for this site'};
+  if(idx>=0) _sgdRows[idx]=row; else _sgdRows.push(row);
+  sgdPaint();
+  if(w){ try{ w.document.write('<p style="font-family:sans-serif;padding:20px">Pop-ups work ✅</p>'); }catch(e){} setTimeout(()=>{ try{ w.close(); }catch(e){} }, 900); }
+}
+function sgdCopy(){
+  const done = ()=>{ const b=document.getElementById('sgd-copy-btn'); if(b){ const t=b.textContent; b.textContent='✅ Copied'; setTimeout(()=>b.textContent=t,1800); } };
+  if(typeof _sgCopyToClipboard==='function') _sgCopyToClipboard(_sgdReport, done, ()=>{ const pre=document.getElementById('sgd-report'); if(pre){ const r=document.createRange(); r.selectNodeContents(pre); const s=getSelection(); s.removeAllRanges(); s.addRange(r); } });
+  else { try{ navigator.clipboard.writeText(_sgdReport).then(done); }catch(e){} }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  if(new URLSearchParams(location.search).get('diag')==='1') setTimeout(sgdOpen, 400);
+  // 🩺 link on the sign-in card (website and panel)
+  try{
+    const gbtn = document.querySelector('#sg-login-overlay button[onclick*="sgGoogleSignIn"]');
+    if(gbtn && !document.getElementById('sgd-login-link')){
+      const a = document.createElement('div'); a.id='sgd-login-link';
+      a.style.cssText='margin-top:10px;font-size:11px;color:#9ca3af;text-align:center';
+      a.innerHTML='Trouble signing in? <a href="#" onclick="sgdOpen();return false" style="color:#ee4d2d;font-weight:700;text-decoration:none">🩺 Run diagnostics</a>';
+      gbtn.parentNode.appendChild(a);
+    }
+  }catch(e){}
+});
+</script>
+
 <div id="view-admin-panel" class="hidden">
 <div class="admin-panel">
 
@@ -1186,6 +1337,12 @@ document.addEventListener('DOMContentLoaded', () => {
       <label for="bm-host-url" style="font-size:12px;font-weight:600;color:#374151;white-space:nowrap">🌐 Hosted generator URL</label>
       <input id="bm-host-url" type="url" placeholder="https://hadiahmadrrsg.github.io/allinonescriptgenerator/" onchange="sg2SetHost(this.value)" style="flex:1;min-width:280px;padding:8px 10px;border-radius:8px;border:1.5px solid #e5e7eb;font-size:12px;font-family:monospace;color:#374151">
       <button onclick="document.getElementById('bm-host-url').value='';sg2SetHost('')" style="padding:8px 12px;border-radius:8px;border:1.5px solid #e5e7eb;background:white;color:#6b7280;font-size:11px;font-weight:600;cursor:pointer;font-family:'Sora',sans-serif">Reset</button>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;background:#f9fafb;border:1.5px solid #e5e7eb;border-radius:10px;padding:8px 12px">
+      <span style="font-size:12px;color:#374151"><b>🩺 Diagnostics</b> — when an agent's PC misbehaves, have them open this and send the report:</span>
+      <button onclick="sgdOpen()" style="padding:6px 12px;border-radius:8px;border:none;background:#ee4d2d;color:white;font-size:11px;font-weight:700;cursor:pointer;font-family:'Sora',sans-serif">Run here</button>
+      <input readonly value="https://hadiahmadrrsg.github.io/allinonescriptgenerator/?diag=1" onclick="this.select()" style="flex:1;min-width:260px;padding:6px 10px;border-radius:8px;border:1.5px solid #e5e7eb;font-size:11px;font-family:monospace;color:#374151;background:white">
+      <span style="font-size:11px;color:#9ca3af">Inside DMS: the sign-in card has a "🩺 Run diagnostics" link.</span>
     </div>
     <div style="margin-bottom:12px;text-align:center">
       <button id="bm-generate-btn" onclick="generateAndCopyBookmarklet()" style="padding:10px 24px;border-radius:10px;border:none;background:#ee4d2d;color:white;font-weight:700;font-size:14px;cursor:pointer;font-family:'Sora',sans-serif">⚡ Generate Bookmarklet</button>
@@ -3584,6 +3741,7 @@ setTimeout(function(){
             <li><strong>Root cause found:</strong> a Google sign-in popup opened from inside the DMS panel (a cross-site iframe) loses its state under Chrome's storage partitioning &mdash; Firebase's popup shows <em>"Unable to process request due to missing initial state"</em> and Google shows <em>"Something went wrong"</em>. A browser limitation, not a DMS setting.</li>
             <li><strong>Sign-in now runs on the website in a normal tab.</strong> Clicking <em>Sign in with Google</em> in the panel opens the website (<code>?sg2login=1</code>); the agent signs in there (top-level, works as before), the tab reports back to the panel (same origin) and closes itself. If the agent is already signed in on the website, this takes about a second with no clicks. The panel then keeps the 30-day session pass for all later cases.</li>
             <li><strong>Website fallback:</strong> if the popup sign-in fails silently on the website, an <em>↪ Sign in via redirect</em> option appears.</li>
+            <li><strong>🩺 Diagnostics</strong> &mdash; a one-click environment report (browser, cookie/storage state, Storage Access API, Firebase/Google/Supabase/GitHub reachability with latency, sign-in state, pop-up test) with a Copy button. Open via <code>?diag=1</code>, the link on the sign-in card (website and panel), or Admin → Bookmarklet.</li>
             <li><strong>Reminder:</strong> the header pill must read <code>v36</code>; <code>v33/v34 · compat</code> is an old bookmark &mdash; regenerate and replace it.</li>
           </ul>
         </div>
