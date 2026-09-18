@@ -471,7 +471,7 @@ hr.ddiv { border:none; border-top:1.5px solid var(--dborder); margin:28px 0; }
       <!-- ═══ USER PROFILE — nav-style pills, same size as nav buttons ═══ -->
       <div id="sg-profile-bar" class="hidden" style="display:flex;gap:8px;align-items:center">
         <span class="nav-btn" style="background:white;color:#1a1a1a;display:inline-flex;align-items:center;gap:6px;cursor:default">
-          <img id="sg-prof-photo" src="" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;background:#f3f4f6;flex-shrink:0" onerror="this.style.display='none'">
+          <img id="sg-prof-photo" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;background:#f3f4f6;flex-shrink:0" onerror="this.style.display='none'">
           <span id="sg-prof-name" style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
           <span id="sg-prof-email" style="color:#9ca3af;font-weight:500;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
         </span>
@@ -1234,7 +1234,8 @@ const SGD_TARGETS = [
   ['Firebase database',             'https://allinone-generator-default-rtdb.asia-southeast1.firebasedatabase.app/.json?shallow=true'],
   ['Supabase (snippets/notes)',     (typeof _SB_PROJECT_URL!=='undefined' ? _SB_PROJECT_URL : 'https://imbiekajejqjsplzirxf.supabase.co') + '/rest/v1/'],
   ['jsDelivr CDN',                  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/package.json'],
-  ['Google Fonts',                  'https://fonts.googleapis.com/css2?family=Sora&display=swap']
+  ['Google Fonts',                  'https://fonts.googleapis.com/css2?family=Sora&display=swap'],
+  ['Menlo Security isolation proxy', 'https://safe.menlosecurity.com/favicon.ico']
 ];
 let _sgdRows = [], _sgdReport = '';
 function sgdOpen(){ const v = document.getElementById('sg2-diag-view'); if(!v) return; v.classList.add('open'); sgdRun(); }
@@ -1318,7 +1319,9 @@ async function sgdRun(){
     } else sgdAdd('⚠️','Panel replied', 'no answer (old bookmark, or postMessage blocked on this DMS page)');
   }
   sgdSec('Network reachability (no-cors probe, 8 s timeout)');
-  await Promise.all(SGD_TARGETS.map(async ([name,url])=>{ const r = await sgdTimed(url); sgdAdd(r.ok ? (r.ms>3000?'⚠️':'✅') : '❌', name, r.ok ? 'reachable · '+r.ms+' ms' : 'FAILED · '+r.err+' · '+r.ms+' ms'); }));
+  await Promise.all(SGD_TARGETS.map(async ([name,url])=>{ const r = await sgdTimed(url);
+    if(name.indexOf('Menlo')===0){ sgdAdd(r.ok ? '⚠️' : 'ℹ️', name, r.ok ? 'REACHABLE — this PC is likely behind Menlo browser isolation. If Google sign-in opens at safe.menlosecurity.com/…, Google will refuse it ("Couldn\'t sign you in"). IT must exempt accounts.google.com and *.firebaseapp.com from isolation for this user.' : 'not detected'); return; }
+    sgdAdd(r.ok ? (r.ms>3000?'⚠️':'✅') : '❌', name, r.ok ? 'reachable · '+r.ms+' ms' : 'FAILED · '+r.err+' · '+r.ms+' ms'); }));
   try{ if(typeof _sb!=='undefined' && _sb){ const t0=performance.now(); const { error } = await _sb.from('snippets').select('id').limit(1); sgdAdd(error?'❌':'✅','Supabase query', error ? 'error: '+error.message : 'ok · '+Math.round(performance.now()-t0)+' ms'); } }catch(e){ sgdAdd('❌','Supabase query','exception: '+e.message); }
   sgdSec('Pop-ups');
   sgdAdd('ℹ️','Pop-up allowed?', 'click 🪟 Test pop-up (needs a click) — required for sign-in from the panel');
@@ -3859,6 +3862,7 @@ setTimeout(function(){
             <li><strong>Sign-in now runs on the website in a normal tab.</strong> Clicking <em>Sign in with Google</em> in the panel opens the website (<code>?sg2login=1</code>); the agent signs in there (top-level, works as before), the tab reports back to the panel (same origin) and closes itself. If the agent is already signed in on the website, this takes about a second with no clicks. The panel then keeps the 30-day session pass for all later cases.</li>
             <li><strong>Website fallback:</strong> if the popup sign-in fails silently on the website, an <em>↪ Sign in via redirect</em> option appears.</li>
             <li><strong>Push loop fixed</strong> &mdash; Chrome also fires the iframe's <code>load</code> event on fragment navigations, so the panel could re-push the same case repeatedly (visible as repeated "session pass in hash" in the embed log). The panel now pushes only on the first real load, with a same-data throttle.</li>
+            <li><strong>Menlo Security detection</strong> &mdash; diagnostics now flag PCs behind Menlo browser isolation (Google refuses sign-in routed through <code>safe.menlosecurity.com</code>; this is an IT exemption, not a generator issue). A second Sign-in click while a Google window is open no longer cancels it (<code>auth/cancelled-popup-request</code>); the empty profile-photo request that showed as a failed IMG is gone.</li>
             <li><strong>🩺 Diagnostics is now holistic</strong> &mdash; an always-on recorder captures every JS error, unhandled promise, console error/warning, failed resource/fetch and a timeline of milestones (auth init/state, sign-in clicks, login-done, session pass, snippets load). The report adds a one-line SUMMARY, local data (key names, notes/snippets counts, cloud state), permissions, and &mdash; inside DMS &mdash; the bookmarklet's own log (version, build, handshake, deliveries) fetched from the panel. A 🩺 button is always on the front page (all login steps, including the "can't reach login service" screen), and every sign-in error shows "📋 Copy diagnostics report".</li>
             <li><strong>🩺 Diagnostics</strong> &mdash; a one-click environment report (browser, cookie/storage state, Storage Access API, Firebase/Google/Supabase/GitHub reachability with latency, sign-in state, pop-up test) with a Copy button. Open via <code>?diag=1</code>, the link on the sign-in card (website and panel), or Admin → Bookmarklet.</li>
             <li><strong>Reminder:</strong> the header pill must read <code>v36</code>; <code>v33/v34 · compat</code> is an old bookmark &mdash; regenerate and replace it.</li>
@@ -3880,7 +3884,7 @@ setTimeout(function(){
           <div style="font-size:12px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">&#128295; Fixed &mdash; repeated sign-in inside DMS</div>
           <ul style="padding-left:18px;margin:0;font-size:13px;color:#374151;line-height:2">
             <li><strong>No more reloads inside DMS</strong> &mdash; case data now reaches the generator through the URL fragment (same-document navigation → <code>hashchange</code>), with postMessage as a bonus; the old reload-based "compat" path is gone. A first-load bug (the iframe's empty <code>about:blank</code> document was mistaken for the generator) that forced compat mode on every open is fixed.</li>
-            <li><strong>Stays signed in inside DMS</strong> &mdash; after one Google sign-in inside the panel, the panel keeps a 30-day session pass in DMS's own storage and hands it to every new panel, so opening the next case does not ask again even when Chrome blocks the iframe's storage. An embed-core script also shims blocked <code>localStorage</code> so the app never crashes on startup, and the sign-in card shows storage diagnostics with a direct "Allow site data" (Storage Access API) button.</li>
+            <li><strong>Stays signed in inside DMS</strong> &mdash; after one Google sign-in inside the panel, the panel keeps a 30-day session pass in DMS's own storage and hands it to every new panel, so opening the next case does not ask again even when Chrome blocks the iframe's storage. An embed-core script also shims blocked <code>localStorage</code> so the app never crashes on startup, (storage details are available via 🩺 Diagnostics).</li>
             <li><strong>Small fixes</strong> &mdash; the RID text fallback no longer mistakes an Order SN that starts with "RID"; a generator that finishes loading after the 12-second watchdog now clears the fallback overlay; the panel's session pass is also accepted when the Firebase SDK cannot load inside DMS; case pushes into the panel use <code>location.replace</code>, so the browser's Back button is not polluted with panel states.</li>
             <li><strong>Check you are on v35:</strong> the pill in the panel header must read <code>v35</code>. A header that says <code>v34 · Connected · compat</code> is the old bookmark &mdash; regenerate and replace it.</li>
           </ul>
@@ -7054,12 +7058,22 @@ function sgGoogleSignIn(){
   if(window.SG2_EMBED){ sg2OpenLoginTab(); return; }
   _sg2DoGoogleSignIn();
 }
+let _sgPopupPending = false;
 function _sg2DoGoogleSignIn(){
   if(typeof sgEvt==='function') sgEvt('sign-in click (popup)');
   if(!_sgAuth){ _sgAuthStep('error'); return; }
+  if(_sgPopupPending){
+    // A second click would cancel the first popup (auth/cancelled-popup-request). Point to the open window instead.
+    _sgAuthShowError('A Google sign-in window is already open — finish signing in there (check behind this window), or close it and try again.');
+    if(typeof sgEvt==='function') sgEvt('sign-in click ignored (popup pending)');
+    return;
+  }
+  _sgPopupPending = true;
+  setTimeout(()=>{ _sgPopupPending = false; }, 90000);
   const provider = new firebase.auth.GoogleAuthProvider();
   provider.setCustomParameters({ prompt: 'select_account' });
-  _sgAuth.signInWithPopup(provider).catch(err=>{
+  _sgAuth.signInWithPopup(provider).then(()=>{ _sgPopupPending = false; }).catch(err=>{
+    _sgPopupPending = false;
     if(err && err.code === 'auth/popup-closed-by-user'){
       _sgAuthShowError('Sign-in did not complete. If the Google window showed an error, try the redirect sign-in instead.');
       const box = document.getElementById('sg-auth-error');
@@ -10960,30 +10974,14 @@ setTimeout(checkUrlParams, 150);
       var _sg2OrigOut = sgSignOut;
       sgSignOut = function(){ post({type:'sg2-signedout'}); window.SG2_SESSION = null; _sg2OrigOut(); };
     }
-    // Diagnostics + direct "Allow site data" button on the sign-in card (panel only)
+    // Sign-in card (panel only): hint element for the website-tab flow + relabelled button. (The storage/site-data box was removed — 🩺 Diagnostics covers it.)
     try{
       var gbtn = document.querySelector('#sg-login-overlay button[onclick*="sgGoogleSignIn"]');
-      if(gbtn && !document.getElementById('sg2-diag')){
-        var dg = document.createElement('div'); dg.id = 'sg2-diag';
-        dg.style.cssText = 'margin-top:12px;font-size:11px;color:#6b7280;line-height:1.7;text-align:left;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px';
-        dg.innerHTML = '<div>Panel storage: <b id="sg2-diag-storage">checking…</b> · Site-data access: <b id="sg2-diag-sa">checking…</b></div>'
-          + '<div style="margin-top:6px;display:flex;gap:6px;align-items:center;flex-wrap:wrap"><button type="button" id="sg2-diag-btn" style="padding:5px 10px;border-radius:8px;border:1px solid #fed7aa;background:#fff7ed;color:#c2410c;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit">🔓 Allow site data</button><span id="sg2-diag-msg"></span></div>'
-          + '<div style="margin-top:4px;color:#9ca3af">Sign-in happens on the website in a new tab (Google sign-in cannot run inside DMS). You stay signed in for 30 days, like the website.</div>';
-        gbtn.parentNode.insertBefore(dg, gbtn.nextSibling);
+      if(gbtn && !document.getElementById('sg2-login-hint')){
         var hint = document.createElement('div'); hint.id = 'sg2-login-hint';
         hint.style.cssText = 'display:none;margin-top:10px;font-size:12px;color:#065f46;background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:8px 10px;line-height:1.6;text-align:left';
         gbtn.parentNode.insertBefore(hint, gbtn.nextSibling);
         gbtn.innerHTML = gbtn.innerHTML.replace('Sign in with Google', 'Sign in with Google <span style="opacity:.7;font-weight:500">(opens a tab)</span>');
-        var st = document.getElementById('sg2-diag-storage'); if(st) st.textContent = window.SG2_STORAGE_BLOCKED ? 'blocked by browser' : 'ok';
-        var sa = document.getElementById('sg2-diag-sa');
-        if(!document.requestStorageAccess){ if(sa) sa.textContent = 'not supported'; }
-        else if(window.SG2_STORAGE_ACCESS){ window.SG2_STORAGE_ACCESS.then(function(ok){ if(sa) sa.textContent = ok ? 'granted' : 'not granted'; }); }
-        document.getElementById('sg2-diag-btn').onclick = function(){
-          var msg = document.getElementById('sg2-diag-msg');
-          if(!document.requestStorageAccess){ if(msg) msg.textContent = 'Not supported in this browser'; return; }
-          document.requestStorageAccess().then(function(){ if(msg) msg.textContent = 'Granted — reloading…'; setTimeout(function(){ location.reload(); }, 400); },
-            function(err){ if(msg) msg.textContent = 'Not granted (' + ((err && err.name) || 'denied') + ') — just Sign in; the panel will remember you for 30 days.'; });
-        };
       }
     }catch(e){}
     post({type:'sg2-ready', version: SG_APP_VERSION});   // repeat with the exact version now that it is known
